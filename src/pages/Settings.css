@@ -1,0 +1,87 @@
+﻿/* Scoped Settings Hub styles â€” does not modify global navigation or other pages. */
+.ff-settings-page{width:100%;max-width:1440px;margin:0 auto;padding:28px 34px 65px;color:#172a46;box-sizing:border-box}
+.ff-settings-page *{box-sizing:border-box}
+.ff-settings-hero{min-height:260px;background:#172a46;border-radius:28px;padding:43px 46px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;color:#fff}
+.ff-settings-hero-content{position:relative;z-index:1;max-width:710px}.ff-settings-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:2px;font-weight:800;color:#8fc7ff;margin-bottom:20px}
+.ff-settings-hero h1{font-size:clamp(32px,4.2vw,57px);line-height:1.06;letter-spacing:-2px;margin:0 0 17px;font-weight:800}.ff-settings-hero h1 span{color:#ff8d7d}.ff-settings-hero p{max-width:610px;font-size:15px;line-height:1.7;color:#d7e1ed;margin:0}
+.ff-settings-hero-art{display:grid;place-items:center;flex:none;width:200px;height:200px;margin-right:35px;border:1px solid rgba(255,255,255,.2);border-radius:50%;color:#ff8d7d;position:relative}.ff-settings-hero-art-ring{position:absolute;inset:20px;border:1px dashed rgba(255,255,255,.25);border-radius:50%}
+.ff-settings-controls{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:32px 0 26px}.ff-settings-controls h2{margin:0 0 5px;font-size:24px;letter-spacing:-.7px}.ff-settings-controls p{font-size:13px;margin:0;color:#738093}.ff-settings-search{border:1px solid #e2e5e9;background:#fff;border-radius:13px;padding:0 13px;display:flex;gap:10px;align-items:center;min-height:46px;min-width:min(365px,100%);color:#7a8594}.ff-settings-search input{flex:1;border:0;background:transparent;outline:none;min-width:0;font:inherit;font-size:13px;color:#172a46}.ff-settings-search button{border:0;background:transparent;cursor:pointer;color:#64748b;padding:5px}
+.ff-settings-group{margin:0 0 29px}.ff-settings-group-heading{display:flex;align-items:center;gap:12px;margin-bottom:13px}.ff-settings-group-heading h3{margin:0;font-size:15px;font-weight:800;letter-spacing:-.2px}.ff-settings-group-heading span{color:#8a96a6;font-size:11px}
+.ff-settings-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.ff-settings-card{appearance:none;border:1px solid #e6e7e8;background:#fff;border-radius:17px;min-height:100px;padding:19px 16px;text-align:left;display:flex;align-items:flex-start;gap:12px;color:#172a46;cursor:pointer;transition:transform .17s ease,border-color .17s ease,box-shadow .17s ease}.ff-settings-card:hover{border-color:#a2c9ee;transform:translateY(-2px);box-shadow:0 12px 26px rgba(23,42,70,.07)}.ff-settings-card:focus-visible,.ff-settings-back:focus-visible{outline:3px solid #1b93f5;outline-offset:3px}.ff-settings-icon{width:40px;height:40px;border-radius:12px;background:#edf6ff;color:#1b83d5;display:grid;place-items:center;flex-shrink:0}.ff-settings-card:nth-child(3n+2) .ff-settings-icon{background:#fff1ed;color:#ed765f}.ff-settings-card:nth-child(3n) .ff-settings-icon{background:#f1f0fb;color:#7973b9}.ff-settings-card-copy{min-width:0;display:grid;gap:7px;flex:1}.ff-settings-card strong{font-size:13.5px;line-height:1.35}.ff-settings-card small{font-size:12px;line-height:1.5;color:#7c8999}.ff-settings-arrow{flex:none;color:#9ba8b7;margin-top:3px}.ff-settings-no-results{background:#fff;border-radius:14px;padding:35px;text-align:center;color:#6b7280}.ff-settings-footer{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #e6e5e2;margin-top:32px;padding-top:22px;color:#8792a0;font-size:11px}
+.ff-settings-back{display:inline-flex;gap:9px;align-items:center;border:1px solid #e3e4e6;border-radius:12px;padding:11px 15px;color:#172a46;background:#fff;cursor:pointer;font-weight:700;font-size:13px}.ff-settings-detail-heading{margin:30px 0 22px}.ff-settings-detail-kicker{color:#ee766a;font-size:11px;font-weight:800;letter-spacing:1.6px}.ff-settings-detail-heading h1{font-size:clamp(30px,4vw,48px);margin:10px 0 10px;letter-spacing:-1.5px}.ff-settings-detail-heading p{color:#748294;margin:0;font-size:14px}.ff-settings-detail-surface{background:#fff;border:1px solid #e7e7e8;border-radius:22px;padding:40px;min-height:350px}.ff-settings-placeholder{max-width:650px}.ff-settings-placeholder-icon{display:grid;place-items:center;color:#1b93f5;background:#edf6ff;border-radius:17px;width:62px;height:62px}.ff-settings-placeholder h2{margin:24px 0 10px;font-size:25px}.ff-settings-placeholder>p{color:#6e7b8d;margin:0 0 25px;line-height:1.6}.ff-settings-pending{display:flex;gap:12px;align-items:flex-start;background:#f6f8fb;border:1px solid #e8ecf2;border-radius:14px;padding:17px;color:#66758b;font-size:13px;line-height:1.6}.ff-settings-pending svg{flex:none;margin-top:1px}
+@media(max-width:1050px){.ff-settings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ff-settings-hero-art{margin-right:0;width:150px;height:150px}}
+@media(max-width:768px){.ff-settings-page{padding:18px 16px 110px}.ff-settings-hero{min-height:unset;padding:26px 23px;border-radius:21px}.ff-settings-hero-art{display:none}.ff-settings-hero h1{letter-spacing:-1.2px}.ff-settings-hero p{font-size:13px}.ff-settings-controls{align-items:stretch;flex-direction:column;margin:23px 0}.ff-settings-controls h2{font-size:21px}.ff-settings-search{min-width:0;width:100%}.ff-settings-grid{grid-template-columns:1fr;gap:9px}.ff-settings-card{min-height:78px;padding:14px;align-items:center;border-radius:14px}.ff-settings-card small{font-size:11px}.ff-settings-group{margin-bottom:25px}.ff-settings-footer{flex-direction:column}.ff-settings-detail-surface{padding:23px;min-height:300px;border-radius:18px}.ff-settings-detail-heading{margin:24px 0 18px}}
+@media(prefers-reduced-motion:reduce){.ff-settings-card{transition:none}}
+
+/* Footer layout: app credit / rights / verification / tiny version */
+.ff-settings-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;margin-top:36px;padding-top:22px}
+.ff-settings-footer-brand{font-weight:700;color:#526176;font-size:12px}
+.ff-settings-footer-copyright{font-size:11px;color:#68798d}
+.ff-settings-footer-note{font-size:11px;color:#8792a0}
+.ff-settings-footer-version{font-size:10px;letter-spacing:.015em;color:#9aa5b2;margin-top:7px}
+@media(max-width:768px){.ff-settings-footer{gap:8px;margin-top:24px;padding-bottom:14px}.ff-settings-footer-brand{font-size:11px}.ff-settings-footer-version{font-size:10px;margin-top:9px}}
+
+/* FF_SETTINGS_CONTENT_SCROLL_FIX_START */
+/* Scroll only through actual Settings content. */
+.ff-settings-page {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  padding-bottom: 24px;
+}
+.ff-settings-detail-surface {
+  min-height: 0;
+  height: auto;
+}
+.ff-settings-footer {
+  margin-top: 22px;
+  padding-top: 18px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+@media (max-width: 768px) {
+  .ff-settings-page {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding-bottom: 22px;
+  }
+  .ff-settings-detail-surface { min-height: 0; }
+  .ff-settings-footer {
+    margin-top: 18px;
+    padding-top: 16px;
+    padding-bottom: 0;
+  }
+}
+/* FF_SETTINGS_CONTENT_SCROLL_FIX_END */
+
+/* FF_SETTINGS_SCROLL_FINAL_START */
+/* Scoped to Settings: remove stacked bottom spacing from page and global shell. */
+.app-content:has(.ff-settings-page) {
+  min-height: 0;
+  height: auto;
+  padding-bottom: 20px;
+}
+.ff-settings-page {
+  min-height: 0;
+  height: auto;
+  padding-bottom: 12px;
+}
+.ff-settings-detail-surface { min-height: 0; height: auto; }
+.ff-settings-footer { margin-bottom: 0; padding-bottom: 0; }
+@media (max-width: 768px) {
+  /* Keep just enough space for the fixed bottom navigation, not two paddings. */
+  .app-content:has(.ff-settings-page) {
+    min-height: 0;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+  .ff-settings-page {
+    min-height: 0;
+    padding-bottom: 8px;
+  }
+  .ff-settings-detail-surface { min-height: 0; }
+  .ff-settings-footer { margin-top: 16px; padding-bottom: 0; }
+}
+/* FF_SETTINGS_SCROLL_FINAL_END */
+
