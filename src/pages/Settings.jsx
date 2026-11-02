@@ -1,48 +1,41 @@
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { ArrowLeft, ArrowUpRight, Search, X, ShieldCheck, ScrollText, Cookie, Building2, Copyright, FileWarning, Users, Shield, Scale, LockKeyhole, Flag, CircleHelp, Contact, Headset, HeartHandshake, Clapperboard, GitBranch, Package, Accessibility, SlidersHorizontal, Database, Settings2 } from "lucide-react";
+import { SETTINGS_GROUPS, SETTINGS_ITEMS } from "./settings/settingsCatalog";
+import { SETTINGS_SECTIONS } from "./settings/settingsSections";
+import "./Settings.css";
 
-import { Settings as SettingsIcon } from "lucide-react";
-import { APP_CONFIG } from "../config/app.config";
+const ICONS = { "shield-check": ShieldCheck, "scroll-text": ScrollText, cookie: Cookie, "building-2": Building2, copyright: Copyright, "file-warning": FileWarning, users: Users, shield: Shield, scale: Scale, "lock-keyhole": LockKeyhole, flag: Flag, "circle-help": CircleHelp, contact: Contact, headset: Headset, "heart-handshake": HeartHandshake, clapperboard: Clapperboard, "git-branch": GitBranch, package: Package, accessibility: Accessibility, "sliders-horizontal": SlidersHorizontal, database: Database };
 
 export default function Settings() {
-  return (
-    <section style={{ maxWidth: 700 }}>
-      <p style={{
-        fontSize: 12,
-        fontWeight: 700,
-        color: "var(--color-coral)",
-        letterSpacing: 1.5
-      }}>
-        PREFERENCES
-      </p>
+  const [params, setParams] = useSearchParams();
+  const [query, setQuery] = useState("");
+  const requested = params.get("section");
+  const selected = SETTINGS_ITEMS.find((item) => item.id === requested);
+  const filtered = useMemo(() => SETTINGS_ITEMS.filter((item) => `${item.title} ${item.description} ${item.group}`.toLowerCase().includes(query.trim().toLowerCase())), [query]);
+  const openSection = (id) => setParams({section:id});
+  const backToSettings = () => setParams({});
+  const SelectedComponent = selected ? SETTINGS_SECTIONS[selected.id] : null;
 
-      <h1 style={{
-        fontSize: "clamp(30px, 4vw, 46px)",
-        marginTop: 12
-      }}>
-        Settings
-      </h1>
-
-      <div style={{
-        background: "#FFFFFF",
-        border: "1px solid var(--color-navy)",
-        borderRadius: 20,
-        padding: 24,
-        marginTop: 30
-      }}>
-        <SettingsIcon size={26} />
-
-        <h2 style={{ marginTop: 15, fontSize: 21 }}>
-          Workspace Preferences
-        </h2>
-
-        <p style={{ marginTop: 10, lineHeight: 1.7 }}>
-          Language preferences, account settings and
-          project defaults will be available here.
-        </p>
-
-        <p style={{ marginTop: 20, fontSize: 12, opacity: 0.65 }}>
-          {APP_CONFIG.shortName} — Frontend preview
-        </p>
-      </div>
-    </section>
-  );
+  return <main className="ff-settings-page">
+    {selected ? <>
+      <button type="button" className="ff-settings-back" onClick={backToSettings}><ArrowLeft size={18}/> All Settings</button>
+      <div className="ff-settings-detail-heading"><span className="ff-settings-detail-kicker">FRAMEFORGE / SETTINGS</span><h1>{selected.title}</h1><p>{selected.description}</p></div>
+      <section className="ff-settings-detail-surface">{SelectedComponent && <SelectedComponent/>}</section>
+    </> : <>
+      <header className="ff-settings-hero">
+        <div className="ff-settings-hero-content"><div className="ff-settings-eyebrow"><Settings2 size={15}/> YOUR WORKSPACE, YOUR CONTROL</div><h1>Settings <span>& information.</span></h1><p>Everything about your FRAMEFORGE experience, policies, support and the people behind the product — organized in one place.</p></div>
+        <div className="ff-settings-hero-art" aria-hidden="true"><div className="ff-settings-hero-art-ring"/><ShieldCheck size={54}/></div>
+      </header>
+      <div className="ff-settings-controls"><div><h2>Explore settings</h2><p>Choose a section to view its dedicated page.</p></div><label className="ff-settings-search"><Search size={17}/><input aria-label="Search settings" placeholder="Search settings and policies..." value={query} onChange={e=>setQuery(e.target.value)}/>{query && <button type="button" aria-label="Clear search" onClick={()=>setQuery("")}><X size={16}/></button>}</label></div>
+      {SETTINGS_GROUPS.map(group => { const items = filtered.filter(item=>item.group===group); if(!items.length) return null; return <section className="ff-settings-group" key={group}><div className="ff-settings-group-heading"><h3>{group}</h3><span>{items.length} {items.length===1?'section':'sections'}</span></div><div className="ff-settings-grid">{items.map(item=>{const Icon=ICONS[item.icon] || Settings2; return <button className="ff-settings-card" type="button" key={item.id} onClick={()=>openSection(item.id)}><span className="ff-settings-icon"><Icon size={20}/></span><span className="ff-settings-card-copy"><strong>{item.title}</strong><small>{item.description}</small></span><ArrowUpRight size={17} className="ff-settings-arrow"/></button>})}</div></section>; })}
+      {filtered.length===0 && <div className="ff-settings-no-results">No settings found for “{query}”.</div>}
+      <footer className="ff-settings-footer">
+        <span className="ff-settings-footer-brand">FRAMEFORGE · Built by Team Runtime Error</span>
+        <span className="ff-settings-footer-copyright">© {new Date().getFullYear()} Team Runtime Error. All rights reserved.</span>
+        <span className="ff-settings-footer-note">Policy and contact details will be published once verified.</span>
+        <span className="ff-settings-footer-version">{`Web app version: ${import.meta.env.VITE_APP_VERSION || "Not specified"}`}</span>
+      </footer>
+    </>}
+  </main>;
 }
