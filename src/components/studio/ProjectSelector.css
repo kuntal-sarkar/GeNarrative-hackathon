@@ -1,0 +1,128 @@
+
+.project-selector {
+  margin-bottom: 28px;
+  padding: 24px;
+  background: #FFFFFF;
+  border: 1px solid rgba(23, 42, 70, 0.18);
+  border-radius: 20px;
+}
+
+.project-selector-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.project-selector-heading h2 {
+  margin: 7px 0 0;
+  font-size: 23px;
+}
+
+.project-new-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-coral);
+  color: var(--color-navy);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.project-selector-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.project-selector-item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid rgba(23, 42, 70, 0.2);
+  border-radius: 14px;
+  background: #FFFFFF;
+}
+
+.project-selected {
+  border: 2px solid var(--color-blue);
+}
+
+.project-open-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  color: var(--color-navy);
+  text-align: left;
+}
+
+.project-open-btn span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 5px;
+}
+
+.project-open-btn strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.project-open-btn small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.project-delete-btn {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: var(--color-navy);
+}
+
+.project-delete-btn:hover {
+  background: var(--color-coral);
+}
+
+.project-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border: 1px dashed var(--color-navy);
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .project-selector {
+    padding: 16px;
+  }
+
+  .project-selector-list {
+    grid-template-columns: 1fr;
+  }
+
+  .project-selector-heading h2 {
+    font-size: 20px;
+  }
+}

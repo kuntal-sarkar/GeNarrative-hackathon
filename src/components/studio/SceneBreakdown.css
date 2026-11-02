@@ -1,0 +1,147 @@
+
+.scene-breakdown {
+  margin-top: 28px;
+  padding: 24px;
+  background: #FFFFFF;
+  border: 1px solid rgba(23, 42, 70, 0.18);
+  border-radius: 20px;
+}
+
+.scene-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.scene-breakdown-header h2 {
+  margin: 8px 0;
+  font-size: 24px;
+}
+
+.scene-breakdown-header p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.scene-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.scene-outline-btn,
+.scene-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scene-outline-btn {
+  background: #FFFFFF;
+  border: 1px solid var(--color-navy);
+  color: var(--color-navy);
+}
+
+.scene-action-btn {
+  background: var(--color-blue);
+  border: none;
+  color: var(--color-navy);
+}
+
+.scene-parser-note {
+  padding: 12px 0;
+  margin: 18px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
+.scene-feedback {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scene-list {
+  display: grid;
+  gap: 14px;
+}
+
+.scene-card {
+  padding: 20px;
+  border: 1px solid rgba(23, 42, 70, 0.23);
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+
+.scene-card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.scene-number {
+  color: var(--color-coral);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.scene-delete-btn {
+  border: none;
+  background: #FFFFFF;
+  color: var(--color-navy);
+  padding: 7px;
+  border-radius: 8px;
+}
+
+.scene-delete-btn:hover {
+  background: var(--color-coral);
+}
+
+.scene-card .studio-field + .studio-field {
+  margin-top: 17px;
+}
+
+.scene-empty-state {
+  padding: 35px 18px;
+  border: 1px dashed var(--color-navy);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.scene-empty-state h3 {
+  margin: 12px 0 7px;
+}
+
+.scene-empty-state p {
+  margin: 0;
+  font-size: 12px;
+}
+
+@media (max-width: 750px) {
+  .scene-breakdown {
+    padding: 16px;
+  }
+
+  .scene-breakdown-header {
+    flex-direction: column;
+  }
+
+  .scene-header-actions {
+    width: 100%;
+  }
+
+  .scene-card {
+    padding: 14px;
+  }
+}

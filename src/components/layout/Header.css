@@ -1,0 +1,12 @@
+.app-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1100;
+  height: 76px; padding: 0 clamp(18px, 3.2vw, 56px);
+  display: flex; align-items: center; justify-content: space-between;
+  background: #FFFFFF; border-bottom: 1px solid var(--surface-border);
+}
+.app-brand {display: flex;align-items: center;gap: 12px;min-width: 0;}
+.app-brand-icon {display:grid;place-items:center;width:42px;height:42px;background:var(--color-navy);color:#FFFFFF;border-radius:13px;flex-shrink:0;}
+.app-brand-name {font-family:"Space Grotesk",sans-serif;font-size:19px;font-weight:700;letter-spacing:-.6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.profile-button {display:grid;place-items:center;width:41px;height:41px;border:1px solid var(--surface-border);border-radius:50%;background:#FFFFFF;color:var(--color-navy);}
+.profile-button:disabled{opacity:.55;cursor:not-allowed;}
+@media(max-width:768px){.app-header{height:66px;padding:0 17px}.app-brand-icon{width:37px;height:37px}.app-brand-name{font-size:16px}.profile-button{width:37px;height:37px}}

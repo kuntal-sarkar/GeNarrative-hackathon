@@ -1,0 +1,19 @@
+:root {
+  --color-cream: #FAF7F2;
+  --color-coral: #FF6B5B;
+  --color-navy: #172A46;
+  --color-blue: #1B93F5;
+  --color-orange: #F57D1B;
+  --surface-card: #FFFFFF;
+  --surface-input: #FFFFFF;
+  --surface-muted: #F3E7D3;
+  --surface-border: #E8E1D8;
+  --text-muted: #687486;
+  --bg-primary: var(--color-cream);
+  --text-primary: var(--color-navy);
+  --accent-primary: var(--color-blue);
+  --accent-secondary: var(--color-coral);
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+}

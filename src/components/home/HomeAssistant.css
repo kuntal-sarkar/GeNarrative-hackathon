@@ -1,0 +1,20 @@
+.home-assistant-section{margin-top:45px;}
+.assistant-panel{padding:clamp(20px,3vw,32px);border:1px solid var(--surface-border);border-radius:23px;background:#FFFFFF!important;color:var(--color-navy)!important;}
+.assistant-panel-header,.assistant-title-group{display:flex;align-items:center;gap:14px;}
+.assistant-panel-header{justify-content:space-between;}
+.assistant-icon{display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;border-radius:13px;background:var(--color-navy);color:#FFFFFF;}
+.assistant-kicker{font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--color-coral);}
+.assistant-title-group h2{margin:5px 0 0;font-size:clamp(19px,2.3vw,25px);letter-spacing:-.6px;}
+.assistant-demo-label{padding:6px 10px;border:1px solid var(--surface-border);border-radius:99px;font-size:10px;font-weight:800;color:var(--text-muted);}
+.assistant-intro{max-width:600px;margin:18px 0;font-size:13px;line-height:1.7;color:var(--text-muted);}
+.assistant-suggestions{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:18px;}
+.assistant-suggestions button{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid var(--surface-border);border-radius:99px;background:#FFFFFF!important;color:var(--color-navy)!important;font-size:11px;}
+.assistant-suggestions button:hover{border-color:var(--color-blue);}
+.assistant-demo-answer{padding:15px;margin-bottom:17px;background:#FFFFFF;border:1px solid var(--color-blue);border-radius:13px;}
+.assistant-demo-answer strong{font-size:12px}.assistant-demo-answer p{font-size:13px;line-height:1.6;margin:7px 0 0;}
+.assistant-input-form{display:flex;align-items:center;gap:10px;padding:7px;border:1px solid var(--surface-border);border-radius:15px;background:#FFFFFF!important;}
+.assistant-input-form input{min-width:0;flex:1;padding:11px;border:0;outline:none;background:#FFFFFF!important;color:var(--color-navy)!important;font-size:13px;}
+.assistant-input-form input::placeholder{color:var(--text-muted);opacity:1;}
+.assistant-input-form>button{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;border:none;border-radius:11px;background:var(--color-blue);color:var(--color-navy);}
+.assistant-input-form>button:disabled{opacity:.4;cursor:not-allowed;}
+@media(max-width:600px){.home-assistant-section{margin-top:38px}.assistant-panel-header{align-items:flex-start}.assistant-suggestions{flex-direction:column}.assistant-suggestions button{justify-content:flex-start}}
