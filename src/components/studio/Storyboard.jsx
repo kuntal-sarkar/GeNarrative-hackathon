@@ -26,7 +26,7 @@ export default function Storyboard({ scenes }) {
       {frames.length === 0 ? (
         <div className="storyboard-empty"><Images size={28}/><h3>No storyboard frames yet</h3><p>Create shots in the Shot Planner to build a storyboard sequence.</p></div>
       ) : (
-        <div className={`storyboard-frames ${view === "sequence" ? "sequence" : ""}`}>
+        <div className={`storyboard-frames ${view === "sequence" ? "sequence" : "grid"}`}>
           {frames.map((shot) => (
             <article className="storyboard-frame" key={shot.id}>
               <div className="storyboard-frame-media" aria-label="Visual reference not added"><Images size={30}/><span>Reference image not added</span></div>

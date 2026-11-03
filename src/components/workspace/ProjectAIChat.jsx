@@ -27,10 +27,18 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
   useEffect(()=>{ setActiveId(null); setTarget("project"); setProposal(null); setInput(""); },[project.id]);
   useEffect(()=>{ if (location.state?.chatIntent === "story") setTarget("story"); },[location.state]);
   useEffect(()=>{scrollRef.current?.scrollTo({top: scrollRef.current.scrollHeight,behavior:"smooth"});},[thread?.messages?.length]);
-  function commit(next, id) { onSave({...project, chatThreads: next, activeChatThreadId: id}); if (id) setActiveId(id); }
-  function create() { const t=makeThread("New conversation",target); commit([t,...threads],t.id); setInput("");setProposal(null);setSidebarOpen(false); }
-  function rename(id) { const old=threads.find(t=>t.id===id); const title=window.prompt("Conversation name",old?.title||"")?.trim(); if(title)commit(threads.map(t=>t.id===id?{...t,title:title.slice(0,90)}:t), id); }
-  function remove(id) {if(!window.confirm("Delete this conversation from the project draft? Save Changes to confirm."))return;const remaining=threads.filter(t=>t.id!==id);commit(remaining,remaining[0]?.id||null);setActiveId(remaining[0]?.id||null);}
+  function commit(nextOrUpdater, id) {
+    onSave(latest => {
+      if (!latest) return latest;
+      const all = normalize(latest);
+      const next = typeof nextOrUpdater === "function" ? nextOrUpdater(all) : nextOrUpdater;
+      return { ...latest, chatThreads: next, activeChatThreadId: id };
+    });
+    setActiveId(id || null);
+  }
+  function create() { const t=makeThread("New conversation",target); commit(all => [t,...all],t.id); setInput("");setProposal(null);setSidebarOpen(false); }
+  function rename(id) { const old=threads.find(t=>t.id===id); const title=window.prompt("Conversation name",old?.title||"")?.trim(); if(title)commit(all => all.map(t=>t.id===id?{...t,title:title.slice(0,90)}:t), id); }
+  function remove(id) {if(!window.confirm("Delete this conversation from the project draft? Save Changes to confirm."))return;const remaining=threads.filter(t=>t.id!==id);commit(all => all.filter(t=>t.id!==id),remaining[0]?.id||null);setActiveId(remaining[0]?.id||null);}
   function switchTo(id){setActiveId(id);setProposal(null);setError("");setSidebarOpen(false);}
   async function send(e) {
     e.preventDefault(); const content=input.trim(); if(!content||busy)return;
@@ -39,8 +47,15 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
     const history=Array.isArray(current.messages)?current.messages:[];
     const userMessage={id:uid(),role:"user",content,sceneId:target.startsWith("scene:")?target.slice(6):null,at:new Date().toISOString()};
     const waiting=[...history,userMessage];
-    const initial=threads.some(t=>t.id===current.id)?threads:[current,...threads];
-    commit(initial.map(t=>t.id===current.id?{...t,title:history.length?t.title:content.slice(0,60),messages:waiting,target}:t),current.id);
+    // Append to the latest draft, not to the project snapshot captured before the request.
+    commit(all => {
+      const exists = all.some(t => t.id === current.id);
+      const base = exists ? all : [current, ...all];
+      return base.map(t => t.id === current.id ? {
+        ...t, title: history.length ? t.title : content.slice(0, 60),
+        messages: [...(t.messages || []), userMessage], target
+      } : t);
+    }, current.id);
     setInput("");setError("");setBusy(true);setProposal(null);
     try {
       const data=await requestProjectAI(project.id,"chat",{
@@ -51,9 +66,11 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
       const answer=typeof data?.answer==="string"?data.answer.trim():"";
       if(!answer)throw new Error("Backend returned no answer.");
       const response={id:uid(),role:"assistant",content:answer,at:new Date().toISOString()};
-      // Read the freshest draft from parent via ref is not possible here; preserve provided state and last submitted message.
-      const updated=initial.map(t=>t.id===current.id?{...t,title:history.length?t.title:content.slice(0,60),messages:[...waiting,response],target}:t);
-      onSave({...project,chatThreads:updated,activeChatThreadId:current.id});
+      // Functional update preserves edits, other chats, renames and scene changes
+      // made while the backend request was in flight.
+      onSave(latest => ({ ...latest, chatThreads: normalize(latest).map(t =>
+        t.id === current.id ? { ...t, messages: [...(t.messages || []), response] } : t
+      ) }));
       if(data?.proposedRevision && typeof data.proposedRevision.text==="string" && ["story","scene"].includes(data.proposedRevision.target)) {
         setProposal(data.proposedRevision); setRevision(data.proposedRevision.text);
       }
@@ -62,11 +79,11 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
   }
   function applyProposal(){
     if(!proposal||!revision.trim())return;
-    if(proposal.target==="story") onSave({...project,story:revision});
+    if(proposal.target==="story") onSave(latest => ({ ...latest, story:revision }));
     else if(proposal.target==="scene" && proposal.sceneId) {
       const match=(project.scenes||[]).some(s=>s.id===proposal.sceneId);
       if(!match){setError("The referenced scene no longer exists.");return;}
-      onSave({...project,scenes:(project.scenes||[]).map(s=>s.id===proposal.sceneId?{...s,description:revision}:s)});
+      onSave(latest => ({ ...latest, scenes:(latest.scenes||[]).map(s=>s.id===proposal.sceneId?{...s,description:revision}:s) }));
     } else return;
     setProposal(null);setRevision("");setError("Revision added to unsaved project draft. Click Save Changes at the top to keep it.");
   }
