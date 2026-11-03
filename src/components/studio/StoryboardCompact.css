@@ -1,0 +1,26 @@
+/* Frame previews remain compact even for very long screenplay descriptions. */
+.ff-storyboard-compact .storyboard-frame.ff-frame-button{display:flex;flex-direction:column;width:100%;padding:0;border:1px solid #e5eaf0;text-align:left;color:#172a46;cursor:pointer;min-width:0;overflow:hidden;background:#fff;transition:border-color .16s,transform .16s;}
+.ff-storyboard-compact .storyboard-frame.ff-frame-button:hover{border-color:#1b93f5;transform:translateY(-2px)}
+.ff-storyboard-compact .storyboard-frame .storyboard-frame-media{min-height:110px;height:110px;flex:0 0 auto;}
+.ff-storyboard-compact .storyboard-frame-details{display:flex;flex-direction:column;gap:5px;padding:13px;min-height:0;max-width:100%;width:100%;}
+.ff-storyboard-compact .storyboard-frame h3{margin:3px 0;font-size:15px;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.ff-storyboard-compact .storyboard-frame p{margin:0;color:#526176;font-size:12px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere;min-height:0;}
+.ff-storyboard-compact .storyboard-frame-number{overflow-wrap:anywhere;}
+.ff-storyboard-compact .storyboard-frame-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:5px;}
+.ff-storyboard-compact .storyboard-frame-bottom svg{flex-shrink:0;color:#1b93f5}
+.ff-storyboard-compact .storyboard-frame-meta{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ff-storyboard-compact .storyboard-frames.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ff-storyboard-compact .storyboard-frames.sequence{grid-template-columns:1fr}
+.ff-storyboard-compact .storyboard-frames.sequence .ff-frame-button{display:grid;grid-template-columns:130px minmax(0,1fr);}
+.ff-storyboard-compact .storyboard-frames.sequence .storyboard-frame-media{height:100%;min-height:150px}
+.ff-storyboard-overlay{position:fixed;z-index:10000;inset:0;background:rgba(13,26,46,.65);display:grid;place-items:center;padding:18px;}
+.ff-storyboard-dialog{width:min(620px,100%);max-height:min(90dvh,850px);overflow-y:auto;background:#fff;color:#172a46;border-radius:20px;padding:22px;box-shadow:0 24px 90px rgba(0,0,0,.25);}
+.ff-storyboard-dialog header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+.ff-storyboard-dialog h2{font-size:22px;margin:7px 0;overflow-wrap:anywhere}
+.ff-storyboard-dialog header button{display:grid;place-items:center;flex-shrink:0;width:38px;height:38px;border:1px solid #dfe4ec;border-radius:50%;background:#fff;cursor:pointer}
+.ff-storyboard-dialog-media{display:grid;place-content:center;justify-items:center;gap:6px;background:#172a46;color:#fff4dc;border-radius:14px;min-height:145px;font-size:12px}
+.ff-storyboard-dialog dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:18px 0 0}
+.ff-storyboard-dialog dt{font-weight:700;font-size:11px;color:#687486;margin-bottom:5px}
+.ff-storyboard-dialog dd{font-size:13px;line-height:1.6;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.ff-storyboard-dialog dl>div:first-child,.ff-storyboard-dialog dl>div:last-child{grid-column:1/-1}
+@media(max-width:600px){.ff-storyboard-compact .storyboard-frame .storyboard-frame-media{height:88px;min-height:88px}.ff-storyboard-compact .storyboard-frame-details{padding:10px;gap:4px}.ff-storyboard-compact .storyboard-frames.sequence .ff-frame-button{grid-template-columns:96px minmax(0,1fr)}.ff-storyboard-compact .storyboard-frames.sequence .storyboard-frame-media{height:100%;min-height:116px}.ff-storyboard-dialog{padding:16px;max-height:88dvh}.ff-storyboard-dialog dl{grid-template-columns:1fr;gap:12px}.ff-storyboard-dialog dl>div{grid-column:1/-1}}

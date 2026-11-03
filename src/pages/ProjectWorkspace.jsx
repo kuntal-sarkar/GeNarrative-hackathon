@@ -19,6 +19,7 @@ import "./ProjectWorkspace.css";
 import "./WorkspacePolish.css";
 import "./CreativeUpgrade.css";
 import "../styles/WorkspaceRefresh.css";
+import "../styles/WorkspaceMicroFix.css";
 
 const SECTIONS = [
   { key: "overview", label: "Overview", icon: LayoutDashboard, hint: "Project progress and tools" },
@@ -27,7 +28,7 @@ const SECTIONS = [
   { key: "shots", label: "Shots", icon: Camera, hint: "Plan camera directions" },
   { key: "storyboard", label: "Storyboard", icon: Film, hint: "Visualize shot sequence" },
   { key: "critics", label: "Critics", icon: MessageSquareText, hint: "Receive creative feedback" },
-  { key: "continuity", label: "Continuity", icon: ScanSearch, ChevronDown, UploadCloud, hint: "Check story consistency" },
+  { key: "continuity", label: "Continuity", icon: ScanSearch, hint: "Check story consistency" },
   { key: "memory", label: "Memory", icon: Brain, hint: "Preserve creative intent" },
   { key: "chat", label: "Project AI Chat", icon: MessageCircle, hint: "Ask about scenes and shots" },
 ];
@@ -103,6 +104,9 @@ export default function ProjectWorkspace() {
     const { title, genre, language, idea } = project;
     savePartial(latest => ({ ...latest, title: title.trim(), genre, language, idea }), "Story details saved");
   }
+  const savedProject = savedRevision >= 0 ? getProject(projectId) : null;
+  const storyDetailsSaved = Boolean(savedProject && ["title", "genre", "language", "idea"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
+  const storyTextSaved = Boolean(savedProject && ["story", "sourceFilename"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
   function saveStoryText() {
     const { story, sourceFilename } = project;
     savePartial(latest => ({ ...latest, story, sourceFilename }), "Story text saved");
@@ -143,13 +147,6 @@ export default function ProjectWorkspace() {
     const original = getProject(projectId)?.scenes?.find(s => s.id === sceneId)?.shots?.find(s => s.id === shot.id);
     return Boolean(original && ["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].every(k => (original[k] || "") == (shot[k] || "")));
   }
-  function saveChanges() {
-    if (!project.title?.trim()) {setError("Project title cannot be empty.");return;}
-    try {
-      const saved = saveProject(project);
-      setProject(saved);setDirty(false);setStatus("All changes saved");setError("");
-    } catch {setError("Could not save. Check browser storage.");}
-  }
   function handleScenes(action, payload = {}) {
     let scenes = [...(project.scenes || [])];
     if (action === "add") scenes.push({ id: crypto.randomUUID(), name: "", heading: "", description: "", shots: [] });
@@ -158,27 +155,48 @@ export default function ProjectWorkspace() {
       const target = scenes.find(s => s.id === payload.id);
       if (target?.shots?.length && !window.confirm("This scene has shots. Delete the scene and all its shots?")) return;
       scenes = scenes.filter(s => s.id !== payload.id);
+      if (getProject(projectId)?.scenes?.some(s => s.id === payload.id)) {
+        savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).filter(s => s.id !== payload.id).map((s,i) => ({ ...s, number:i+1 })) }), "Scene deleted");
+      }
     } else return;
-    persist({ ...project, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) });
+    if (action === "delete") {
+      setProject(previous => ({ ...previous, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) }));
+      setDirty(JSON.stringify({ ...project, scenes: scenes.map((s,i) => ({...s,number:i+1})), updatedAt:null }) !== JSON.stringify({ ...getProject(projectId), updatedAt:null }));
+    } else persist(previous => ({ ...previous, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) }));
   }
 
   function handleShots(sceneId, action, payload = {}) {
-    const scenes = (project.scenes || []).map(scene => {
-      if (scene.id !== sceneId) return scene;
-      let shots = [...(Array.isArray(scene.shots) ? scene.shots : [])];
-      if (action === "add") shots.push({ id: crypto.randomUUID(), name: "", type: "", angle: "", movement: "", lighting: "", mood: "", duration: "", description: "", notes: "" });
-      else if (action === "edit") {
-        if (!["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].includes(payload.field)) return scene;
-        shots = shots.map(s => s.id === payload.id ? { ...s, [payload.field]: payload.value } : s);
-      } else if (action === "delete") shots = shots.filter(s => s.id !== payload.id);
-      else if (action === "move") {
-        const index = shots.findIndex(s => s.id === payload.id);
-        const next = index + payload.direction;
-        if (index >= 0 && next >= 0 && next < shots.length) [shots[index], shots[next]] = [shots[next], shots[index]];
-      } else return scene;
-      return { ...scene, shots };
-    });
-    persist({ ...project, scenes });
+    const scene = project.scenes?.find(s => s.id === sceneId);
+    if (!scene) return;
+    const currentShots = [...(scene.shots || [])];
+    const isSaved = shotId => Boolean(getProject(projectId)?.scenes?.find(s => s.id === sceneId)?.shots?.some(s => s.id === shotId));
+    let nextShots = currentShots;
+    if (action === "add") nextShots = [...currentShots, { id: crypto.randomUUID(), name: "", type: "", angle: "", movement: "", lighting: "", mood: "", duration: "", description: "", notes: "" }];
+    else if (action === "edit") {
+      if (!["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].includes(payload.field)) return;
+      nextShots = currentShots.map(shot => shot.id === payload.id ? { ...shot, [payload.field]: payload.value } : shot);
+    } else if (action === "delete") {
+      if (!window.confirm("Delete this shot permanently?")) return;
+      nextShots = currentShots.filter(shot => shot.id !== payload.id);
+      if (isSaved(payload.id)) savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({ ...s, shots: (s.shots || []).filter(shot => shot.id !== payload.id) })) }), "Shot deleted");
+    } else if (action === "move") {
+      const i = currentShots.findIndex(shot => shot.id === payload.id);
+      const j = i + payload.direction;
+      if (i < 0 || j < 0 || j >= currentShots.length) return;
+      if (!isSaved(currentShots[i].id) || !isSaved(currentShots[j].id)) {
+        setError("Save both shots before reordering them."); return;
+      }
+      nextShots = [...currentShots];
+      [nextShots[i], nextShots[j]] = [nextShots[j], nextShots[i]];
+      const order = nextShots.map(shot => shot.id);
+      savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({ ...s,
+        shots: [...(s.shots || [])].sort((a,b) => order.indexOf(a.id)-order.indexOf(b.id)) })) }), "Shot order saved");
+    } else return;
+    const nextProject = { ...project, scenes: (project.scenes || []).map(s => s.id === sceneId ? ({ ...s, shots: nextShots }) : s) };
+    setProject(nextProject);
+    const stored = getProject(projectId);
+    setDirty(JSON.stringify({ ...nextProject, updatedAt:null }) !== JSON.stringify({ ...stored, updatedAt:null }));
+    setError("");
   }
 
   async function uploadScript(file) {
@@ -205,7 +223,7 @@ export default function ProjectWorkspace() {
   return <div className="project-workspace">
     <div className="ws-crumb"><Link to="/studio"><ArrowLeft size={16}/> My projects</Link><span>/</span><span>{project.title || "Untitled Story"}</span></div>
     <header className="ws-project-header"><div><span className="ws-eyebrow">PROJECT WORKSPACE</span><h1>{project.title || "Untitled Story"}</h1><p>{project.genre || "Story"} · {project.language || "English"} · Saved in this browser</p></div><button className="ws-ghost ws-header-chat" type="button" onClick={()=>navigate(`${base}/chat`)}><MessageCircle size={17}/> Ask AI</button></header>
-    <div className="ff-savebar"><div><span className={`ff-save-dot ${dirty ? "pending" : ""}`}/><strong>{dirty ? "Unsaved changes" : "All changes saved"}</strong><span>{dirty ? "Click Save Changes to keep your edits" : "Edits do not save automatically"}</span></div><button className="ws-primary" type="button" disabled={!dirty} onClick={saveChanges}><Save size={17}/> Save Changes</button></div>
+    <div className="ff-section-save-indicator" role="status"><span className={`ff-save-dot ${dirty ? "pending" : ""}`}/><span>{dirty ? "Unsaved draft — use the Save button in the edited card" : "All saved"}</span></div>
     {error && <div className="ws-error" role="alert">{error}</div>}{status && !error && <div className="ff-operation-status" role="status">{status}</div>}
     <div className="ws-workspace-grid">
       <aside className="ws-local-nav">
@@ -224,15 +242,20 @@ export default function ProjectWorkspace() {
         {section === "story" && <div className="ff-story-workspace">
           <div className="ff-story-head"><div><span className="ws-eyebrow">STORY WORKSPACE</span><h2>Edit your story</h2><p>Keep your original writing in control. AI editing will be available when the Flask + Gemini backend is connected.</p></div></div>
           <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={()=>setStoryMode("manual")}><Pencil size={18}/> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={()=>setStoryMode("ai")}><FilePenLine size={18}/> Edit with AI</button></div>
-          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields"><label className="ws-field">Genre<select value={project.genre||"Drama"} onChange={e=>update("genre",e.target.value)}>{["Drama","Thriller","Mystery","Horror","Romance","Sci-Fi","Comedy","Other"].map(g=><option key={g}>{g}</option>)}</select></label><label className="ws-field">Preferred language<select value={project.language||"English"} onChange={e=>update("language",e.target.value)}>{["English","Hindi","Bengali","Hinglish"].map(g=><option key={g}>{g}</option>)}</select></label></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title, genre, language and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails}><Save size={15}/> Save Story Details</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText}><Save size={15}/> Save Story Text</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and Save Changes.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
+          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields"><label className="ws-field">Genre<select value={project.genre||"Drama"} onChange={e=>update("genre",e.target.value)}>{["Drama","Thriller","Mystery","Horror","Romance","Sci-Fi","Comedy","Other"].map(g=><option key={g}>{g}</option>)}</select></label><label className="ws-field">Preferred language<select value={project.language||"English"} onChange={e=>update("language",e.target.value)}>{["English","Hindi","Bengali","Hinglish"].map(g=><option key={g}>{g}</option>)}</select></label></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title, genre, language and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15}/> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15}/> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
         </div>}
         {section === "scenes" && <SceneBreakdown scenes={project.scenes || []} onScenesChange={handleScenes} onSaveScene={saveScene} isSceneSaved={isSceneSaved}/>}
         {section === "shots" && <ShotPlanner scenes={project.scenes || []} onChange={handleShots} onSaveShot={saveShot} isShotSaved={isShotSaved}/>}
         {section === "storyboard" && <Storyboard scenes={project.scenes || []}/>}
-        {section === "critics" && <ProjectCritics project={project} onSave={persist}/>}
+        {section === "critics" && <ProjectCritics project={project} onSave={value => { persist(value); setStatus("Review draft changed. Use an individual Save action when available."); }}/>}
         {section === "continuity" && <ProjectContinuity project={project} onSave={persist}/>}
         {section === "memory" && <ProjectMemory project={project} onSave={persist}/>}
         {section === "chat" && <ProjectAIChat project={project} onSave={persist} onOpenStory={()=>navigate(`${base}/story`)}/>}
+        {["critics", "continuity", "memory", "chat"].includes(section) && dirty && <div className="ff-other-save"><button type="button" className="ws-small-primary" onClick={() => savePartial(latest => {
+          const keys = section === "chat" ? ["conversations", "chats", "chatSessions", "chatHistory", "story"] : section === "memory" ? ["creativeDecisions", "creativeMemory", "intentions"] : section === "critics" ? ["latestCritique", "critiques", "creativeDecisions", "story", "scenes"] : ["continuity", "continuityChecks"];
+          const delta = Object.fromEntries(keys.filter(k => Object.prototype.hasOwnProperty.call(project,k)).map(k => [k,project[k]]));
+          return { ...latest, ...delta };
+        }, "Section saved")}><Save size={15}/> Save {section === "chat" ? "Conversation" : "This Section"}</button></div>}
       </main>
     </div>
   </div>;

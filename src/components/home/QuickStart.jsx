@@ -1,3 +1,4 @@
+import "../../styles/WorkspaceMicroFix.css";
 import { BookOpen, FileText, PenLine, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./QuickStart.css";
