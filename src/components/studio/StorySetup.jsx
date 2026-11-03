@@ -1,3 +1,4 @@
+import IOSSelect from "../ui/IOSSelect";
 import { BookOpen, FileText, PenLine, Upload } from "lucide-react";
 import "./StorySetup.css";
 
@@ -16,12 +17,12 @@ export default function StorySetup({ mode, onModeChange, genre, onGenreChange, l
     <div className="story-config-panel">
       <h3>Story Details</h3>
       <div className="story-config-grid">
-        <label className="studio-field"><span>Genre</span><select value={genre} onChange={e => onGenreChange(e.target.value)}>
+        <label className="studio-field"><span>Genre</span><IOSSelect value={genre} onChange={e => onGenreChange(e.target.value)}>
           {['Thriller','Drama','Mystery','Horror','Romance','Sci-Fi','Comedy','Other'].map(x => <option key={x}>{x}</option>)}
-        </select></label>
-        <label className="studio-field"><span>Preferred Language</span><select value={language} onChange={e => onLanguageChange(e.target.value)}>
+        </IOSSelect></label>
+        <label className="studio-field"><span>Preferred Language</span><IOSSelect value={language} onChange={e => onLanguageChange(e.target.value)}>
           {['English','Hindi','Bengali','Hinglish'].map(x => <option key={x}>{x}</option>)}
-        </select></label>
+        </IOSSelect></label>
       </div>
       {mode === "ai" && <div className="story-mode-extra">
         <label className="studio-field"><span>Story idea</span><textarea rows={4} value={idea} onChange={e => onIdeaChange(e.target.value)} placeholder="Describe your original story idea..." /></label>

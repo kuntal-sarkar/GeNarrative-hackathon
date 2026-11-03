@@ -1,0 +1,12 @@
+/* Targeted 2026 UI refresh: no changes to stored project data. */
+.ff-locked-details{margin-bottom:17px;}
+.ff-locked-meta{display:flex;flex-direction:column;gap:5px;padding:15px 17px;border:1px solid #dbe4ed;background:#f5f8fc;border-radius:15px;color:#172a46;}
+.ff-locked-meta span{font-size:11px;font-weight:700;letter-spacing:.3px;color:#64748b;}
+.ff-locked-meta strong{font-size:16px;font-weight:750;}
+.ff-locked-meta small{font-size:10px;color:#7d8898;}
+.project-workspace .shot-fields textarea{min-height:150px;line-height:1.6;font-size:14px;resize:vertical;}
+.project-workspace .shot-fields label:last-child textarea{min-height:130px;}
+.project-workspace .shot-card-actions button{min-width:34px;min-height:34px;}
+@media(max-width:650px){.project-workspace .shot-fields textarea{min-height:138px;}.project-workspace .shot-fields label:last-child textarea{min-height:120px;}}
+/* Refined native-select fallback for less-used forms */
+select:not([multiple]){font-size:14px;line-height:1.4;border-color:#d7e1ea!important;border-radius:14px!important;background-color:#fff;min-height:45px;}

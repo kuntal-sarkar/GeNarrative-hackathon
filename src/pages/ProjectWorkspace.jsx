@@ -19,6 +19,7 @@ import "./ProjectWorkspace.css";
 import "./WorkspacePolish.css";
 import "./CreativeUpgrade.css";
 import "../styles/WorkspaceRefresh.css";
+import "../styles/FrameforgePolish.css";
 import "../styles/WorkspaceMicroFix.css";
 
 const SECTIONS = [
@@ -101,11 +102,11 @@ export default function ProjectWorkspace() {
     } catch (err) { setError(err?.message || "Could not save. Check available browser storage."); }
   }
   function saveStoryDetails() {
-    const { title, genre, language, idea } = project;
-    savePartial(latest => ({ ...latest, title: title.trim(), genre, language, idea }), "Story details saved");
+    const { title, idea } = project;
+    savePartial(latest => ({ ...latest, title: title.trim(), idea }), "Story details saved");
   }
   const savedProject = savedRevision >= 0 ? getProject(projectId) : null;
-  const storyDetailsSaved = Boolean(savedProject && ["title", "genre", "language", "idea"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
+  const storyDetailsSaved = Boolean(savedProject && ["title", "idea"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
   const storyTextSaved = Boolean(savedProject && ["story", "sourceFilename"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
   function saveStoryText() {
     const { story, sourceFilename } = project;
@@ -135,6 +136,8 @@ export default function ProjectWorkspace() {
       const shotPos = shots.findIndex(shot => shot.id === shotId);
       if (shotPos < 0) shots.push(draftShot);
       else shots[shotPos] = draftShot;
+      const draftOrder = (draftScene.shots || []).map(shot => shot.id);
+      shots.sort((a,b) => draftOrder.indexOf(a.id)-draftOrder.indexOf(b.id));
       scenes[pos] = { ...scenes[pos], shots };
       return { ...latest, scenes };
     }, "Shot saved");
@@ -183,14 +186,16 @@ export default function ProjectWorkspace() {
       const i = currentShots.findIndex(shot => shot.id === payload.id);
       const j = i + payload.direction;
       if (i < 0 || j < 0 || j >= currentShots.length) return;
-      if (!isSaved(currentShots[i].id) || !isSaved(currentShots[j].id)) {
-        setError("Save both shots before reordering them."); return;
-      }
       nextShots = [...currentShots];
       [nextShots[i], nextShots[j]] = [nextShots[j], nextShots[i]];
-      const order = nextShots.map(shot => shot.id);
-      savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({ ...s,
-        shots: [...(s.shots || [])].sort((a,b) => order.indexOf(a.id)-order.indexOf(b.id)) })) }), "Shot order saved");
+      const savedOrder = nextShots.map(shot => shot.id);
+      // Saved items can reorder immediately; unsaved shots retain draft-only order.
+      if (currentShots.every(shot => isSaved(shot.id))) {
+        savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({ ...s,
+          shots: [...(s.shots || [])].sort((a,b) => savedOrder.indexOf(a.id)-savedOrder.indexOf(b.id)) })) }), "Shot order saved");
+      } else {
+        setStatus("Shot moved in draft. Save new shots to keep their order.");
+      }
     } else return;
     const nextProject = { ...project, scenes: (project.scenes || []).map(s => s.id === sceneId ? ({ ...s, shots: nextShots }) : s) };
     setProject(nextProject);
@@ -242,7 +247,7 @@ export default function ProjectWorkspace() {
         {section === "story" && <div className="ff-story-workspace">
           <div className="ff-story-head"><div><span className="ws-eyebrow">STORY WORKSPACE</span><h2>Edit your story</h2><p>Keep your original writing in control. AI editing will be available when the Flask + Gemini backend is connected.</p></div></div>
           <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={()=>setStoryMode("manual")}><Pencil size={18}/> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={()=>setStoryMode("ai")}><FilePenLine size={18}/> Edit with AI</button></div>
-          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields"><label className="ws-field">Genre<select value={project.genre||"Drama"} onChange={e=>update("genre",e.target.value)}>{["Drama","Thriller","Mystery","Horror","Romance","Sci-Fi","Comedy","Other"].map(g=><option key={g}>{g}</option>)}</select></label><label className="ws-field">Preferred language<select value={project.language||"English"} onChange={e=>update("language",e.target.value)}>{["English","Hindi","Bengali","Hinglish"].map(g=><option key={g}>{g}</option>)}</select></label></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title, genre, language and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15}/> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15}/> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
+          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><div className="ff-locked-meta"><span>Genre</span><strong>{project.genre || "Not specified"}</strong><small>Set when project was created</small></div><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Set when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15}/> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15}/> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
         </div>}
         {section === "scenes" && <SceneBreakdown scenes={project.scenes || []} onScenesChange={handleScenes} onSaveScene={saveScene} isSceneSaved={isSceneSaved}/>}
         {section === "shots" && <ShotPlanner scenes={project.scenes || []} onChange={handleShots} onSaveShot={saveShot} isShotSaved={isShotSaved}/>}
