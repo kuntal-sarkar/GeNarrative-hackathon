@@ -1,16 +1,10 @@
 import { Search, X } from "lucide-react";
 import "./SearchField.css";
-
-export default function SearchField({ id, className = "", label = "Search", placeholder = "Search...", value = "", onChange, disabled = false }) {
-  const text = String(value ?? "");
-  return (
-    <div className={`ff-modern-search ${className}`.trim()} role="search">
-      <Search className="ff-modern-search__icon" aria-hidden="true" size={19} />
-      <input id={id} className="ff-modern-search__input" type="search" aria-label={label}
-        autoComplete="off" placeholder={placeholder} value={text} disabled={disabled}
-        onChange={e => onChange(e.target.value)} />
-      {text && !disabled ? <button type="button" className="ff-modern-search__clear"
-        aria-label={`Clear ${label.toLowerCase()}`} onClick={() => onChange("")}><X size={15}/></button> : null}
-    </div>
-  );
+import "./SearchReset.css";
+export default function SearchField({value="",onChange,placeholder="Search...",className="",id,label}){
+ return <div className={`ff-modern-search ff-google-search ${className}`} role="search" aria-label={label||"Search"}>
+  <Search className="ff-modern-search__icon" size={19} aria-hidden="true"/>
+  <input className="ff-modern-search__input" id={id} type="search" autoComplete="off" aria-label={label||placeholder} placeholder={placeholder} value={value} onChange={e=>onChange?.(e.target.value)}/>
+  {Boolean(value) && <button className="ff-modern-search__clear" type="button" onClick={()=>onChange?.("")} aria-label="Clear search"><X size={15}/></button>}
+ </div>;
 }

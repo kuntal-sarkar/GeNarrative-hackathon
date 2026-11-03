@@ -1,41 +1,88 @@
-/* Unified FRAMEFORGE search input */
-.ff-modern-search, .ff-modern-search.ff-search, .ff-modern-search.cc-search,
-.ff-modern-search.mm-search, .ff-modern-search.mm-record-search, .ff-modern-search.ff-settings-search {
-  box-sizing:border-box; display:flex; flex-direction:row; align-items:center; position:relative;
-  gap:10px; width:100%; max-width:100%; min-width:0; height:48px; min-height:48px;
-  margin:0; padding:0 10px 0 15px; border:1px solid #dfe5ed; border-radius:15px;
-  background:#fff; box-shadow:0 1px 2px rgba(23,42,70,.025);
-  transition:border-color .18s ease,box-shadow .18s ease;
+/* One Google-style pill, never a second input rectangle. */
+.ff-modern-search,
+.ff-modern-search.ff-search,
+.ff-modern-search.cc-search,
+.ff-modern-search.mm-search,
+.ff-modern-search.mm-record-search,
+.ff-modern-search.ff-settings-search {
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 13px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  padding: 0 18px !important;
+  margin: 0 !important;
+  border: 1px solid #e0e4eb !important;
+  border-radius: 999px !important;
+  outline: 0 !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(23, 42, 70, .045) !important;
+  transition: box-shadow .18s ease, border-color .18s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
-.ff-modern-search:hover{border-color:#b9c8d9}
-.ff-modern-search:focus-within{border-color:#82baf0; box-shadow:0 0 0 3px rgba(27,147,245,.09); outline:none}
-.ff-modern-search .ff-modern-search__icon{position:static; flex:0 0 19px; color:#8090a3; opacity:1; pointer-events:none}
-.ff-modern-search:focus-within .ff-modern-search__icon{color:#1b93f5}
-.ff-modern-search .ff-modern-search__input, .ff-modern-search.ff-search .ff-modern-search__input,
-.ff-modern-search.cc-search .ff-modern-search__input, .ff-modern-search.mm-search .ff-modern-search__input,
-.ff-modern-search.ff-settings-search .ff-modern-search__input {
-  box-sizing:border-box;display:block;flex:1 1 auto;min-width:0;width:100%;height:100%;min-height:0;
-  padding:0!important;margin:0!important;border:0!important;border-radius:0!important;
-  outline:0!important;box-shadow:none!important;background:transparent!important;
-  color:#172a46;font:inherit;font-size:14px;font-weight:500;line-height:normal;
-  appearance:none;-webkit-appearance:none;
+.ff-modern-search:hover { border-color: #ced8e4 !important; box-shadow: 0 4px 15px rgba(23,42,70,.07) !important; }
+.ff-modern-search:focus-within { border-color: #b7cce3 !important; box-shadow: 0 5px 20px rgba(23,42,70,.10) !important; outline: none !important; }
+.ff-modern-search svg.ff-modern-search__icon { flex: 0 0 20px !important; width: 20px !important; height: 20px !important; position: static !important; color: #70839b !important; pointer-events: none !important; }
+.ff-modern-search input.ff-modern-search__input,
+.ff-modern-search input.ff-modern-search__input:focus,
+.ff-modern-search input.ff-modern-search__input:focus-visible,
+.ff-modern-search.ff-search input.ff-modern-search__input,
+.ff-modern-search.mm-search input.ff-modern-search__input,
+.ff-modern-search.cc-search input.ff-modern-search__input,
+.ff-modern-search.ff-settings-search input.ff-modern-search__input {
+  box-sizing: border-box !important;
+  display: block !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #172a46 !important;
+  font: inherit !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  -webkit-tap-highlight-color: transparent;
 }
-.ff-modern-search .ff-modern-search__input:focus, .ff-modern-search .ff-modern-search__input:focus-visible{
-  border:0!important;outline:0!important;box-shadow:none!important;
+.ff-modern-search input.ff-modern-search__input::placeholder { color: #8896a9 !important; font-weight: 400 !important; opacity: 1; }
+.ff-modern-search input.ff-modern-search__input::-webkit-search-decoration,
+.ff-modern-search input.ff-modern-search__input::-webkit-search-cancel-button,
+.ff-modern-search input.ff-modern-search__input::-webkit-search-results-button { display: none !important; -webkit-appearance: none !important; }
+.ff-modern-search button.ff-modern-search__clear {
+  box-sizing: border-box !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  color: #63758a !important;
+  background: #f1f4f7 !important;
+  cursor: pointer !important;
 }
-.ff-modern-search .ff-modern-search__input::placeholder{color:#8996a8;opacity:1;font-weight:400}
-.ff-modern-search .ff-modern-search__input::-webkit-search-cancel-button{display:none;-webkit-appearance:none}
-.ff-modern-search .ff-modern-search__clear,.ff-modern-search.ff-settings-search .ff-modern-search__clear{
-  position:static;display:inline-flex;align-items:center;justify-content:center;flex:0 0 28px;
-  width:28px;height:28px;margin:0;padding:0;border:0;border-radius:9px;
-  background:#f1f5f9;color:#697c92;cursor:pointer;
-}
-.ff-modern-search .ff-modern-search__clear:hover{color:#126cb7;background:#e6f1ff}
-.ff-modern-search .ff-modern-search__clear:focus-visible{outline:2px solid #1b93f5;outline-offset:2px}
-@media(max-width:768px){
-  .ff-modern-search,.ff-modern-search.ff-search,.ff-modern-search.cc-search,
-  .ff-modern-search.mm-search,.ff-modern-search.mm-record-search,.ff-modern-search.ff-settings-search{
-    width:100%;height:46px;min-height:46px;border-radius:13px;padding:0 9px 0 12px;
-  }
-  .ff-modern-search .ff-modern-search__input{font-size:16px}
+.ff-modern-search button.ff-modern-search__clear:hover { color: #172a46 !important; background: #e7edf4 !important; }
+.ff-modern-search button.ff-modern-search__clear:focus-visible { outline: 2px solid #1b93f5 !important; outline-offset: 2px !important; }
+@media (max-width: 768px) {
+  .ff-modern-search,.ff-modern-search.ff-search,.ff-modern-search.cc-search,.ff-modern-search.mm-search,.ff-modern-search.mm-record-search,.ff-modern-search.ff-settings-search { height: 48px !important; min-height: 48px !important; padding: 0 14px !important; gap: 10px !important; }
+  .ff-modern-search input.ff-modern-search__input { font-size: 16px !important; }
 }
