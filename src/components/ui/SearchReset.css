@@ -1,0 +1,96 @@
+/* Single Google-like search surface. No nested focus rectangles. */
+.ff-google-search.ff-modern-search{display:flex!important;align-items:center!important;gap:12px!important;box-sizing:border-box!important;height:48px!important;min-height:48px!important;width:100%!important;max-width:100%!important;border-radius:999px!important;background:#fff!important;border:1px solid #e0e4eb!important;padding:0 16px!important;outline:0!important;box-shadow:0 2px 9px rgba(23,42,70,.06)!important;overflow:hidden!important;transition:box-shadow .2s,border-color .2s!important;}
+.ff-google-search.ff-modern-search:focus-within{outline:0!important;border-color:#d3dce7!important;box-shadow:0 5px 18px rgba(23,42,70,.10)!important;}
+.ff-google-search input.ff-modern-search__input,.ff-google-search input.ff-modern-search__input:focus,.ff-google-search input.ff-modern-search__input:focus-visible,.ff-google-search input.ff-modern-search__input:active{display:block!important;min-width:0!important;flex:1!important;box-sizing:border-box!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-width:0!important;border-radius:0!important;outline:none!important;outline-width:0!important;outline-offset:0!important;box-shadow:none!important;-webkit-appearance:none!important;appearance:none!important;font:inherit!important;font-size:15px!important;color:#172a46!important;}
+.ff-google-search input::-webkit-search-cancel-button,.ff-google-search input::-webkit-search-decoration{-webkit-appearance:none!important;display:none!important;}
+.ff-google-search .ff-modern-search__icon{color:#71839b!important;flex:none!important;position:static!important;}
+.ff-google-search button.ff-modern-search__clear{border:0!important;box-shadow:none!important;outline:0!important;flex:0 0 28px!important;width:28px!important;height:28px!important;border-radius:50%!important;padding:0!important;background:#f0f3f7!important;display:grid!important;place-items:center!important;}
+@media(max-width:768px){.ff-google-search.ff-modern-search{height:44px!important;min-height:44px!important;padding:0 13px!important;}.ff-google-search input.ff-modern-search__input{font-size:16px!important;}}
+
+/* ONLY FIX 2: Restore Google-like pill search with NO inner focus rectangle. */
+.ff-modern-search.ff-google-search,
+.ff-google-search.ff-modern-search:focus-within {
+  border-radius: 999px !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 2px 9px rgba(23,42,70,.06) !important;
+}
+.ff-modern-search.ff-google-search:focus-within {
+  border-color: #d3dce7 !important;
+  box-shadow: 0 5px 18px rgba(23,42,70,.10) !important;
+}
+.ff-google-search input.ff-modern-search__input,
+.ff-google-search input.ff-modern-search__input:focus,
+.ff-google-search input.ff-modern-search__input:focus-visible,
+.ff-google-search input.ff-modern-search__input:active,
+.mm-page .mm-search input,
+.mm-page .mm-search input:focus,
+.mm-page .mm-search input:focus-visible {
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+.mm-page .mm-search:focus-within {
+  border-radius: 999px !important;
+  border-color: #d3dce7 !important;
+  outline: 0 !important;
+  box-shadow: 0 5px 18px rgba(23,42,70,.10) !important;
+}
+
+/* FIX: Target the ACTUAL shared SearchField markup (ff-modern-search). */
+.ff-modern-search.ff-google-search,
+.ff-modern-search.ff-google-search:hover,
+.ff-modern-search.ff-google-search:focus,
+.ff-modern-search.ff-google-search:focus-within,
+.ff-modern-search.ff-google-search:focus-visible {
+  border-radius: 999px !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  border: 1px solid #dde5ed !important;
+  box-shadow: 0 3px 12px rgba(23,42,70,.07) !important;
+  background: #fff !important;
+}
+.ff-modern-search.ff-google-search input.ff-modern-search__input,
+.ff-modern-search.ff-google-search input.ff-modern-search__input:focus,
+.ff-modern-search.ff-google-search input.ff-modern-search__input:focus-visible,
+.ff-modern-search.ff-google-search input.ff-modern-search__input:active,
+.ff-modern-search.ff-google-search input.ff-modern-search__input:hover {
+  display: block !important;
+  min-width: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 none transparent !important;
+  border-radius: 0 !important;
+  outline: 0 none transparent !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+.ff-modern-search.ff-google-search input.ff-modern-search__input::-webkit-search-cancel-button,
+.ff-modern-search.ff-google-search input.ff-modern-search__input::-webkit-search-decoration {
+  -webkit-appearance: none !important;
+  display: none !important;
+}
+/* Memory's existing search inputs use mm-search, same focus treatment. */
+.mm-page .mm-search,
+.mm-page .mm-search:focus-within {
+  border-radius: 999px !important;
+  outline: none !important;
+  box-shadow: 0 3px 12px rgba(23,42,70,.07) !important;
+}
+.mm-page .mm-search input,
+.mm-page .mm-search input:focus,
+.mm-page .mm-search input:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+

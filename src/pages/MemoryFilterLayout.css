@@ -1,0 +1,64 @@
+/* Only Memory timeline filter alignment. Search boxes and shared dropdown CSS are untouched. */
+.mm-page .mm-timeline .mm-filters {
+  display: grid;
+  grid-template-columns: minmax(225px, 1fr) minmax(350px, auto);
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 10px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+.mm-page .mm-timeline .mm-filters-side {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.mm-page .mm-timeline .mm-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dde6ef;
+  background: #fff;
+  padding: 3px 7px 3px 10px;
+  border-radius: 13px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+.mm-page .mm-timeline .mm-filter-symbol {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: #68809b;
+}
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select { flex: 1; min-width: 0; width: 100%; }
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select__trigger {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  width: 100%;
+  min-height: 36px;
+  padding: 5px 4px;
+}
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select__trigger:hover,
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select__trigger:focus-visible,
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select__trigger.is-open {
+  border: 0;
+  box-shadow: none;
+}
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select__value { font-size: 12px; }
+.mm-page .mm-timeline .mm-filter-controls .ff-ios-select__menu { max-height: min(280px, 45vh); overflow-y: auto; }
+.mm-page .mm-timeline .mm-record-search { min-width: 0; width: 100%; }
+@media (max-width: 1200px) {
+  .mm-page .mm-timeline .mm-filters { grid-template-columns: minmax(0, 1fr); }
+  .mm-page .mm-timeline .mm-filters-side { justify-content: flex-start; }
+  .mm-page .mm-timeline .mm-filter-controls { flex: 0 1 210px; }
+}
+@media (max-width: 760px) {
+  .mm-page .mm-timeline .mm-filters { display: grid; grid-template-columns: 1fr; gap: 9px; }
+  .mm-page .mm-timeline .mm-filters-side { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; width: 100%; }
+  .mm-page .mm-timeline .mm-filter-controls { width: 100%; padding: 3px 7px; }
+  .mm-page .mm-timeline .mm-filter-controls .ff-ios-select__value { font-size: 11px; }
+}

@@ -1,3 +1,4 @@
+import IOSSelect from "../ui/IOSSelect";
 import { useState } from "react";
 import { MessageSquareText } from "lucide-react";
 import { aiConfigured, requestProjectAI } from "../../services/workspaceApi";
@@ -29,7 +30,7 @@ export default function ProjectCritics({ project, onSave }) {
   }
 
   return <section className="ws-panel"><div className="ws-panel-heading"><div><span className="ws-eyebrow">CREATIVE REVIEW</span><h2>Creative Critics</h2><p>Request project-specific feedback and keep control of every recommendation.</p></div><MessageSquareText size={26}/></div>
-    <div className="ws-fields-grid"><label className="ws-field">Review<select value={context} onChange={e=>setContext(e.target.value)}><option value="project">Entire project</option>{(project.scenes||[]).map((s,i)=><option key={s.id} value={s.id}>Scene {i+1}: {s.heading || "Untitled"}</option>)}</select></label><label className="ws-field">Review instructions<input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional focus for the review"/></label></div>
+    <div className="ws-fields-grid"><label className="ws-field">Review<IOSSelect value={context} onChange={e=>setContext(e.target.value)}><option value="project">Entire project</option>{(project.scenes||[]).map((s,i)=><option key={s.id} value={s.id}>Scene {i+1}: {s.heading || "Untitled"}</option>)}</IOSSelect></label><label className="ws-field">Review instructions<input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional focus for the review"/></label></div>
     <button type="button" className="ws-primary" onClick={runReview} disabled={!aiConfigured || busy}>{busy ? "Reviewing..." : "Request creative critique"}</button>
     {!aiConfigured && <p className="ws-connection">Critique needs the Flask + Gemini backend. No hardcoded critic opinions.</p>}
     {error && <p role="alert" className="ws-error">{error}</p>}

@@ -4,7 +4,7 @@ export async function readScript(file) {
   if (!file) throw new Error("Select a document first.");
   const ext = file.name.toLowerCase().split(".").pop();
   if (!["pdf", "txt", "md"].includes(ext)) throw new Error("Use PDF, TXT or MD files.");
-  if (file.size > 8 * 1024 * 1024) throw new Error("Maximum file size is 8 MB.");
+  if (file.size > 25 * 1024 * 1024) throw new Error("Maximum file size is 25 MB.");
   let text = "";
   let pages = 0;
   if (ext === "pdf") {
@@ -13,7 +13,7 @@ export async function readScript(file) {
     pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
     const document = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
     pages = document.numPages;
-    if (pages > 150) throw new Error("PDF is too long (max 150 pages). Split the file first.");
+    if (pages > 300) throw new Error("PDF is too long (max 300 pages). Split the file first.");
     const chunks = [];
     for (let i = 1; i <= pages; i++) {
       const page = await document.getPage(i);
@@ -32,6 +32,6 @@ export async function readScript(file) {
     text = chunks.join("\n\n");
   } else text = await file.text();
   if (!text.trim()) throw new Error("No selectable text found. For scanned PDFs, OCR is needed; this importer doesn't invent text.");
-  if (text.length > 750000) throw new Error("Extracted script exceeds 750,000 characters.");
+  if (text.length > 1300000) throw new Error("Extracted script exceeds 1,300,000 characters.");
   return { text, filename: file.name, pages };
 }

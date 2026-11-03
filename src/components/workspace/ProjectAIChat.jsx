@@ -1,3 +1,4 @@
+import IOSSelect from "../ui/IOSSelect";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { aiConfigured, requestProjectAI } from "../../services/workspaceApi";
@@ -27,10 +28,18 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
   useEffect(()=>{ setActiveId(null); setTarget("project"); setProposal(null); setInput(""); },[project.id]);
   useEffect(()=>{ if (location.state?.chatIntent === "story") setTarget("story"); },[location.state]);
   useEffect(()=>{scrollRef.current?.scrollTo({top: scrollRef.current.scrollHeight,behavior:"smooth"});},[thread?.messages?.length]);
-  function commit(next, id) { onSave({...project, chatThreads: next, activeChatThreadId: id}); if (id) setActiveId(id); }
-  function create() { const t=makeThread("New conversation",target); commit([t,...threads],t.id); setInput("");setProposal(null);setSidebarOpen(false); }
-  function rename(id) { const old=threads.find(t=>t.id===id); const title=window.prompt("Conversation name",old?.title||"")?.trim(); if(title)commit(threads.map(t=>t.id===id?{...t,title:title.slice(0,90)}:t), id); }
-  function remove(id) {if(!window.confirm("Delete this conversation from the project draft? Save Changes to confirm."))return;const remaining=threads.filter(t=>t.id!==id);commit(remaining,remaining[0]?.id||null);setActiveId(remaining[0]?.id||null);}
+  function commit(nextOrUpdater, id) {
+    onSave(latest => {
+      if (!latest) return latest;
+      const all = normalize(latest);
+      const next = typeof nextOrUpdater === "function" ? nextOrUpdater(all) : nextOrUpdater;
+      return { ...latest, chatThreads: next, activeChatThreadId: id };
+    });
+    setActiveId(id || null);
+  }
+  function create() { const t=makeThread("New conversation",target); commit(all => [t,...all],t.id); setInput("");setProposal(null);setSidebarOpen(false); }
+  function rename(id) { const old=threads.find(t=>t.id===id); const title=window.prompt("Conversation name",old?.title||"")?.trim(); if(title)commit(all => all.map(t=>t.id===id?{...t,title:title.slice(0,90)}:t), id); }
+  function remove(id) {if(!window.confirm("Delete this conversation from the project draft? Save Changes to confirm."))return;const remaining=threads.filter(t=>t.id!==id);commit(all => all.filter(t=>t.id!==id),remaining[0]?.id||null);setActiveId(remaining[0]?.id||null);}
   function switchTo(id){setActiveId(id);setProposal(null);setError("");setSidebarOpen(false);}
   async function send(e) {
     e.preventDefault(); const content=input.trim(); if(!content||busy)return;
@@ -39,8 +48,15 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
     const history=Array.isArray(current.messages)?current.messages:[];
     const userMessage={id:uid(),role:"user",content,sceneId:target.startsWith("scene:")?target.slice(6):null,at:new Date().toISOString()};
     const waiting=[...history,userMessage];
-    const initial=threads.some(t=>t.id===current.id)?threads:[current,...threads];
-    commit(initial.map(t=>t.id===current.id?{...t,title:history.length?t.title:content.slice(0,60),messages:waiting,target}:t),current.id);
+    // Append to the latest draft, not to the project snapshot captured before the request.
+    commit(all => {
+      const exists = all.some(t => t.id === current.id);
+      const base = exists ? all : [current, ...all];
+      return base.map(t => t.id === current.id ? {
+        ...t, title: history.length ? t.title : content.slice(0, 60),
+        messages: [...(t.messages || []), userMessage], target
+      } : t);
+    }, current.id);
     setInput("");setError("");setBusy(true);setProposal(null);
     try {
       const data=await requestProjectAI(project.id,"chat",{
@@ -51,9 +67,11 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
       const answer=typeof data?.answer==="string"?data.answer.trim():"";
       if(!answer)throw new Error("Backend returned no answer.");
       const response={id:uid(),role:"assistant",content:answer,at:new Date().toISOString()};
-      // Read the freshest draft from parent via ref is not possible here; preserve provided state and last submitted message.
-      const updated=initial.map(t=>t.id===current.id?{...t,title:history.length?t.title:content.slice(0,60),messages:[...waiting,response],target}:t);
-      onSave({...project,chatThreads:updated,activeChatThreadId:current.id});
+      // Functional update preserves edits, other chats, renames and scene changes
+      // made while the backend request was in flight.
+      onSave(latest => ({ ...latest, chatThreads: normalize(latest).map(t =>
+        t.id === current.id ? { ...t, messages: [...(t.messages || []), response] } : t
+      ) }));
       if(data?.proposedRevision && typeof data.proposedRevision.text==="string" && ["story","scene"].includes(data.proposedRevision.target)) {
         setProposal(data.proposedRevision); setRevision(data.proposedRevision.text);
       }
@@ -62,11 +80,11 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
   }
   function applyProposal(){
     if(!proposal||!revision.trim())return;
-    if(proposal.target==="story") onSave({...project,story:revision});
+    if(proposal.target==="story") onSave(latest => ({ ...latest, story:revision }));
     else if(proposal.target==="scene" && proposal.sceneId) {
       const match=(project.scenes||[]).some(s=>s.id===proposal.sceneId);
       if(!match){setError("The referenced scene no longer exists.");return;}
-      onSave({...project,scenes:(project.scenes||[]).map(s=>s.id===proposal.sceneId?{...s,description:revision}:s)});
+      onSave(latest => ({ ...latest, scenes:(latest.scenes||[]).map(s=>s.id===proposal.sceneId?{...s,description:revision}:s) }));
     } else return;
     setProposal(null);setRevision("");setError("Revision added to unsaved project draft. Click Save Changes at the top to keep it.");
   }
@@ -79,7 +97,7 @@ export default function ProjectAIChat({ project, onSave, onOpenStory }) {
     </aside>
     <div className="ff-chat-center">
       <header className="ff-chat-header"><button className="ff-chat-menu" onClick={()=>setSidebarOpen(true)} aria-label="Open conversations"><Menu size={19}/></button><div><span>PROJECT WRITING ROOM</span><strong>{thread?.title||"New conversation"}</strong></div><button className="ff-chat-storylink" type="button" onClick={onOpenStory}><BookOpen size={16}/> Story editor</button></header>
-      <div className="ff-chat-target"><label>AI context<select value={target} onChange={e=>setTarget(e.target.value)}><option value="project">Entire project</option><option value="story">Full story / rewrite</option>{(project.scenes||[]).map((s,i)=><option key={s.id} value={`scene:${s.id}`}>Scene {i+1}: {s.name||s.heading||"Untitled"}</option>)}</select></label><span>{aiConfigured?"Backend configured":"AI backend not connected"}</span></div>
+      <div className="ff-chat-target"><label>AI context<IOSSelect value={target} onChange={e=>setTarget(e.target.value)}><option value="project">Entire project</option><option value="story">Full story / rewrite</option>{(project.scenes||[]).map((s,i)=><option key={s.id} value={`scene:${s.id}`}>Scene {i+1}: {s.name||s.heading||"Untitled"}</option>)}</IOSSelect></label><span>{aiConfigured?"Backend configured":"AI backend not connected"}</span></div>
       <div className="ff-chat-transcript" ref={scrollRef} role="log" aria-live="polite">{thread?.messages?.length?thread.messages.map(m=><article key={m.id} className={`ff-chat-bubble ${m.role==="user"?"is-user":"is-ai"}`}><div className="ff-chat-who">{m.role==="user"?"You":"AI Co-Director"}<button title="Copy message" onClick={()=>navigator.clipboard?.writeText(m.content)}><Copy size={14}/></button></div><p>{m.content}</p></article>):<div className="ff-chat-welcome"><div className="ff-chat-welcome-icon"><MessageCircle size={27}/></div><h2>Your creative thinking partner</h2><p>Discuss plot, character motives, screenplay rewrites or any specific scene. Create multiple chats, continue past discussions and approve proposed edits before they reach your story.</p>{!aiConfigured&&<p className="ff-chat-offline">Connect the Flask + Gemini backend to send messages. No fake AI content is generated.</p>}</div>}</div>
       {proposal&&<div className="ff-chat-proposal"><div className="ff-chat-proposal-head"><strong>Proposed {proposal.target} revision — review before applying</strong><button onClick={()=>setProposal(null)}><X size={16}/></button></div><textarea value={revision} onChange={e=>setRevision(e.target.value)} rows={7} aria-label="Edit proposed story text"/><div><button className="ff-chat-apply" onClick={applyProposal}><Check size={17}/> Apply to draft</button><small>Not saved until you click Save Changes above.</small></div></div>}
       {error&&<p className="ff-chat-error" role="status">{error}</p>}

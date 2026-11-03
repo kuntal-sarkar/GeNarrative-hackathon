@@ -1,0 +1,88 @@
+/* One Google-style pill, never a second input rectangle. */
+.ff-modern-search,
+.ff-modern-search.ff-search,
+.ff-modern-search.cc-search,
+.ff-modern-search.mm-search,
+.ff-modern-search.mm-record-search,
+.ff-modern-search.ff-settings-search {
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 13px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  padding: 0 18px !important;
+  margin: 0 !important;
+  border: 1px solid #e0e4eb !important;
+  border-radius: 999px !important;
+  outline: 0 !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(23, 42, 70, .045) !important;
+  transition: box-shadow .18s ease, border-color .18s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.ff-modern-search:hover { border-color: #ced8e4 !important; box-shadow: 0 4px 15px rgba(23,42,70,.07) !important; }
+.ff-modern-search:focus-within { border-color: #b7cce3 !important; box-shadow: 0 5px 20px rgba(23,42,70,.10) !important; outline: none !important; }
+.ff-modern-search svg.ff-modern-search__icon { flex: 0 0 20px !important; width: 20px !important; height: 20px !important; position: static !important; color: #70839b !important; pointer-events: none !important; }
+.ff-modern-search input.ff-modern-search__input,
+.ff-modern-search input.ff-modern-search__input:focus,
+.ff-modern-search input.ff-modern-search__input:focus-visible,
+.ff-modern-search.ff-search input.ff-modern-search__input,
+.ff-modern-search.mm-search input.ff-modern-search__input,
+.ff-modern-search.cc-search input.ff-modern-search__input,
+.ff-modern-search.ff-settings-search input.ff-modern-search__input {
+  box-sizing: border-box !important;
+  display: block !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #172a46 !important;
+  font: inherit !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.ff-modern-search input.ff-modern-search__input::placeholder { color: #8896a9 !important; font-weight: 400 !important; opacity: 1; }
+.ff-modern-search input.ff-modern-search__input::-webkit-search-decoration,
+.ff-modern-search input.ff-modern-search__input::-webkit-search-cancel-button,
+.ff-modern-search input.ff-modern-search__input::-webkit-search-results-button { display: none !important; -webkit-appearance: none !important; }
+.ff-modern-search button.ff-modern-search__clear {
+  box-sizing: border-box !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  color: #63758a !important;
+  background: #f1f4f7 !important;
+  cursor: pointer !important;
+}
+.ff-modern-search button.ff-modern-search__clear:hover { color: #172a46 !important; background: #e7edf4 !important; }
+.ff-modern-search button.ff-modern-search__clear:focus-visible { outline: 2px solid #1b93f5 !important; outline-offset: 2px !important; }
+@media (max-width: 768px) {
+  .ff-modern-search,.ff-modern-search.ff-search,.ff-modern-search.cc-search,.ff-modern-search.mm-search,.ff-modern-search.mm-record-search,.ff-modern-search.ff-settings-search { height: 48px !important; min-height: 48px !important; padding: 0 14px !important; gap: 10px !important; }
+  .ff-modern-search input.ff-modern-search__input { font-size: 16px !important; }
+}

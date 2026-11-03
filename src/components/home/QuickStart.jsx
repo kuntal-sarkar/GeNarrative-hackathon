@@ -1,3 +1,4 @@
+import "../../styles/WorkspaceMicroFix.css";
 import { BookOpen, FileText, PenLine, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./QuickStart.css";
@@ -14,8 +15,8 @@ export default function QuickStart() {
     <div className="home-section-heading"><div><span className="section-eyebrow">LET'S BEGIN</span><h2>How would you like to start?</h2></div></div>
     <div className="quick-start-grid">{options.map(({ id, title, description, icon: Icon, color, tag }) =>
       <button type="button" key={id} className={`quick-start-card quick-${color}`} onClick={() => start(id)}>
-        <div className="quick-start-card-top"><span className="quick-start-icon"><Icon size={25} /></span><ArrowUpRight size={20} /></div>
-        <div><span className="quick-start-tag">{tag}</span><h3>{title}</h3><p>{description}</p></div>
+        <div className="quick-start-card-top"><span className="quick-start-icon"><Icon size={25} /></span><div className="quick-start-heading"><span className="quick-start-tag">{tag}</span><h3>{title}</h3></div><ArrowUpRight className="quick-start-arrow" size={20} /></div>
+        <p>{description}</p>
       </button>
     )}</div>
   </section>;

@@ -1,0 +1,33 @@
+/* Library: filter beside heading, search below. */
+.ff-library-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:12px!important;}
+.ff-library-heading>div:first-child{flex:1 1 220px;min-width:0;}
+.ff-library-heading #ff-library-title>span{display:inline-grid!important;place-items:center!important;vertical-align:middle!important;width:27px!important;height:27px!important;margin-left:7px!important;border-radius:50%!important;background:#e9f0f8!important;color:#172a46!important;font-size:12px!important;font-weight:700!important;line-height:1!important;}
+.ff-library-heading-filter{display:flex;align-items:center;gap:8px;flex:0 0 auto;color:#172a46;padding:5px 9px;border:1px solid #e4e9ef;border-radius:12px;background:#fff;max-width:190px;}
+.ff-library-heading-filter>.ios-select{width:auto!important;min-width:115px;flex:0 1 auto;}
+.ff-library-heading-filter .ff-native-select{min-height:32px!important;border:0!important;padding:4px 20px 4px 3px!important;box-shadow:none!important;font-size:12px!important;}
+.ff-library-heading-filter .ios-select-trigger{min-height:34px!important;border:0!important;padding:4px!important;box-shadow:none!important;}
+.ff-library-controls.ff-library-controls--compact{display:block!important;margin-top:14px!important;margin-bottom:16px!important;max-width:100%!important;}
+/* Critics: compact review room: less dead white space. */
+.cc-review-room{gap:14px!important;}
+.cc-room-hero{padding:22px 26px!important;border-radius:19px!important;gap:15px!important;}
+.cc-room-hero h1{font-size:clamp(28px,3vw,40px)!important;margin:8px 0!important;}
+.cc-room-hero p{max-width:650px!important;line-height:1.5!important;}
+.cc-room-layout{gap:15px!important;}
+.cc-room-sidebar{padding:17px!important;}
+.cc-room-sidebar-help{padding:11px!important;}
+.cc-room-main{min-width:0;}
+.cc-room-title{padding:0 0 10px!important;margin:0!important;}
+.cc-room-card{padding:18px!important;gap:12px!important;}
+.cc-room-card-head{gap:9px!important;}
+.cc-room-empty,.cc-no-review{min-height:180px!important;padding:25px 15px!important;}
+.cc-room-roles{padding:16px!important;}
+@media(max-width:768px){
+ .ff-library-heading-filter{max-width:185px;}
+ .ff-library-heading{align-items:center!important;}
+ .ff-library-heading-filter>.ios-select{min-width:105px;}
+ .cc-review-room{padding-left:12px!important;padding-right:12px!important;}
+ .cc-room-hero{padding:17px!important;}
+ .cc-room-card{padding:15px!important;}
+ .cc-room-sidebar{padding:14px!important;}
+ .cc-room-project-list{gap:7px!important;}
+}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import SearchField from "../components/ui/SearchField";
 import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowUpRight, Search, X, ShieldCheck, ScrollText, Cookie, Building2, Copyright, FileWarning, Users, Shield, Scale, LockKeyhole, Flag, CircleHelp, Contact, Headset, HeartHandshake, Clapperboard, GitBranch, Package, Accessibility, SlidersHorizontal, Database, Settings2 } from "lucide-react";
 import { SETTINGS_GROUPS, SETTINGS_ITEMS } from "./settings/settingsCatalog";
@@ -27,7 +28,7 @@ export default function Settings() {
         <div className="ff-settings-hero-content"><div className="ff-settings-eyebrow"><Settings2 size={15}/> YOUR WORKSPACE, YOUR CONTROL</div><h1>Settings <span>& information.</span></h1><p>Everything about your FRAMEFORGE experience, policies, support and the people behind the product — organized in one place.</p></div>
         <div className="ff-settings-hero-art" aria-hidden="true"><div className="ff-settings-hero-art-ring"/><ShieldCheck size={54}/></div>
       </header>
-      <div className="ff-settings-controls"><div><h2>Explore settings</h2><p>Choose a section to view its dedicated page.</p></div><label className="ff-settings-search"><Search size={17}/><input aria-label="Search settings" placeholder="Search settings and policies..." value={query} onChange={e=>setQuery(e.target.value)}/>{query && <button type="button" aria-label="Clear search" onClick={()=>setQuery("")}><X size={16}/></button>}</label></div>
+      <div className="ff-settings-controls"><div><h2>Explore settings</h2><p>Choose a section to view its dedicated page.</p></div><SearchField className="ff-settings-search" label="Search settings" placeholder="Search settings and policies..." value={query} onChange={setQuery} /></div>
       {SETTINGS_GROUPS.map(group => { const items = filtered.filter(item=>item.group===group); if(!items.length) return null; return <section className="ff-settings-group" key={group}><div className="ff-settings-group-heading"><h3>{group}</h3><span>{items.length} {items.length===1?'section':'sections'}</span></div><div className="ff-settings-grid">{items.map(item=>{const Icon=ICONS[item.icon] || Settings2; return <button className="ff-settings-card" type="button" key={item.id} onClick={()=>openSection(item.id)}><span className="ff-settings-icon"><Icon size={20}/></span><span className="ff-settings-card-copy"><strong>{item.title}</strong><small>{item.description}</small></span><ArrowUpRight size={17} className="ff-settings-arrow"/></button>})}</div></section>; })}
       {filtered.length===0 && <div className="ff-settings-no-results">No settings found for “{query}”.</div>}
       <footer className="ff-settings-footer">

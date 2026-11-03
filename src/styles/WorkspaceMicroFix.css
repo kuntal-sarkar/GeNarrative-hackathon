@@ -1,0 +1,44 @@
+/* Compact workspace: mobile screens have one natural content flow. */
+.project-workspace .ff-section-save-indicator{display:flex;align-items:center;gap:8px;font-size:11px;color:#657187;margin:0 0 12px;padding:0 2px;min-height:20px}
+.project-workspace .ff-section-save-indicator .ff-save-dot{flex-shrink:0}
+.project-workspace .ff-other-save{display:flex;justify-content:flex-end;margin-top:15px}
+.project-workspace .ff-story-footer .ws-small-primary:disabled{opacity:.45}
+.project-workspace .ff-story-panel .ff-inline-save .ws-small-primary:disabled{opacity:.45}
+.project-workspace .ff-entry-head{display:flex;align-items:center;gap:9px;flex-wrap:nowrap;min-width:0}
+.project-workspace .ff-entry-index{flex-shrink:0}
+.project-workspace .ff-entry-name{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.project-workspace .ff-shot-card .shot-card-actions{margin-left:auto;display:flex;gap:5px;flex:0 0 auto;align-items:center}
+.project-workspace .ff-shot-card .shot-card-actions button{width:29px;height:29px;flex-shrink:0}
+.project-workspace .ff-entry-name strong{display:block;overflow-wrap:anywhere}
+/* Important: the old responsive stylesheet can leave a tall phantom gap between controls and workspace. */
+@media(max-width:768px){
+ .project-workspace{display:block;height:auto;min-height:0}
+ .project-workspace .ws-workspace-grid{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;height:auto;min-height:0;grid-template-columns:none}
+ .project-workspace .ws-local-nav{position:relative!important;top:auto!important;inset-block-start:auto!important;align-self:stretch;margin:0;padding:5px!important;min-height:0!important;max-height:none;z-index:4}
+ .project-workspace .ws-main-panel{display:block;width:100%;min-width:0;min-height:0!important;height:auto;margin:0;padding:0}
+ .project-workspace .ws-local-links:not(.ws-show-mobile){display:none!important}
+ .project-workspace .ws-mobile-tools-toggle{min-height:53px;padding:8px 10px}
+ .project-workspace .ws-local-nav-title{display:none}
+ .project-workspace .ws-crumb{margin-bottom:9px}
+ .project-workspace .ws-project-header{margin-bottom:10px;padding:15px}
+ .project-workspace .ff-section-save-indicator{margin-bottom:10px}
+ .project-workspace .ff-overview-hero{padding:16px}
+ .project-workspace .ff-overview{gap:10px}
+ .project-workspace .ff-overview-grid{gap:10px}
+ .project-workspace .ff-summary-card{padding:15px}
+ .project-workspace .ff-shot-card .ff-entry-head{padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;min-height:0}
+ .project-workspace .ff-shot-card .shot-card-actions{grid-column:3;grid-row:1 / span 2;margin:0;align-self:center;gap:4px}
+ .project-workspace .ff-shot-card .shot-card-actions button{width:28px;height:28px;padding:4px}
+ .project-workspace .ff-shot-card .ff-entry-index{grid-column:1;grid-row:1}
+ .project-workspace .ff-shot-card .ff-entry-name{grid-column:2;grid-row:1 / span 2}
+ .project-workspace .ff-shot-card .ff-entry-name strong{font-size:12px}
+ .project-workspace .ff-shot-card .ff-entry-name span{font-size:10px}
+}
+@media(max-width:380px){.project-workspace .ff-shot-card .ff-entry-head{grid-template-columns:minmax(0,1fr) auto}.project-workspace .ff-shot-card .ff-entry-index{grid-column:1;grid-row:1}.project-workspace .ff-shot-card .ff-entry-name{grid-column:1;grid-row:2}.project-workspace .ff-shot-card .shot-card-actions{grid-column:2;grid-row:1/span 2}}
+/* Tight, modern home quick-start cards without decorative blank vertical space. */
+.quick-start-grid .quick-start-card{min-height:0!important;height:auto;gap:8px!important;padding:16px 18px!important;justify-content:flex-start!important;border-radius:18px!important}
+.quick-start-card .quick-start-icon{width:42px;height:42px}
+.quick-start-card .quick-start-tag{margin:0;font-size:10px}
+.quick-start-card h3{margin:5px 0 4px;line-height:1.25;font-size:18px}
+.quick-start-card p{line-height:1.45;font-size:12px;max-width:none}
+@media(max-width:768px){.quick-start-grid .quick-start-card{padding:15px!important}}

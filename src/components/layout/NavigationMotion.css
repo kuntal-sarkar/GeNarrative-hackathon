@@ -1,0 +1,20 @@
+/* A single moving highlighter, desktop and mobile, with accessible labels on hover. */
+.bottom-navbar { isolation: isolate; }
+.bottom-navbar .nav-item { position: relative; z-index: 1; transition: color .25s ease, transform .25s ease !important; }
+.bottom-navbar .nav-item-active { background: transparent !important; }
+.bottom-navbar::before { content:""; position:absolute; z-index:0; width:48px; height:48px; left:6px; top:calc(7px + var(--ff-nav-index,0) * 53px); background:#1b93f5; border-radius:999px; transition:top .32s cubic-bezier(.22,1,.36,1), transform .32s cubic-bezier(.22,1,.36,1); pointer-events:none; }
+/* Settings lives at the bottom of the desktop pill. */
+@media(min-width:769px){
+  .bottom-navbar:has(.nav-settings .nav-item-active)::before { top:auto; bottom:6px; }
+  .bottom-navbar .nav-item:hover { transform:scale(1.07); }
+}
+.bottom-navbar .ff-sliders-symbol { color:inherit; }
+@media(max-width:768px){
+ .bottom-navbar { gap:0 !important; justify-content:stretch !important; padding:6px !important; }
+ .bottom-navbar::before { top:6px !important; left:6px !important; bottom:auto !important; height:calc(100% - 12px); width:calc((100% - 12px) / 5); transform:translateX(calc(var(--ff-nav-index,0) * 100%)); transition:transform .34s cubic-bezier(.22,1,.36,1); }
+ .bottom-navbar .nav-item { flex:1 1 0 !important; width:100% !important; min-width:0 !important; height:49px !important; padding:0 !important; }
+ .bottom-navbar .nav-label,.bottom-navbar .nav-item span { display:none !important; }
+ .bottom-navbar .nav-settings { flex:1 1 0 !important; width:auto !important; min-width:0 !important; border:0 !important; padding:0 !important; }
+ .bottom-navbar .nav-item svg { width:22px !important; height:22px !important; }
+}
+@media(prefers-reduced-motion: reduce){ .bottom-navbar::before,.bottom-navbar .nav-item{transition:none !important;} }
