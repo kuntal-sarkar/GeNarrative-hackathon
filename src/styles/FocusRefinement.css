@@ -1,0 +1,20 @@
+/* Compact accessible focus treatment for all search and text fields.
+   Keep keyboard focus visible but avoid the harsh nested blue rectangles. */
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border-color: #b8d7f3 !important;
+  box-shadow: 0 0 0 2px rgba(27,147,245,.13) !important;
+}
+:is(.ff-search,.cc-search,.cm-search,.ff-library-search,.ff-search-field):focus-within {
+  border-color: #b8d7f3 !important;
+  box-shadow: 0 0 0 2px rgba(27,147,245,.12) !important;
+}
+:is(.ff-search,.cc-search,.cm-search,.ff-library-search,.ff-search-field) input:focus-visible {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.ios-select-trigger:focus-visible {outline: none !important;box-shadow:0 0 0 3px rgba(27,147,245,.18) !important;}

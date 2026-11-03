@@ -1,0 +1,16 @@
+/* Section-level unsaved markers and leave dialog */
+.ws-local-link{position:relative;}
+.ff-draft-marker{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f57d1b;flex:0 0 8px;box-shadow:0 0 0 3px rgba(245,125,27,.12);margin-left:auto;}
+.ff-mobile-tools-title .ff-draft-marker{margin:0 0 0 4px;}
+.ff-leave-backdrop{position:fixed;z-index:10020;inset:0;background:rgba(15,30,53,.6);display:grid;place-items:center;padding:16px;}
+.ff-leave-dialog{background:white;color:#172a46;width:min(490px,100%);border-radius:22px;padding:27px;box-shadow:0 20px 80px rgba(10,30,50,.27);}
+.ff-leave-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;color:#b65e14;background:#fff0de;}
+.ff-leave-dialog h2{font-size:24px;margin:16px 0 8px;}
+.ff-leave-dialog p{font-size:14px;line-height:1.7;color:#596a7e;margin:0 0 20px;overflow-wrap:anywhere;}
+.ff-leave-actions{display:flex;flex-wrap:wrap;gap:9px;}
+.ff-leave-actions button{border-radius:11px;min-height:42px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;}
+.ff-stay-button{border:1px solid #d9e0e8;background:white;color:#172a46;}
+.ff-review-button{border:1px solid #172a46;background:#172a46;color:white;}
+.ff-discard-button{border:1px solid #f2d3ca;background:#fff5f1;color:#b04337;}
+.ff-duration-display{color:#3875a3;font-size:11px;margin-top:2px;}
+@media(max-width:640px){.ff-leave-actions{flex-direction:column}.ff-leave-actions button{width:100%}}

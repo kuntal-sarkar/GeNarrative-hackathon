@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Images, LayoutGrid, List, X, Maximize2 } from "lucide-react";
+import { formatDuration } from "../../utils/formatDuration";
 import "./Storyboard.css";
 import "./StoryboardCompact.css";
 
@@ -44,7 +45,7 @@ export default function Storyboard({ scenes = [] }) {
         <header><div><span className="storyboard-frame-number">{active.sceneName} · SHOT {String(active.shotIndex).padStart(2,"0")}</span><h2>{active.name || active.type || "Untitled shot"}</h2></div><button type="button" autoFocus aria-label="Close shot details" onClick={() => setExpandedId(null)}><X size={20}/></button></header>
         <div className="ff-storyboard-dialog-media"><Images size={28}/><span>No reference image added</span></div>
         <dl>
-          {[["Description",active.description],["Shot type",active.type],["Camera angle",active.angle],["Movement",active.movement],["Lighting",active.lighting],["Mood",active.mood],["Duration",active.duration ? `${active.duration} seconds` : ""],["Director's notes",active.notes]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value || "Not specified"}</dd></div>)}
+          {[["Description",active.description],["Shot type",active.type],["Camera angle",active.angle],["Movement",active.movement],["Lighting",active.lighting],["Mood",active.mood],["Duration",formatDuration(active.duration)],["Director's notes",active.notes]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value || "Not specified"}</dd></div>)}
         </dl>
       </section>
     </div>}

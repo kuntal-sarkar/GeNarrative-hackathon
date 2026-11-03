@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useBlocker, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, ArrowUpRight, BookOpen, Brain, Camera, Clapperboard, Save, Pencil, FilePenLine,
+  ArrowLeft, ArrowUpRight, BookOpen, Brain, Camera, Clapperboard, Save, Pencil, FilePenLine, AlertTriangle,
   Film, LayoutDashboard, MessageCircle, MessageSquareText, ScanSearch, ChevronDown, UploadCloud,
 } from "lucide-react";
 import { getProject, saveProject } from "../services/projectService";
 
-import StoryEditor from "../components/studio/StoryEditor";
+import IOSSelect from "../components/ui/IOSSelect";
 import SceneBreakdown from "../components/studio/SceneBreakdown";
 import ShotPlanner from "../components/studio/ShotPlanner";
 import Storyboard from "../components/studio/Storyboard";
@@ -21,7 +21,11 @@ import "./CreativeUpgrade.css";
 import "../styles/WorkspaceRefresh.css";
 import "../styles/FrameforgePolish.css";
 import "../styles/WorkspaceMicroFix.css";
+import "../styles/WorkspaceDraftIndicators.css";
 
+const GENRES = ["Drama", "Thriller", "Mystery", "Horror", "Romance", "RomCom", "Sci-Fi", "Comedy", "Other"];
+const SECTION_FIELDS = { critics: ["latestCritique", "critiques"], continuity: ["continuity", "continuityChecks"], memory: ["creativeDecisions", "creativeMemory", "intentions"], chat: ["conversations", "chats", "chatSessions", "chatHistory"] };
+const sameData = (a,b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 const SECTIONS = [
   { key: "overview", label: "Overview", icon: LayoutDashboard, hint: "Project progress and tools" },
   { key: "story", label: "Story", icon: BookOpen, hint: "Create and edit the story" },
@@ -44,20 +48,40 @@ export default function ProjectWorkspace() {
   const [error, setError] = useState("");
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [savedRevision, setSavedRevision] = useState(0);
-  // Block navigation away from the current project while changes are unsaved.
-  // Switching between workspace sections is allowed: the draft lives in this component.
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  // Check each workspace section independently so a draft in Story still shows
+  // its indicator while the user works in Scenes or Shots.
+  const storedSnapshot = savedRevision >= 0 ? getProject(projectId) : null;
+  const draftSections = (() => {
+    if (!project || !storedSnapshot) return [];
+    const outstanding = [];
+    if (["title", "idea", "genre", "story", "sourceFilename"].some(k => !sameData(project[k], storedSnapshot[k]))) outstanding.push("story");
+    const dScenes = project.scenes || [], sScenes = storedSnapshot.scenes || [];
+    if (!sameData(dScenes.map(({id,name,heading,description})=>({id,name,heading,description})), sScenes.map(({id,name,heading,description})=>({id,name,heading,description})))) outstanding.push("scenes");
+    const extractShots = scenes => scenes.map(s => ({sceneId:s.id, shots: (s.shots || []).map(shot=>shot)}));
+    if (!sameData(extractShots(dScenes), extractShots(sScenes))) outstanding.push("shots");
+    for (const [key,fields] of Object.entries(SECTION_FIELDS)) {
+      if (fields.some(field => !sameData(project[field],storedSnapshot[field]))) outstanding.push(key);
+    }
+    return outstanding;
+  })();
+  const hasUnsaved = draftSections.length > 0;
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
-    if (!dirty) return false;
-    const currentMatch = currentLocation.pathname.match(/^\/projects\/([^/]+)/);
-    const nextMatch = nextLocation.pathname.match(/^\/projects\/([^/]+)/);
-    return !currentMatch || !nextMatch || currentMatch[1] !== nextMatch[1];
+    if (!hasUnsaved) return false;
+    const here = currentLocation.pathname.match(/^\/projects\/([^/]+)/);
+    const there = nextLocation.pathname.match(/^\/projects\/([^/]+)/);
+    return !here || !there || here[1] !== there[1];
   });
-
   useEffect(() => {
-    if (blocker.state !== "blocked") return;
-    if (window.confirm("Unsaved project changes will be lost. Leave without saving?")) blocker.proceed();
-    else blocker.reset();
-  }, [blocker]);
+    setShowLeaveDialog(blocker.state === "blocked");
+  }, [blocker.state]);
+  function stayInProject() { setShowLeaveDialog(false); if (blocker.state === "blocked") blocker.reset(); }
+  function leaveProject() { setShowLeaveDialog(false); if (blocker.state === "blocked") blocker.proceed(); }
+  function reviewDrafts() {
+    const first = draftSections[0];
+    stayInProject();
+    if (first) navigate(`/projects/${encodeURIComponent(projectId)}/${first}`);
+  }
 
   useEffect(() => {
     setProject(getProject(projectId));
@@ -67,10 +91,10 @@ export default function ProjectWorkspace() {
   }, [projectId]);
 
   useEffect(() => {
-    const warn = (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } };
+    const warn = (e) => { if (hasUnsaved) { e.preventDefault(); e.returnValue = ""; } };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  }, [hasUnsaved]);
 
   const base = `/projects/${encodeURIComponent(projectId)}`;
   const current = SECTIONS.find(s => s.key === section);
@@ -102,11 +126,11 @@ export default function ProjectWorkspace() {
     } catch (err) { setError(err?.message || "Could not save. Check available browser storage."); }
   }
   function saveStoryDetails() {
-    const { title, idea } = project;
-    savePartial(latest => ({ ...latest, title: title.trim(), idea }), "Story details saved");
+    const { title, idea, genre } = project;
+    savePartial(latest => ({ ...latest, title: title.trim(), idea, genre }), "Story details saved");
   }
-  const savedProject = savedRevision >= 0 ? getProject(projectId) : null;
-  const storyDetailsSaved = Boolean(savedProject && ["title", "idea"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
+  const savedProject = storedSnapshot;
+  const storyDetailsSaved = Boolean(savedProject && ["title", "idea", "genre"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
   const storyTextSaved = Boolean(savedProject && ["story", "sourceFilename"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
   function saveStoryText() {
     const { story, sourceFilename } = project;
@@ -228,14 +252,14 @@ export default function ProjectWorkspace() {
   return <div className="project-workspace">
     <div className="ws-crumb"><Link to="/studio"><ArrowLeft size={16}/> My projects</Link><span>/</span><span>{project.title || "Untitled Story"}</span></div>
     <header className="ws-project-header"><div><span className="ws-eyebrow">PROJECT WORKSPACE</span><h1>{project.title || "Untitled Story"}</h1><p>{project.genre || "Story"} · {project.language || "English"} · Saved in this browser</p></div><button className="ws-ghost ws-header-chat" type="button" onClick={()=>navigate(`${base}/chat`)}><MessageCircle size={17}/> Ask AI</button></header>
-    <div className="ff-section-save-indicator" role="status"><span className={`ff-save-dot ${dirty ? "pending" : ""}`}/><span>{dirty ? "Unsaved draft — use the Save button in the edited card" : "All saved"}</span></div>
+    <div className="ff-section-save-indicator" role="status"><span className={`ff-save-dot ${hasUnsaved ? "pending" : ""}`}/><span>{hasUnsaved ? `Unsaved changes in ${draftSections.map(k=>SECTIONS.find(s=>s.key===k)?.label || k).join(", ")}` : "All saved"}</span></div>
     {error && <div className="ws-error" role="alert">{error}</div>}{status && !error && <div className="ff-operation-status" role="status">{status}</div>}
     <div className="ws-workspace-grid">
       <aside className="ws-local-nav">
         <div className="ws-local-nav-title">PROJECT TOOLS</div>
-        <button type="button" className="ws-mobile-tools-toggle" aria-expanded={mobileToolsOpen} aria-controls="ff-project-tool-list" onClick={()=>setMobileToolsOpen(v=>!v)}><span className="ff-mobile-tools-title"><CurrentIcon size={19}/> <span><small>PROJECT TOOLS</small><strong>{current.label}</strong></span></span><span className="ff-tools-switch">Choose tool <ChevronDown size={17}/></span></button>
+        <button type="button" className="ws-mobile-tools-toggle" aria-expanded={mobileToolsOpen} aria-controls="ff-project-tool-list" onClick={()=>setMobileToolsOpen(v=>!v)}><span className="ff-mobile-tools-title"><CurrentIcon size={19}/> <span><small>PROJECT TOOLS</small><strong>{current.label}</strong></span>{draftSections.includes(section) && <span className="ff-draft-marker" title="Unsaved changes"/>}</span><span className="ff-tools-switch">Choose tool <ChevronDown size={17}/></span></button>
         <div id="ff-project-tool-list" className={`ws-local-links ${mobileToolsOpen ? "ws-show-mobile" : ""}`}>
-          {SECTIONS.map(({ key, label, icon: Icon }) => <NavLink key={key} to={key === "overview" ? base : `${base}/${key}`} end className={({isActive}) => `ws-local-link ${isActive ? "active" : ""}`} onClick={()=>setMobileToolsOpen(false)}><Icon size={19}/><span>{label}</span></NavLink>)}
+          {SECTIONS.map(({ key, label, icon: Icon }) => <NavLink key={key} to={key === "overview" ? base : `${base}/${key}`} end className={({isActive}) => `ws-local-link ${isActive ? "active" : ""}`} onClick={()=>setMobileToolsOpen(false)}><Icon size={19}/><span>{label}</span>{draftSections.includes(key) && <span className="ff-draft-marker" aria-label={`${label} has unsaved changes`} title="Unsaved changes"/>}</NavLink>)}
         </div>
       </aside>
       <main className="ws-main-panel">
@@ -247,7 +271,7 @@ export default function ProjectWorkspace() {
         {section === "story" && <div className="ff-story-workspace">
           <div className="ff-story-head"><div><span className="ws-eyebrow">STORY WORKSPACE</span><h2>Edit your story</h2><p>Keep your original writing in control. AI editing will be available when the Flask + Gemini backend is connected.</p></div></div>
           <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={()=>setStoryMode("manual")}><Pencil size={18}/> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={()=>setStoryMode("ai")}><FilePenLine size={18}/> Edit with AI</button></div>
-          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><div className="ff-locked-meta"><span>Genre</span><strong>{project.genre || "Not specified"}</strong><small>Set when project was created</small></div><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Set when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15}/> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15}/> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
+          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><label className="ws-field">Genre<IOSSelect value={project.genre || "Drama"} onChange={e=>update("genre",e.target.value)}>{[...new Set([...GENRES, project.genre].filter(Boolean))].map(g=><option key={g} value={g}>{g}</option>)}</IOSSelect><small>Editable · Save Story Details to apply</small></label><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Selected when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title, genre and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15}/> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15}/> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
         </div>}
         {section === "scenes" && <SceneBreakdown scenes={project.scenes || []} onScenesChange={handleScenes} onSaveScene={saveScene} isSceneSaved={isSceneSaved}/>}
         {section === "shots" && <ShotPlanner scenes={project.scenes || []} onChange={handleShots} onSaveShot={saveShot} isShotSaved={isShotSaved}/>}
@@ -263,5 +287,17 @@ export default function ProjectWorkspace() {
         }, "Section saved")}><Save size={15}/> Save {section === "chat" ? "Conversation" : "This Section"}</button></div>}
       </main>
     </div>
+    {showLeaveDialog && blocker.state === "blocked" && <div className="ff-leave-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)stayInProject();}}>
+      <section role="alertdialog" aria-modal="true" aria-labelledby="ff-leave-title" aria-describedby="ff-leave-message" className="ff-leave-dialog">
+        <div className="ff-leave-icon"><AlertTriangle size={23}/></div>
+        <h2 id="ff-leave-title">You have unsaved changes</h2>
+        <p id="ff-leave-message">Changes in <strong>{draftSections.map(k=>SECTIONS.find(s=>s.key===k)?.label || k).join(", ")}</strong> are not saved. Review and use each card's Save button before leaving, or discard those edits.</p>
+        <div className="ff-leave-actions">
+          <button type="button" className="ff-stay-button" onClick={stayInProject}>Stay here</button>
+          <button type="button" className="ff-review-button" onClick={reviewDrafts}>Review changes</button>
+          <button type="button" className="ff-discard-button" onClick={leaveProject}>Leave without saving</button>
+        </div>
+      </section>
+    </div>}
   </div>;
 }
