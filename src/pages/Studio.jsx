@@ -1,4 +1,5 @@
 import IOSSelect from "../components/ui/IOSSelect";
+import SearchField from "../components/ui/SearchField";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -131,7 +132,7 @@ export default function Studio() {
     <section className="ff-library-section" aria-labelledby="ff-library-title">
       <div className="ff-library-heading"><div><span className="ff-library-overline">YOUR LIBRARY</span><h2 id="ff-library-title">All projects <span>{projects.length}</span></h2><p>Pick up where you left off, or start something new.</p></div><div className="ff-view-label"><LayoutGrid size={17}/> Project library</div></div>
       <div className="ff-library-controls">
-        <label className="ff-search" htmlFor="project-search"><Search size={19}/><input id="project-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search projects or genres..." /></label>
+        <SearchField id="project-search" className="ff-search" label="Search projects" placeholder="Search projects or genres..." value={search} onChange={setSearch} />
         <label className="ff-sort">Sort by <IOSSelect value={sort} onChange={(e) => setSort(e.target.value)}><option value="recent">Recently updated</option><option value="name">Project name</option></IOSSelect></label>
       </div>
       {error && !newOpen && <p className="ws-error" role="alert">{error}</p>}

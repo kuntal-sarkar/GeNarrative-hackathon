@@ -1,4 +1,5 @@
 import IOSSelect from "../components/ui/IOSSelect";
+import SearchField from "../components/ui/SearchField";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, BookOpen, Check, CheckCircle2, ChevronDown, ClipboardCheck, FilePenLine, MessageSquareText, RefreshCw, Save, Search, ShieldCheck, Sparkles, X } from "lucide-react";
@@ -146,7 +147,7 @@ export default function Critics() {
     <section className="cc-room-layout">
       <aside className="cc-room-sidebar">
         <div className="cc-room-sidebar-top"><span className="cc-overline">PROJECT LIBRARY</span><strong>{projects.length} project{projects.length === 1 ? "" : "s"}</strong></div>
-        <label className="cc-search"><Search size={17}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Find a project..." aria-label="Search projects"/></label>
+        <SearchField className="cc-search" label="Search projects" placeholder="Find a project..." value={search} onChange={setSearch} />
         <div className="cc-room-project-list">{visibleProjects.map(p => <button type="button" className={`cc-room-project ${selected?.id === p.id ? "active" : ""}`} key={p.id} onClick={() => choose(p.id)}><BookOpen size={18}/><span><strong>{p.title || "Untitled Story"}</strong><small>{(p.scenes || []).length} scenes · {getCritics(p).length ? "Review available" : "Not reviewed"}</small></span></button>)}
           {!projects.length && <p className="cc-muted">No projects yet. <Link to="/studio">Create one in Studio.</Link></p>}
           {!!projects.length && !visibleProjects.length && <p className="cc-muted">No matching projects.</p>}
