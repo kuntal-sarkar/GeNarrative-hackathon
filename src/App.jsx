@@ -6,6 +6,7 @@ import Critics from "./pages/Critics";
 import Memory from "./pages/Memory";
 import Settings from "./pages/Settings";
 import ProjectWorkspace from "./pages/ProjectWorkspace";
+import NotFound from "./pages/NotFound";
 
 // Data router supports useBlocker for protecting unsaved workspace edits.
 const router = createBrowserRouter([{ element: <AppLayout />, children: [
@@ -16,6 +17,7 @@ const router = createBrowserRouter([{ element: <AppLayout />, children: [
   { path: "/critics", element: <Critics /> },
   { path: "/memory", element: <Memory /> },
   { path: "/settings", element: <Settings /> },
+  { path: "*", element: <NotFound /> }
 ]}]);
 
 export default function App() { return <RouterProvider router={router} />; }

@@ -1,0 +1,96 @@
+/* 404-only viewport treatment; does not affect other routes. */
+.app-content:has(> .ff404) {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.ff404 {
+  --ff404-navy: #172A46;
+  --ff404-coral: #FF6B5B;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: clamp(8px, 2vh, 20px) clamp(12px, 3vw, 35px);
+  border: 1px solid #f3e7d8;
+  border-radius: 30px;
+  background: radial-gradient(ellipse at 85% 12%, #fff0e6 0%, transparent 50%), #fffaf3;
+  color: var(--ff404-navy);
+  font-family: inherit;
+}
+.ff404 *, .ff404 *::before, .ff404 *::after {box-sizing:border-box}
+.ff404-glow {position:absolute;z-index:-1;pointer-events:none;border-radius:50%}
+.ff404-glow--top {width:240px;height:240px;right:-100px;top:-115px;background:#ffdfd5;filter:blur(75px)}
+.ff404-glow--bottom {width:260px;height:260px;left:-120px;bottom:-155px;background:#dcecff;filter:blur(70px)}
+.ff404-inner {width:min(100%,1100px);height:100%;max-height:640px;min-height:0;margin:auto;display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);align-items:center;gap:clamp(2px,2.4vw,42px)}
+.ff404-copy {min-width:0;position:relative;z-index:1;animation:ff404-enter .75s ease-out both}
+.ff404-eyebrow {display:inline-flex;align-items:center;gap:9px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #f3e5d8;font-size:10px;font-weight:800;letter-spacing:.15em;color:#64738c}
+.ff404-dot {width:7px;height:7px;border-radius:50%;background:var(--ff404-coral);box-shadow:0 0 0 4px #ffe7e0;animation:ff404-pulse 2.5s ease-in-out infinite}
+.ff404-number {display:flex;align-items:baseline;white-space:nowrap;font-size:clamp(78px,11.5vw,157px);font-weight:900;letter-spacing:-.105em;line-height:.92;margin:clamp(9px,2vh,20px) 0 clamp(8px,1.5vh,14px)}
+.ff404-number > span:first-child {color:var(--ff404-coral)}
+.ff404-number-period {color:var(--ff404-coral);font-size:.55em;letter-spacing:0}
+.ff404 h1 {max-width:480px;margin:0;font-size:clamp(23px,2.7vw,42px);line-height:1.13;font-weight:850;letter-spacing:-.045em}
+.ff404 h1 em {font-style:normal;color:var(--ff404-coral)}
+.ff404 p {max-width:420px;margin:clamp(8px,2vh,18px) 0 clamp(14px,3vh,25px);color:#677890;line-height:1.65;font-size:clamp(12px,1.04vw,15px)}
+.ff404-actions {display:flex;align-items:center;gap:12px}
+.ff404-home {font:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:11px;min-height:47px;padding:0 20px;border-radius:14px;background:var(--ff404-coral);color:#fff;border:1px solid var(--ff404-coral);font-weight:750;box-shadow:0 11px 22px #ff6b5b2b;transition:transform .22s ease,background .22s ease,box-shadow .22s ease}
+.ff404-home:hover {transform:translateY(-3px);background:#f45a4c;box-shadow:0 16px 25px #ff6b5b40}
+.ff404-home svg:last-child {transition:transform .22s ease}
+.ff404-home:hover svg:last-child {transform:translate(2px,-2px)}
+.ff404-home:focus-visible {outline:3px solid #1b93f5;outline-offset:3px}
+.ff404-footer {display:flex;align-items:center;gap:9px;margin-top:clamp(14px,3vh,30px);color:#92a0b0;font-size:9px;letter-spacing:.14em;font-weight:800}
+.ff404-footer-line {height:1px;width:24px;background:#aebaca}
+.ff404-footer-divider {color:var(--ff404-coral)}
+.ff404-visual {position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;flex-direction:column;height:100%;max-height:530px;animation:ff404-enter .85s .1s ease-out both}
+.ff404-art {display:block;width:100%;height:100%;max-height:100%;min-height:0;overflow:visible;filter:drop-shadow(0 12px 13px #172a4608)}
+.ff404-visual-label {position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:9px;font-weight:800;color:#8491a7;letter-spacing:.16em}
+.ff404-float-a {animation:ff404-float 5s ease-in-out infinite}
+.ff404-float-b {animation:ff404-float 6s ease-in-out -1.3s infinite}
+.ff404-float-c {animation:ff404-float 5.5s ease-in-out -2s infinite}
+.ff404-float-d {animation:ff404-float 6.5s ease-in-out -.7s infinite}
+.ff404-spark {animation:ff404-twinkle 3s ease-in-out infinite;transform-origin:540px 220px}
+.ff404-dash {animation:ff404-dashes 14s linear infinite}
+@keyframes ff404-float {0%,100%{translate:0 0}50%{translate:0 -10px}}
+@keyframes ff404-twinkle {0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.9)}}
+@keyframes ff404-dashes {to{stroke-dashoffset:-170}}
+@keyframes ff404-pulse {50%{box-shadow:0 0 0 7px #ffe7e088}}
+@keyframes ff404-enter {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:850px) {
+  .ff404 {border-radius:22px;padding:8px 15px}
+  .ff404-inner {grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:0;text-align:center;max-height:none;padding:10px 0}
+  .ff404-copy {display:flex;align-items:center;flex-direction:column}
+  .ff404-eyebrow {font-size:9px;padding:6px 10px}
+  .ff404-number {font-size:clamp(67px,13vh,116px);margin:7px 0 4px}
+  .ff404 h1 {max-width:450px;font-size:clamp(21px,4.2vw,32px)}
+  .ff404 p {max-width:420px;font-size:12px;line-height:1.45;margin:8px 0 12px}
+  .ff404-home {min-height:42px;font-size:13px}
+  .ff404-footer {display:none}
+  .ff404-visual {width:100%;height:100%;max-height:none;min-height:0}
+  .ff404-art {width:min(100%,410px);max-height:100%;object-fit:contain}
+  .ff404-visual-label {display:none}
+}
+@media(max-width:480px) {
+  .ff404 {padding:6px 10px;border-radius:18px}
+  .ff404-inner {padding:4px 0}
+  .ff404-number {font-size:clamp(62px,11.5vh,93px);margin:5px 0 2px}
+  .ff404 h1 {max-width:320px;font-size:clamp(19px,5vw,25px)}
+  .ff404 p {max-width:315px;font-size:11px;line-height:1.38;margin:7px 0 10px}
+  .ff404-home {min-height:39px;padding:0 14px;border-radius:12px;font-size:12px}
+  .ff404-visual {width:100%;min-height:0}
+}
+@media(max-height:670px) and (min-width:851px) {
+  .ff404-eyebrow {padding:6px 10px}
+  .ff404-number {font-size:clamp(72px,12vh,115px);margin:8px 0}
+  .ff404 h1 {font-size:clamp(22px,4vh,33px)}
+  .ff404 p {margin:8px 0 12px;line-height:1.4}
+  .ff404-footer {margin-top:14px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .ff404-float-a,.ff404-float-b,.ff404-float-c,.ff404-float-d,.ff404-spark,.ff404-dash,.ff404-dot,.ff404-copy,.ff404-visual {animation:none}
+  .ff404-home,.ff404-home svg:last-child {transition:none}
+}
