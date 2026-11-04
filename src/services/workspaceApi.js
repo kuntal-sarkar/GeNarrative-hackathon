@@ -16,3 +16,21 @@ export async function requestProjectAI(projectId, operation, payload) {
   if (!response.ok) throw new Error(data?.error || `Request failed (${response.status})`);
   return data;
 }
+
+// Multipart variant for messages with attachments. Backend must explicitly implement
+// this contract: a JSON `payload` field and repeated `files` multipart fields.
+// No file contents are stored in project localStorage.
+export async function requestProjectAIWithAttachments(projectId, operation, payload, files) {
+  if (!aiConfigured) throw new Error("AI backend not connected. Set VITE_API_BASE_URL after Flask is ready.");
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+  for (const file of files) form.append("files", file, file.name);
+  const response = await fetch(`${BASE}/api/projects/${encodeURIComponent(projectId)}/ai/${operation}`, {
+    method: "POST",
+    body: form, // Browser sets multipart/form-data boundary automatically.
+  });
+  let data = null;
+  try { data = await response.json(); } catch { /* non-JSON backend error */ }
+  if (!response.ok) throw new Error(data?.error || `Attachment request failed (${response.status}). The backend must support multipart uploads.`);
+  return data;
+}

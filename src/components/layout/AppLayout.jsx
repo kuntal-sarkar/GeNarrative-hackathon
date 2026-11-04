@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import BottomNavbar from "./BottomNavbar";
+import GlobalSearch from "../search/GlobalSearch";
 import "./AppLayout.css";
 
 export default function AppLayout() {
@@ -11,6 +12,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <BottomNavbar />
+      <GlobalSearch />
     </div>
   );
 }

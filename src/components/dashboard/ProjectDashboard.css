@@ -1,0 +1,39 @@
+.project-workspace .ff-dashboard{display:grid;gap:16px;min-width:0;color:#172a46}
+.project-workspace .ff-dashboard-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.project-workspace .ff-dashboard-heading h3{font-size:21px;letter-spacing:-.035em;line-height:1.2;margin:4px 0 5px}
+.project-workspace .ff-dashboard-heading p{margin:0;color:#68758a;font-size:12px}
+.project-workspace .ff-dashboard-eyebrow{color:#ff6b5b;font-size:10px;letter-spacing:.15em;font-weight:800}
+.project-workspace .ff-dashboard-continue{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:#172a46;color:#fff;font:inherit;font-weight:700;font-size:12px;padding:12px 17px;cursor:pointer;transition:transform .18s,background .18s}
+.project-workspace .ff-dashboard-continue:hover{background:#263e62;transform:translateY(-1px)}
+.project-workspace .ff-dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.project-workspace .ff-dashboard-metrics>div{background:#fff;border:1px solid #e9e2d8;border-radius:16px;padding:14px 16px;display:grid;gap:3px;min-width:0}
+.project-workspace .ff-dashboard-metrics strong{font-size:25px;line-height:1.2;color:#172a46}
+.project-workspace .ff-dashboard-metrics span{font-size:11px;color:#657187}
+.project-workspace .ff-dashboard-columns{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:12px;min-width:0}
+.project-workspace .ff-dashboard-card{background:#fff;border:1px solid #e9e2d8;border-radius:19px;min-width:0;overflow:hidden}
+.project-workspace .ff-dashboard-cardhead{padding:18px 18px 13px;display:flex;align-items:flex-start;gap:12px;justify-content:space-between}
+.project-workspace .ff-dashboard-cardhead h4{font-size:15px;letter-spacing:-.02em;margin:0;color:#172a46}
+.project-workspace .ff-dashboard-cardhead p{font-size:11px;color:#657187;margin:5px 0 0;line-height:1.5}
+.project-workspace .ff-dashboard-checklist{padding:0 10px 10px;display:grid;gap:3px}
+.project-workspace .ff-dashboard-checkrow{display:flex;align-items:center;width:100%;min-width:0;text-align:left;gap:10px;background:transparent;border:1px solid transparent;border-radius:12px;padding:10px 8px;cursor:pointer;color:#172a46;font:inherit}
+.project-workspace .ff-dashboard-checkrow:hover{background:#fff8f0;border-color:#f0e7db}
+.project-workspace .ff-dashboard-checkicon,.project-workspace .ff-dashboard-activityicon{display:grid;place-items:center;background:#f2f5fa;color:#172a46;width:33px;height:33px;min-width:33px;border-radius:10px}
+.project-workspace .ff-dashboard-checkcopy{display:grid;gap:2px;min-width:0;flex:1}
+.project-workspace .ff-dashboard-checkcopy strong{font-size:12px}
+.project-workspace .ff-dashboard-checkcopy small{font-size:10px;color:#768196}
+.project-workspace .ff-dashboard-checkstate{font-size:10px;color:#7b8697;white-space:nowrap}
+.project-workspace .ff-dashboard-checkstate.is-filled{color:#d65748;font-weight:700}
+.project-workspace .ff-dashboard-chevron{color:#9aa6b4;flex-shrink:0}
+.project-workspace .ff-dashboard-textlink{font:inherit;font-size:11px;font-weight:700;white-space:nowrap;border:0;background:none;color:#172a46;cursor:pointer;display:flex;align-items:center;gap:4px;padding:3px}
+.project-workspace .ff-dashboard-activity{padding:0 18px 14px;display:grid;gap:5px}
+.project-workspace .ff-dashboard-activityrow{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid #f1ece5;min-width:0}
+.project-workspace .ff-dashboard-activityrow:last-child{border-bottom:0}
+.project-workspace .ff-dashboard-activityrow>div{min-width:0;display:grid;gap:4px}
+.project-workspace .ff-dashboard-activityrow strong{font-size:12px;overflow-wrap:anywhere}
+.project-workspace .ff-dashboard-activityrow small{font-size:10px;color:#7c8798;line-height:1.45}
+.project-workspace .ff-dashboard-empty{min-height:165px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;color:#758196}
+.project-workspace .ff-dashboard-empty strong{color:#172a46;font-size:12px}
+.project-workspace .ff-dashboard-empty p{margin:0;max-width:230px;font-size:11px;line-height:1.6}
+@media(max-width:900px){.project-workspace .ff-dashboard-columns{grid-template-columns:1fr}}
+@media(max-width:560px){.project-workspace .ff-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.project-workspace .ff-dashboard-heading{align-items:stretch}.project-workspace .ff-dashboard-continue{width:100%}.project-workspace .ff-dashboard-metrics>div{padding:12px}.project-workspace .ff-dashboard-cardhead{padding:14px 13px 10px}.project-workspace .ff-dashboard-activity{padding:0 13px 12px}.project-workspace .ff-dashboard-checkstate{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.project-workspace .ff-dashboard-continue{transition:none}}

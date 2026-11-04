@@ -1,0 +1,64 @@
+/* Isolated, opt-in global search. Existing app search fields are untouched. */
+.ff-global-search-launch{position:fixed;top:19px;right:102px;z-index:1101;border:1px solid #e4e8ee;background:#fff;color:#172a46;border-radius:999px;min-height:39px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:0 13px;cursor:pointer;box-shadow:0 3px 12px rgba(23,42,70,.05);font:600 12px/1 system-ui,sans-serif}
+.ff-global-search-launch:hover{border-color:#ffb4aa;background:#fffaf8}
+.ff-global-search-launch:focus-visible{outline:2px solid #ff6b5b;outline-offset:3px}
+.ff-global-search-hint{font-size:11px;color:#8690a1;font-weight:600}
+.ff-global-search-overlay{position:fixed;inset:0;z-index:4000;background:rgba(13,27,46,.48);display:flex;align-items:flex-start;justify-content:center;padding:clamp(64px,12vh,130px) 16px 24px;backdrop-filter:blur(5px)}
+.ff-global-search-dialog{width:min(100%,650px);max-height:min(74vh,690px);min-height:240px;display:flex;flex-direction:column;overflow:hidden;background:#fff;border-radius:22px;box-shadow:0 28px 80px rgba(12,26,45,.22);border:1px solid #e4e7ec;color:#172a46}
+.ff-global-search-input-row{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:15px 19px;border-bottom:1px solid #ebedf1;color:#66768c}
+.ff-global-search-input-row input,.ff-global-search-input-row input:focus,.ff-global-search-input-row input:focus-visible{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;-webkit-box-shadow:none!important;background:transparent!important;color:#172a46;font:500 15px/1.4 system-ui,sans-serif;padding:7px 0!important;border-radius:0!important}
+.ff-global-search-input-row input::-webkit-search-cancel-button{display:none}
+.ff-global-search-input-row:focus-within{outline:0!important;box-shadow:none!important}
+.ff-global-search-close{display:grid;place-items:center;flex:0 0 auto;width:32px;height:32px;border:0;border-radius:9px;background:#f3f5f8;color:#56657b;cursor:pointer}
+.ff-global-search-results{min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px;scrollbar-color:#c8d0dc transparent;scrollbar-width:thin}
+.ff-global-search-empty{text-align:center;padding:43px 20px;color:#748197;font:500 14px/1.7 system-ui,sans-serif}
+.ff-global-search-group h3{display:flex;align-items:center;gap:8px;margin:10px 9px 7px;font:700 11px/1.5 system-ui,sans-serif;text-transform:uppercase;letter-spacing:1px;color:#8490a2}
+.ff-global-search-group h3 span{background:#f2f3f5;border-radius:8px;padding:1px 7px}
+.ff-global-search-result{display:flex;align-items:center;text-align:left;width:100%;padding:12px;gap:12px;border:1px solid transparent;border-radius:14px;background:transparent;color:#172a46;cursor:pointer;min-width:0}
+.ff-global-search-result:hover,.ff-global-search-result.is-selected,.ff-global-search-result:focus-visible{background:#fff4ef;border-color:#ffe3da;outline:0}
+.ff-global-search-result-icon{width:38px;height:38px;flex:0 0 auto;display:grid;place-items:center;background:#fff0e9;border-radius:12px;color:#ff6b5b}
+.ff-global-search-result-copy{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.ff-global-search-result-copy strong{font:700 14px/1.35 system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ff-global-search-result-copy small{color:#7b899a;font:500 11px/1.4 system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ff-global-search-result-copy>span{color:#5c697b;font:400 12px/1.4 system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ff-global-search-enter{color:#a4acb9;flex:0 0 auto}
+.ff-global-search-footer{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:12px 19px;border-top:1px solid #edf0f3;color:#8a93a2;font:500 11px system-ui,sans-serif}
+.ff-global-search-footer span{display:inline-flex;align-items:center;gap:5px}
+.ff-global-search-footer kbd{background:#f3f5f7;border:1px solid #e7ebef;border-radius:5px;padding:3px 5px;font:inherit;color:#677386}
+@media(max-width:768px){.ff-global-search-launch{top:14px;right:69px;width:36px;height:36px;min-height:36px;padding:0}.ff-global-search-hint{display:none}.ff-global-search-overlay{padding:78px 10px 14px}.ff-global-search-dialog{max-height:calc(100dvh - 98px);border-radius:17px}.ff-global-search-input-row{padding:13px 12px}.ff-global-search-input-row input{font-size:14px!important}.ff-global-search-footer{gap:12px;padding:9px 14px}}
+/* Search-only input reset: override the app-wide focused input shadow/ring. */
+.ff-global-search-overlay .ff-global-search-dialog .ff-global-search-input-row input[type="search"],
+.ff-global-search-overlay .ff-global-search-dialog .ff-global-search-input-row input[type="search"]:hover,
+.ff-global-search-overlay .ff-global-search-dialog .ff-global-search-input-row input[type="search"]:focus,
+.ff-global-search-overlay .ff-global-search-dialog .ff-global-search-input-row input[type="search"]:focus-visible,
+.ff-global-search-overlay .ff-global-search-dialog .ff-global-search-input-row input[type="search"]:active {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.ff-global-search-overlay .ff-global-search-input-row,
+.ff-global-search-overlay .ff-global-search-input-row:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.ff-global-search-results { scroll-behavior: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .ff-global-search-overlay.is-open { animation: ff-gs-backdrop-in 180ms ease-out both; }
+  .ff-global-search-overlay.is-closing { animation: ff-gs-backdrop-out 180ms ease-in both; pointer-events: none; }
+  .ff-global-search-overlay.is-open .ff-global-search-dialog { animation: ff-gs-dialog-in 180ms cubic-bezier(.2,.75,.25,1) both; }
+  .ff-global-search-overlay.is-closing .ff-global-search-dialog { animation: ff-gs-dialog-out 180ms ease-in both; }
+  @keyframes ff-gs-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes ff-gs-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes ff-gs-dialog-in { from { opacity: 0; transform: translateY(-12px) scale(.975); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes ff-gs-dialog-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-9px) scale(.985); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ff-global-search-overlay.is-closing { pointer-events: none; opacity: 0; }
+}
