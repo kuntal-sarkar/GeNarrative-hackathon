@@ -312,10 +312,13 @@ def scene_breakdown():
         }), http_status
 
     except Exception:
-        return jsonify({
-            "success": False,
-            "error": "Unable to generate scene breakdown.",
-        }), 500
+        import traceback
+        traceback.print_exc()
+
+    return jsonify({
+        "success": False,
+        "error": "Unable to generate scene breakdown."
+    }), 500
 
 
 
@@ -500,10 +503,12 @@ def storyboard_image():
     try:
         description = data.get("description")
         style = data.get("style", "black_white")
+        quality = data.get("quality", "standard")
 
         result = generate_storyboard_image(
             description=description,
             style=style,
+            quality=quality,
         )
 
         response = Response(
@@ -536,3 +541,28 @@ def storyboard_image():
             "success": False,
             "error": "Unable to generate storyboard image.",
         }), 500
+
+# FRAMEFORGE_STORYBOARD_V1_ROUTES
+# Local development storage. Add authentication, quotas, and durable object storage before production deployment.
+from services.storyboard_frame_store import save_frame as ff_save_frame, find_frame as ff_find_frame
+from flask import send_file as ff_send_file
+
+@ai_bp.post('/storyboard/frames')
+def ff_upload_storyboard_frame():
+    try:
+        frame_id, _mime = ff_save_frame(request.files.get('image'))
+        return jsonify({'success': True, 'frameId': frame_id}), 201
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except OSError:
+        return jsonify({'success': False, 'error': 'Could not store storyboard frame.'}), 500
+
+@ai_bp.get('/storyboard/frames/<frame_id>')
+def ff_get_storyboard_frame(frame_id):
+    path = ff_find_frame(frame_id)
+    if path is None:
+        return jsonify({'success': False, 'error': 'Storyboard frame not found.'}), 404
+    response = ff_send_file(path, conditional=False, max_age=0)
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response

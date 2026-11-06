@@ -72,3 +72,50 @@ export async function requestCharacterBible(payload) {
 
   return data;
 }
+// Scene Breakdown AI â€” reuse the existing Flask endpoint and private backend key.
+export async function requestSceneBreakdown(payload) {
+  if (!aiConfigured) throw new Error("AI backend not connected. Set VITE_API_BASE_URL.");
+  const response = await fetch(`${BASE}/api/ai/scenes/breakdown`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  let data = null;
+  try { data = await response.json(); } catch { throw new Error("Invalid response from Scene Breakdown API."); }
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.error || `Scene Breakdown request failed (${response.status})`);
+  }
+  return data;
+}
+
+// FRAMEFORGE_STORYBOARD_V1_API
+export async function requestStoryboardImage(description, style = "black_white", quality = "standard") {
+  if (!aiConfigured) throw new Error("FRAMEFORGE AI backend is not connected.");
+  const response = await fetch(`${BASE}/api/ai/storyboard/image`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description, style, quality }),
+  });
+  if (!response.ok) {
+    let error = `Frame generation failed (${response.status}).`;
+    try { const data = await response.json(); if (data?.error) error = data.error; } catch { /* response may not be JSON */ }
+    throw new Error(error);
+  }
+  const type = response.headers.get("content-type") || "";
+  if (!type.startsWith("image/")) throw new Error("FRAMEFORGE AI did not return an image.");
+  return response.blob();
+}
+export async function uploadStoryboardFrame(blob) {
+  if (!aiConfigured) throw new Error("FRAMEFORGE AI backend is not connected.");
+  const formData = new FormData();
+  formData.append("image", blob, "frame.png");
+  const response = await fetch(`${BASE}/api/ai/storyboard/frames`, { method: "POST", body: formData });
+  let data = null;
+  try { data = await response.json(); } catch { /* non-json error */ }
+  if (!response.ok || !data?.success || !data.frameId) throw new Error(data?.error || `Could not store image (${response.status}).`);
+  return data;
+}
+export function storyboardFrameUrl(frameId) {
+  if (!aiConfigured || !/^[0-9a-f-]{36}$/.test(String(frameId || ""))) return "";
+  return `${BASE}/api/ai/storyboard/frames/${encodeURIComponent(frameId)}`;
+}

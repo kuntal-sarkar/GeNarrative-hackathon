@@ -42,6 +42,7 @@ class ImageGenerationError(Exception):
 def generate_storyboard_image(
     description: str,
     style: ALLOWED_STYLES = "black_white",
+    quality: str = "standard",
 ) -> dict:
     """
     Generate one storyboard image using Cloudflare Workers AI.
@@ -67,6 +68,9 @@ def generate_storyboard_image(
         raise ValueError(
             "Invalid image style. Use black_white or colored."
         )
+    if quality not in ("standard", "high"):
+        raise ValueError("Invalid quality. Use standard or high.")
+
 
     if not CLOUDFLARE_API_TOKEN or not CLOUDFLARE_ACCOUNT_ID:
         raise ImageGenerationError(
@@ -79,6 +83,9 @@ def generate_storyboard_image(
         f"Storyboard scene: {description}\n"
         "Professional film storyboard panel. "
         "Focus on camera composition and visible action. "
+        "Physically coherent props and anatomy. A smartphone screen is on the "
+        "FRONT face of the device, not on the rear. Door handles and hinges "
+        "must obey a plausible physical layout; avoid mirrored props. "
         "No captions, no logos, no watermark, no lettering."
     )
 
@@ -98,7 +105,7 @@ def generate_storyboard_image(
             },
             json={
                 "prompt": prompt,
-                "steps": 4,
+                "steps": 8 if quality == "high" else 4,
             },
             timeout=120,
         )
@@ -196,6 +203,7 @@ def generate_storyboard_image(
         "image_bytes": image_bytes,
         "content_type": content_type,
         "style": style,
+        "quality": quality,
         "model": IMAGE_MODEL,
         "requires_approval": True,
     }

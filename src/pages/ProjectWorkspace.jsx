@@ -12,8 +12,6 @@ import {
 
 import { getProject, saveProject } from "../services/projectService";
 
-
-
 import IOSSelect from "../components/ui/IOSSelect";
 
 import SceneBreakdown from "../components/studio/SceneBreakdown";
@@ -60,21 +58,36 @@ import "../styles/WorkspaceMicroFix.css";
 
 import "../styles/WorkspaceDraftIndicators.css";
 
-
-
 const GENRES = ["Drama", "Thriller", "Mystery", "Horror", "Romance", "RomCom", "Sci-Fi", "Comedy", "Other"];
 
 const SECTION_FIELDS = {
+
   critics: ["latestCritique", "critiques"],
+
   continuity: ["continuity", "continuityChecks", "continuityIssues"],
+
   memory: ["creativeDecisions", "creativeMemory", "intentions"],
+
   chat: [
+
     "conversations", "chats", "chatSessions", "chatHistory",
+
     "chatThreads", "activeChatThreadId", "chatMessages"
+
   ],
+
 };
 
 const sameData = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+const SCENE_EDIT_FIELDS = ["name", "heading", "description", "location", "time_of_day", "characters", "dialogue", "source_excerpt"];
+const normalizedSceneText = (value) => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+const isEquivalentScene = (a, b) => Boolean(
+  (normalizedSceneText(a.source_excerpt) && normalizedSceneText(a.source_excerpt) === normalizedSceneText(b.source_excerpt)) ||
+  (normalizedSceneText(a.heading) && normalizedSceneText(a.description) &&
+   normalizedSceneText(a.heading) === normalizedSceneText(b.heading) &&
+   normalizedSceneText(a.description) === normalizedSceneText(b.description))
+);
 
 const SECTIONS = [
 
@@ -103,8 +116,6 @@ const SECTIONS = [
   { key: "chat", label: "Project AI Chat", icon: MessageCircle, hint: "Ask about scenes and shots" },
 
 ];
-
-
 
 export default function ProjectWorkspace() {
 
@@ -152,7 +163,7 @@ export default function ProjectWorkspace() {
 
     const dScenes = project.scenes || [], sScenes = storedSnapshot.scenes || [];
 
-    if (!sameData(dScenes.map(({ id, name, heading, description }) => ({ id, name, heading, description })), sScenes.map(({ id, name, heading, description }) => ({ id, name, heading, description })))) outstanding.push("scenes");
+    if (!sameData(dScenes.map(s => Object.fromEntries(["id", ...SCENE_EDIT_FIELDS].map(k => [k, s[k] ?? null]))), sScenes.map(s => Object.fromEntries(["id", ...SCENE_EDIT_FIELDS].map(k => [k, s[k] ?? null]))))) outstanding.push("scenes");
 
     const extractShots = scenes => scenes.map(s => ({ sceneId: s.id, shots: (s.shots || []).map(shot => shot) }));
 
@@ -204,8 +215,6 @@ export default function ProjectWorkspace() {
 
   }
 
-
-
   useEffect(() => {
 
     setProject(getProject(projectId));
@@ -218,8 +227,6 @@ export default function ProjectWorkspace() {
 
   }, [projectId]);
 
-
-
   useEffect(() => {
 
     const warn = (e) => { if (hasUnsaved) { e.preventDefault(); e.returnValue = ""; } };
@@ -229,8 +236,6 @@ export default function ProjectWorkspace() {
     return () => window.removeEventListener("beforeunload", warn);
 
   }, [hasUnsaved]);
-
-
 
   // Track the last workspace tool without changing existing project storage.
 
@@ -242,15 +247,11 @@ export default function ProjectWorkspace() {
 
   }, [projectId, section]);
 
-
-
   const base = `/projects/${encodeURIComponent(projectId)}`;
 
   const current = SECTIONS.find(s => s.key === section);
 
   const CurrentIcon = current?.icon || LayoutDashboard;
-
-
 
   // Edits are held only in React state. The database/browser is not updated until Save Changes.
 
@@ -307,46 +308,83 @@ export default function ProjectWorkspace() {
   }
 
   // Persist one critic decision immediately, without saving unrelated drafts.
+
   function saveCriticDecision(record) {
+
     try {
+
       if (!record || !["accept", "reject", "modify"].includes(record.type)) {
+
         throw new Error("Invalid creative decision.");
+
       }
+
       const latest = getProject(projectId);
+
       if (!latest) throw new Error("Project was removed from storage.");
+
       if (!latest.title?.trim()) throw new Error("Project title cannot be empty.");
 
       const updated = {
+
         ...latest,
+
         creativeDecisions: [...(latest.creativeDecisions || []), record],
+
       };
+
       saveProject(updated);
+
       const historyResult = recordVersion(
+
         projectId, latest, updated,
+
         `Creative recommendation ${record.type}`
+
       );
 
       // Retain unsaved Story/Scenes/Chat edits in React memory.
+
       setProject(previous => previous ? ({
+
         ...previous,
+
         creativeDecisions: [...(previous.creativeDecisions || []), record],
+
       }) : previous);
+
       setSavedRevision(n => n + 1);
+
       if (historyResult.recorded) setHistoryRevision(n => n + 1);
+
       const nextDraft = {
+
         ...project,
+
         creativeDecisions: [...(project.creativeDecisions || []), record],
+
         updatedAt: null,
+
       };
+
       setDirty(!sameData(nextDraft, { ...updated, updatedAt: null }));
+
       const success = `${record.type[0].toUpperCase() + record.type.slice(1)} decision saved`;
+
       setStatus(historyResult.warning ? `${success}. ${historyResult.warning}` : success);
+
       setError("");
+
       return true;
+
     } catch (err) {
+
       setError(err?.message || "Could not save creative decision.");
+
       return false;
+
     }
+
   }
 
   function restoreHistoryVersion(version, side) {
@@ -421,11 +459,23 @@ export default function ProjectWorkspace() {
 
       const pos = original.findIndex(scene => scene.id === sceneId);
 
-      const savedScene = pos >= 0 ? { ...original[pos], name: draftScene.name, heading: draftScene.heading, description: draftScene.description } : { ...draftScene, shots: [] };
+      // Save only this scene's editable fields. Preserve already-saved shots and unrelated drafts.
+      const editable = Object.fromEntries(SCENE_EDIT_FIELDS
+        .filter(key => Object.prototype.hasOwnProperty.call(draftScene, key))
+        .map(key => [key, draftScene[key]]));
+      const savedScene = pos >= 0
+        ? { ...original[pos], ...editable }
+        : { ...draftScene, shots: [] };
 
       if (pos >= 0) original[pos] = savedScene;
-
-      else original.push(savedScene);
+      else {
+        // Insert at the position the creator chose, without saving other draft scenes.
+        const draftOrder = (project.scenes || []).map(scene => scene.id);
+        const beforeId = draftOrder.slice(draftOrder.indexOf(sceneId) + 1)
+          .find(id => original.some(scene => scene.id === id));
+        const insertAt = beforeId ? original.findIndex(scene => scene.id === beforeId) : original.length;
+        original.splice(insertAt, 0, savedScene);
+      }
 
       return { ...latest, scenes: original.map((scene, i) => ({ ...scene, number: i + 1 })) };
 
@@ -469,11 +519,54 @@ export default function ProjectWorkspace() {
 
   }
 
+
+  // FRAMEFORGE_STORYBOARD_V1_SAVE
+  // Only approve frames for an already saved shot; preserve all other unsaved edits.
+  async function saveStoryboardFrame(sceneId, shotId, storyboardImage) {
+    try {
+      const latest = getProject(projectId);
+      const storedShot = latest?.scenes?.find(scene => scene.id === sceneId)?.shots?.find(shot => shot.id === shotId);
+      if (!storedShot) throw new Error("Save this shot in Shot Planner before approving a storyboard image.");
+      const next = {
+        ...latest,
+        scenes: (latest.scenes || []).map(scene => scene.id !== sceneId ? scene : ({
+          ...scene,
+          shots: (scene.shots || []).map(shot => shot.id !== shotId ? shot : ({ ...shot, storyboardImage }))
+        }))
+      };
+      saveProject(next);
+      const historyResult = recordVersion(projectId, latest, next, "Storyboard frame saved");
+      if (historyResult.recorded) setHistoryRevision(n => n + 1);
+      setSavedRevision(n => n + 1);
+      setProject(previous => previous ? ({
+        ...previous,
+        scenes: (previous.scenes || []).map(scene => scene.id !== sceneId ? scene : ({
+          ...scene,
+          shots: (scene.shots || []).map(shot => shot.id !== shotId ? shot : ({ ...shot, storyboardImage }))
+        }))
+      }) : previous);
+      const draftNext = {
+        ...project,
+        scenes: (project.scenes || []).map(scene => scene.id !== sceneId ? scene : ({
+          ...scene,
+          shots: (scene.shots || []).map(shot => shot.id !== shotId ? shot : ({ ...shot, storyboardImage }))
+        })), updatedAt: null
+      };
+      setDirty(!sameData(draftNext, { ...next, updatedAt: null }));
+      setStatus(historyResult.warning ? `Storyboard frame saved. ${historyResult.warning}` : "Storyboard frame saved");
+      setError("");
+      return true;
+    } catch (err) {
+      setError(err?.message || "Could not save storyboard frame.");
+      throw err;
+    }
+  }
+
   function isSceneSaved(scene) {
 
     const original = getProject(projectId)?.scenes?.find(s => s.id === scene.id);
 
-    return Boolean(original && ["name", "heading", "description"].every(k => (original[k] || "") === (scene[k] || "")));
+    return Boolean(original && SCENE_EDIT_FIELDS.every(key => sameData(original[key], scene[key])));
 
   }
 
@@ -481,45 +574,74 @@ export default function ProjectWorkspace() {
 
     const original = getProject(projectId)?.scenes?.find(s => s.id === sceneId)?.shots?.find(s => s.id === shot.id);
 
-    return Boolean(original && ["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].every(k => (original[k] || "") == (shot[k] || "")));
+    return Boolean(original && ["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes", "characterName", "characterRole", "expression", "dialogue", "dialogueStatus", "dialogueCue", "audioNotes"].every(k => (original[k] || "") == (shot[k] || "")));
 
   }
 
   function handleScenes(action, payload = {}) {
-
     let scenes = [...(project.scenes || [])];
 
-    if (action === "add") scenes.push({ id: crypto.randomUUID(), name: "", heading: "", description: "", shots: [] });
-
-    else if (action === "edit") scenes = scenes.map(s => s.id === payload.id && ["name", "heading", "description"].includes(payload.field) ? { ...s, [payload.field]: payload.value } : s);
-
-    else if (action === "delete") {
-
-      const target = scenes.find(s => s.id === payload.id);
-
-      if (target?.shots?.length && !window.confirm("This scene has shots. Delete the scene and all its shots?")) return;
-
-      scenes = scenes.filter(s => s.id !== payload.id);
-
-      if (getProject(projectId)?.scenes?.some(s => s.id === payload.id)) {
-
-        savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).filter(s => s.id !== payload.id).map((s, i) => ({ ...s, number: i + 1 })) }), "Scene deleted");
-
+    if (action === "add") {
+      scenes.push({ id: crypto.randomUUID(), name: "", heading: "", description: "", shots: [] });
+    } else if (action === "addAI") {
+      const incoming = payload.scene;
+      if (!incoming || typeof incoming !== "object") return;
+      if (scenes.some(scene => isEquivalentScene(scene, incoming))) {
+        window.alert("This scene already exists. No duplicate was added.");
+        return;
       }
-
+      const requested = Number(payload.position);
+      const position = Number.isInteger(requested)
+        ? Math.max(0, Math.min(scenes.length, requested))
+        : scenes.length;
+      scenes.splice(position, 0, { ...incoming, id: crypto.randomUUID(), shots: [] });
+    } else if (action === "updateAI") {
+      const incoming = payload.scene;
+      const targetId = payload.id;
+      const target = scenes.find(scene => scene.id === targetId);
+      if (!target || !incoming || typeof incoming !== "object") return;
+      if (scenes.some(scene => scene.id !== targetId && isEquivalentScene(scene, incoming))) {
+        window.alert("This AI suggestion already matches a different scene. No changes applied.");
+        return;
+      }
+      if (!window.confirm(`Apply the AI suggestion to "${target.name || target.heading || "this scene"}" as an UNSAVED draft?\n\nThis updates its draft description and metadata but preserves its existing shots. Click Save Scene to keep it.`)) return;
+      // Preserve creator title, identity, planned shots and all other project data.
+      scenes = scenes.map(scene => scene.id === targetId ? {
+        ...scene,
+        heading: incoming.heading || scene.heading,
+        description: incoming.description || scene.description,
+        location: incoming.location || scene.location,
+        time_of_day: incoming.time_of_day || scene.time_of_day,
+        characters: Array.isArray(incoming.characters) ? [...incoming.characters] : scene.characters,
+        dialogue: Array.isArray(incoming.dialogue) ? [...incoming.dialogue] : scene.dialogue,
+        source_excerpt: incoming.source_excerpt || scene.source_excerpt,
+      } : scene);
+    } else if (action === "edit") {
+      scenes = scenes.map(scene => scene.id === payload.id && ["name", "heading", "description"].includes(payload.field)
+        ? { ...scene, [payload.field]: payload.value } : scene);
+    } else if (action === "delete") {
+      const target = scenes.find(scene => scene.id === payload.id);
+      if (!target) return;
+      if (target.shots?.length && !window.confirm("This scene has shots. Delete the scene and all its shots?")) return;
+      scenes = scenes.filter(scene => scene.id !== payload.id);
+      if (getProject(projectId)?.scenes?.some(scene => scene.id === payload.id)) {
+        savePartial(latest => ({
+          ...latest,
+          scenes: (latest.scenes || []).filter(scene => scene.id !== payload.id)
+            .map((scene, index) => ({ ...scene, number: index + 1 })),
+        }), "Scene deleted");
+      }
     } else return;
 
+    const numbered = scenes.map((scene, index) => ({ ...scene, number: index + 1 }));
     if (action === "delete") {
-
-      setProject(previous => ({ ...previous, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) }));
-
-      setDirty(JSON.stringify({ ...project, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })), updatedAt: null }) !== JSON.stringify({ ...getProject(projectId), updatedAt: null }));
-
-    } else persist(previous => ({ ...previous, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) }));
-
+      setProject(previous => ({ ...previous, scenes: numbered }));
+      setDirty(JSON.stringify({ ...project, scenes: numbered, updatedAt: null }) !==
+        JSON.stringify({ ...getProject(projectId), updatedAt: null }));
+    } else {
+      persist(previous => ({ ...previous, scenes: numbered }));
+    }
   }
-
-
 
   function handleShots(sceneId, action, payload = {}) {
 
@@ -534,10 +656,17 @@ export default function ProjectWorkspace() {
     let nextShots = currentShots;
 
     if (action === "add") nextShots = [...currentShots, { id: crypto.randomUUID(), name: "", type: "", angle: "", movement: "", lighting: "", mood: "", duration: "", description: "", notes: "" }];
+    else if (action === "addAI") {
+      if (!payload.shot || typeof payload.shot !== "object") return;
+      nextShots = [...currentShots, {
+        ...payload.shot,
+        id: crypto.randomUUID(),
+      }];
+    }
 
     else if (action === "edit") {
 
-      if (!["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].includes(payload.field)) return;
+      if (!["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes", "characterName", "characterRole", "expression", "dialogue", "dialogueStatus", "dialogueCue", "audioNotes"].includes(payload.field)) return;
 
       nextShots = currentShots.map(shot => shot.id === payload.id ? { ...shot, [payload.field]: payload.value } : shot);
 
@@ -568,11 +697,15 @@ export default function ProjectWorkspace() {
       if (currentShots.every(shot => isSaved(shot.id))) {
 
         savePartial(latest => ({
+
           ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({
+
             ...s,
 
             shots: [...(s.shots || [])].sort((a, b) => savedOrder.indexOf(a.id) - savedOrder.indexOf(b.id))
+
           }))
+
         }), "Shot order saved");
 
       } else {
@@ -595,13 +728,9 @@ export default function ProjectWorkspace() {
 
   }
 
-
-
   async function uploadScript(file) {
 
     if (!file) return;
-
-
 
     try {
 
@@ -610,6 +739,7 @@ export default function ProjectWorkspace() {
       // Append rather than replace, including when edits happen while PDF extraction is running.
 
       persist(previous => ({
+
         ...previous,
 
         story: [previous.story?.trimEnd(), imported.text.trim()].filter(Boolean).join("\n\n"),
@@ -623,8 +753,6 @@ export default function ProjectWorkspace() {
     } catch (err) { setError(err.message || "Could not read script."); }
 
   }
-
-
 
   function saveChatConversation() {
 
@@ -642,21 +770,15 @@ export default function ProjectWorkspace() {
 
   }
 
-
-
   if (!project) return <div className="ws-empty ws-missing"><h1>Project not found</h1><p>It may have been deleted or saved in another browser.</p><Link className="ws-primary" to="/studio">Back to projects</Link></div>;
 
   if (!current) return <div className="ws-empty"><h1>Section not found</h1><Link to={base}>Open project overview</Link></div>;
-
-
 
   const sceneCount = project.scenes?.length || 0;
 
   const shotCount = (project.scenes || []).reduce((sum, s) => sum + (Array.isArray(s.shots) ? s.shots.length : 0), 0);
 
   const memoryCount = project.creativeDecisions?.length || 0;
-
-
 
   return <div ref={workspaceRef} className="project-workspace">
 
@@ -714,11 +836,11 @@ export default function ProjectWorkspace() {
 
         {section === "characters" && <CharacterBible project={project} characters={project.characters || []} onChange={value => update("characters", value)} onSave={() => savePartial(latest => ({ ...latest, characters: project.characters || [] }), "Characters saved")} saved={sameData(project.characters || [], storedSnapshot?.characters || [])} />}
 
-        {section === "scenes" && <SceneBreakdown scenes={project.scenes || []} onScenesChange={handleScenes} onSaveScene={saveScene} isSceneSaved={isSceneSaved} />}
+        {section === "scenes" && <SceneBreakdown project={project} scenes={project.scenes || []} onScenesChange={handleScenes} onSaveScene={saveScene} isSceneSaved={isSceneSaved} />}
 
-        {section === "shots" && <ShotPlanner scenes={project.scenes || []} onChange={handleShots} onSaveShot={saveShot} isShotSaved={isShotSaved} />}
+        {section === "shots" && <ShotPlanner project={project} scenes={project.scenes || []} onChange={handleShots} onSaveShot={saveShot} isShotSaved={isShotSaved} />}
 
-        {section === "storyboard" && <Storyboard scenes={project.scenes || []} />}
+        {section === "storyboard" && <Storyboard scenes={project.scenes || []} onSaveFrame={saveStoryboardFrame} />}
 
         {section === "critics" && <ProjectCritics project={project} onSave={value => { persist(value); setStatus("Review draft changed. Use Save This Section to keep the review."); }} onDecision={saveCriticDecision} />}
 

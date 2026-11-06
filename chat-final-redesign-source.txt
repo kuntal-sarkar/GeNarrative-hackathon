@@ -1,0 +1,882 @@
+﻿========== src\components\workspace\ProjectAIChat.jsx ==========
+import IOSSelect from "../ui/IOSSelect";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { aiConfigured, requestProjectAI, requestProjectAIWithAttachments } from "../../services/workspaceApi";
+import { BookOpen, Check, Copy, Menu, MessageCircle, MoreHorizontal, Paperclip, Pencil, Plus, Send, ArrowUp, LoaderCircle, Trash2, X } from "lucide-react";
+import "./ProjectAIChat.css";
+import "./ProjectAIChatPolish.css";
+
+const uid = () => crypto.randomUUID();
+const ATTACHMENT_LIMIT = 5;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = new Set(["pdf", "txt", "md", "png", "jpg", "jpeg", "webp"]);
+const formatSize = bytes => bytes < 1024 * 1024 ? `${Math.ceil(bytes / 1024)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+const makeThread = (title = "New conversation", target = "project") => ({ id: uid(), title, target, messages: [], createdAt: new Date().toISOString() });
+const normalize = (project) => {
+  if (Array.isArray(project.chatThreads)) return project.chatThreads;
+  const legacy = Array.isArray(project.chatMessages) ? project.chatMessages : [];
+  return legacy.length ? [{ id: "legacy-chat", title: "Previous conversation", target: "project", messages: legacy }] : [];
+};
+export default function ProjectAIChat({ project, onSave, onOpenStory }) {
+  const location = useLocation();
+  const threads = normalize(project);
+  const [activeId, setActiveId] = useState(null);
+  const [input, setInput] = useState("");
+  const [target, setTarget] = useState("project");
+  const [busy, setBusy] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+  const copyTimerRef = useRef(null);
+  const textareaRef = useRef(null);
+  const [error, setError] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [proposal, setProposal] = useState(null);
+  const [revision, setRevision] = useState("");
+  const [attachments, setAttachments] = useState([]);
+  const attachmentsRef = useRef([]);
+  const fileInputRef = useRef(null);
+  const addFiles = fileList => {
+    const incoming = Array.from(fileList || []);
+    if (!incoming.length) return;
+    const current = attachmentsRef.current;
+    const next = [...current];
+    for (const file of incoming) {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (!ALLOWED_EXTENSIONS.has(ext)) { setError(`Unsupported file: ${file.name}. Use PDF, TXT, MD, PNG, JPG or WebP.`); continue; }
+      if (!file.size || file.size > MAX_FILE_BYTES) { setError(`${file.name}: files must be non-empty and no larger than 10 MB.`); continue; }
+      if (next.length >= ATTACHMENT_LIMIT) { setError(`You can attach up to ${ATTACHMENT_LIMIT} files per message.`); break; }
+      if (next.reduce((total, item) => total + item.file.size, 0) + file.size > MAX_TOTAL_BYTES) { setError("Total attachment size cannot exceed 25 MB."); break; }
+      if (next.some(item => item.file.name === file.name && item.file.size === file.size && item.file.lastModified === file.lastModified)) continue;
+      next.push({ id: uid(), file, previewUrl: file.type.startsWith("image/") ? URL.createObjectURL(file) : null });
+    }
+    attachmentsRef.current = next;
+    setAttachments(next);
+  };
+  const clearAttachments = () => {
+    attachmentsRef.current.forEach(item => { if (item.previewUrl) URL.revokeObjectURL(item.previewUrl); });
+    attachmentsRef.current = [];
+    setAttachments([]);
+  };
+  const removeAttachment = id => {
+    const item = attachmentsRef.current.find(item => item.id === id);
+    if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    const next = attachmentsRef.current.filter(item => item.id !== id);
+    attachmentsRef.current = next;
+    setAttachments(next);
+  };
+  useEffect(() => () => { attachmentsRef.current.forEach(item => { if (item.previewUrl) URL.revokeObjectURL(item.previewUrl); }); }, []);
+
+  const copyMessage = async (id, content) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedId(id);
+      window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => setCopiedId(null), 1800);
+    } catch {
+      setError("Couldn't copy message. Check browser clipboard permissions.");
+    }
+  };
+  useEffect(() => () => window.clearTimeout(copyTimerRef.current), []);
+  const resizeInput = (el) => {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 156)}px`;
+  };
+  const scrollRef = useRef(null);
+  const thread = threads.find(t=>t.id===activeId) || threads.find(t=>t.id===project.activeChatThreadId) || threads[0] || null;
+  useEffect(()=>{ setActiveId(null); setTarget("project"); setProposal(null); setInput(""); clearAttachments(); },[project.id]);
+  useEffect(()=>{ if (location.state?.chatIntent === "story") setTarget("story"); },[location.state]);
+  useEffect(()=>{scrollRef.current?.scrollTo({top: scrollRef.current.scrollHeight,behavior:"smooth"});},[thread?.messages?.length]);
+  function commit(nextOrUpdater, id) {
+    onSave(latest => {
+      if (!latest) return latest;
+      const all = normalize(latest);
+      const next = typeof nextOrUpdater === "function" ? nextOrUpdater(all) : nextOrUpdater;
+      return { ...latest, chatThreads: next, activeChatThreadId: id };
+    });
+    setActiveId(id || null);
+  }
+  function create() { const t=makeThread("New conversation",target); commit(all => [t,...all],t.id); setInput("");setProposal(null);setSidebarOpen(false); }
+  function rename(id) { const old=threads.find(t=>t.id===id); const title=window.prompt("Conversation name",old?.title||"")?.trim(); if(title)commit(all => all.map(t=>t.id===id?{...t,title:title.slice(0,90)}:t), id); }
+  function remove(id) {if(!window.confirm("Delete this conversation from the project draft? Save Changes to confirm."))return;const remaining=threads.filter(t=>t.id!==id);commit(all => all.filter(t=>t.id!==id),remaining[0]?.id||null);setActiveId(remaining[0]?.id||null);}
+  function switchTo(id){setActiveId(id);setProposal(null);setError("");setSidebarOpen(false);}
+  async function send(e) {
+    e.preventDefault(); const content=input.trim(); if(!content||busy)return;
+    if(!aiConfigured){setError("Flask AI backend isn't connected yet. No simulated replies are generated.");return;}
+    const selectedFiles = attachmentsRef.current.map(item => item.file);
+    const selectedMetadata = selectedFiles.map(file => ({ name: file.name, size: file.size, type: file.type || "application/octet-stream" }));
+    const current=thread||makeThread(content.slice(0,55),target);
+    const history=Array.isArray(current.messages)?current.messages:[];
+    const userMessage={id:uid(),role:"user",content,...(selectedMetadata.length ? {attachments:selectedMetadata} : {}),sceneId:target.startsWith("scene:")?target.slice(6):null,at:new Date().toISOString()};
+    const waiting=[...history,userMessage];
+    // Append to the latest draft, not to the project snapshot captured before the request.
+    commit(all => {
+      const exists = all.some(t => t.id === current.id);
+      const base = exists ? all : [current, ...all];
+      return base.map(t => t.id === current.id ? {
+        ...t, title: history.length ? t.title : content.slice(0, 60),
+        messages: [...(t.messages || []), userMessage], target
+      } : t);
+    }, current.id);
+    setInput("");setError("");setBusy(true);setProposal(null);
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    try {
+      const payload={
+        message:content, target, sceneId:target.startsWith("scene:")?target.slice(6):null,
+        language:project.language||"English", history:history.map(m=>({role:m.role,content:m.content})).slice(-24),
+        context:{title:project.title,idea:project.idea,story:project.story,scenes:project.scenes,creativeDecisions:project.creativeDecisions}
+      };
+      const data=selectedFiles.length
+        ? await requestProjectAIWithAttachments(project.id,"chat",payload,selectedFiles)
+        : await requestProjectAI(project.id,"chat",payload);
+      const answer=typeof data?.answer==="string"?data.answer.trim():"";
+      if(!answer)throw new Error("Backend returned no answer.");
+      const response={id:uid(),role:"assistant",content:answer,at:new Date().toISOString()};
+      // Functional update preserves edits, other chats, renames and scene changes
+      // made while the backend request was in flight.
+      onSave(latest => ({ ...latest, chatThreads: normalize(latest).map(t =>
+        t.id === current.id ? { ...t, messages: [...(t.messages || []), response] } : t
+      ) }));
+      clearAttachments();
+      if(data?.proposedRevision && typeof data.proposedRevision.text==="string" && ["story","scene"].includes(data.proposedRevision.target)) {
+        setProposal(data.proposedRevision); setRevision(data.proposedRevision.text);
+      }
+    } catch(err) {
+      // A failed attachment upload must never be represented as a successfully sent file.
+      if (selectedFiles.length) {
+        onSave(latest => ({ ...latest, chatThreads: normalize(latest).map(t =>
+          t.id === current.id ? { ...t, messages: (t.messages || []).filter(m => m.id !== userMessage.id) } : t
+        ) }));
+        setInput(content);
+      }
+      setError(err.message || "Request failed. Files remain attached so you can retry.");
+    }
+    finally {setBusy(false);}
+  }
+  function applyProposal(){
+    if(!proposal||!revision.trim())return;
+    if(proposal.target==="story") onSave(latest => ({ ...latest, story:revision }));
+    else if(proposal.target==="scene" && proposal.sceneId) {
+      const match=(project.scenes||[]).some(s=>s.id===proposal.sceneId);
+      if(!match){setError("The referenced scene no longer exists.");return;}
+      onSave(latest => ({ ...latest, scenes:(latest.scenes||[]).map(s=>s.id===proposal.sceneId?{...s,description:revision}:s) }));
+    } else return;
+    setProposal(null);setRevision("");setError("Revision added to unsaved project draft. Click Save Changes at the top to keep it.");
+  }
+  return <section className="ff-chatroom" aria-label="Project AI writing room">
+    <aside className={`ff-chat-sidebar ${sidebarOpen?"open":""}`}>
+      <div className="ff-chat-sidebar-head"><strong>Conversations</strong><button type="button" title="Close chat list" className="ff-chat-mobile-close" onClick={()=>setSidebarOpen(false)}><X size={17}/></button></div>
+      <button className="ff-chat-new" onClick={create}><Plus size={17}/> New chat</button>
+      <div className="ff-thread-list">{threads.length?threads.map(t=><div key={t.id} className={`ff-thread-row ${t.id===thread?.id?"selected":""}`}><button className="ff-thread-open" type="button" onClick={()=>switchTo(t.id)}><MessageCircle size={15}/><span>{t.title}</span></button><button title="Rename" onClick={()=>rename(t.id)}><Pencil size={14}/></button><button title="Delete" onClick={()=>remove(t.id)}><Trash2 size={14}/></button></div>):<p className="ff-chat-muted">No conversations yet. Start one whenever you're ready.</p>}</div>
+      <div className="ff-chat-sidebar-foot">Conversations are stored with this project after Save Changes.</div>
+    </aside>
+    <div className="ff-chat-center">
+      <header className="ff-chat-header"><button className="ff-chat-menu" onClick={()=>setSidebarOpen(true)} aria-label="Open conversations"><Menu size={19}/></button><div><span>PROJECT WRITING ROOM</span><strong>{thread?.title||"New conversation"}</strong></div><button className="ff-chat-storylink" type="button" onClick={onOpenStory}><BookOpen size={16}/> Story editor</button></header>
+      <div className="ff-chat-target"><label>AI context<IOSSelect value={target} onChange={e=>setTarget(e.target.value)}><option value="project">Entire project</option><option value="story">Full story / rewrite</option>{(project.scenes||[]).map((s,i)=><option key={s.id} value={`scene:${s.id}`}>Scene {i+1}: {s.name||s.heading||"Untitled"}</option>)}</IOSSelect></label><span>{aiConfigured?"Backend configured":"AI backend not connected"}</span></div>
+      <div className="ff-chat-transcript" ref={scrollRef} role="log" aria-live="polite">{thread?.messages?.length?thread.messages.map(m=><article key={m.id} className={`ff-chat-bubble ${m.role==="user"?"is-user":"is-ai"}`}><div className="ff-chat-who">{m.role==="user"?"You":"AI Co-Director"}<button type="button" className={`ff-copy-action ${copiedId === m.id ? "is-copied" : ""}`} title={copiedId === m.id ? "Copied" : "Copy message"} aria-label={copiedId === m.id ? "Copied to clipboard" : "Copy message"} onClick={() => copyMessage(m.id, m.content)}>{copiedId === m.id ? <Check size={15}/> : <Copy size={15}/>}</button></div><p>{m.content}</p>{Array.isArray(m.attachments) && m.attachments.length > 0 && <div className="ff-chat-attachment-history" aria-label="Files sent with this message">{m.attachments.map((item,i)=><span key={`${item.name}-${i}`}><Paperclip size={12}/>{item.name}</span>)}</div>}</article>):<div className="ff-chat-welcome"><div className="ff-chat-welcome-icon"><MessageCircle size={27}/></div><h2>Your creative thinking partner</h2><p>Discuss plot, character motives, screenplay rewrites or any specific scene. Create multiple chats, continue past discussions and approve proposed edits before they reach your story.</p>{!aiConfigured&&<p className="ff-chat-offline">Connect the Flask + Gemini backend to send messages. No fake AI content is generated.</p>}</div>}{busy && <article className="ff-chat-thinking" role="status" aria-live="polite"><span className="ff-thinking-dots" aria-hidden="true"><i/><i/><i/></span><span>AI Co-Director is shaping a response...</span></article>}</div>
+      {proposal&&<div className="ff-chat-proposal"><div className="ff-chat-proposal-head"><strong>Proposed {proposal.target} revision â€” review before applying</strong><button onClick={()=>setProposal(null)}><X size={16}/></button></div><textarea value={revision} onChange={e=>setRevision(e.target.value)} rows={7} aria-label="Edit proposed story text"/><div><button className="ff-chat-apply" onClick={applyProposal}><Check size={17}/> Apply to draft</button><small>Not saved until you click Save Changes above.</small></div></div>}
+      {error&&<p className="ff-chat-error" role="status">{error}</p>}
+      <form onSubmit={send} className="ff-chat-composer">
+        <input ref={fileInputRef} className="ff-chat-file-input" type="file" accept=".pdf,.txt,.md,.png,.jpg,.jpeg,.webp" multiple onChange={e => { addFiles(e.target.files); e.target.value=""; }} aria-label="Attach files" />
+        {attachments.length > 0 && <div className="ff-chat-attachments" aria-label="Selected attachments">{attachments.map(item => <div className="ff-chat-attachment" key={item.id}>{item.previewUrl ? <img src={item.previewUrl} alt="" /> : <Paperclip size={17}/>}<span title={item.file.name}>{item.file.name}<small>{formatSize(item.file.size)}</small></span><button type="button" aria-label={`Remove ${item.file.name}`} title="Remove attachment" onClick={() => removeAttachment(item.id)} disabled={busy}><X size={15}/></button></div>)}</div>}
+        <div className="ff-chat-compose-shell">
+          <button className="ff-chat-plus" type="button" title="Attach a file" aria-label="Attach a file" onClick={() => fileInputRef.current?.click()} disabled={busy}><Plus size={21}/></button>
+          <textarea ref={textareaRef} rows={1} placeholder="Ask your AI Co-Director anything..." aria-label="Write a message" value={input} onChange={e => { setInput(e.target.value); resizeInput(e.currentTarget); }} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(e); } }}/>
+          <button className={`ff-chat-send-arrow ${busy ? "is-thinking" : ""}`} type="submit" aria-label={busy ? "AI is thinking" : "Send message"} title={busy ? "AI is thinking" : "Send message"} disabled={!input.trim() || busy || !aiConfigured}>{busy ? <LoaderCircle size={19}/> : <ArrowUp size={20}/>}</button>
+        </div>
+        <div className="ff-chat-compose-hint"><span>{busy ? "Crafting your next scene of thought..." : "Enter to send Â· Shift+Enter for a new line"}</span><span>Creative decisions stay yours</span></div>
+      </form>
+    </div>
+  </section>;
+}
+
+
+
+========== src\components\workspace\ProjectAIChat.css ==========
+.ff-chatroom{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:640px;max-height:min(760px,calc(100vh - 210px));border:1px solid #e8e1d8;border-radius:22px;overflow:hidden;background:#fff;color:#172a46}.ff-chat-sidebar{background:#f7f6f4;border-right:1px solid #e8e1d8;display:flex;flex-direction:column;min-width:0}.ff-chat-sidebar-head{display:flex;justify-content:space-between;align-items:center;padding:23px 18px 10px}.ff-chat-new{display:flex;align-items:center;gap:8px;margin:10px 12px 15px;background:#172a46;color:white;border:0;border-radius:12px;padding:12px 15px;font-weight:700;cursor:pointer}.ff-thread-list{padding:0 9px;overflow:auto;flex:1}.ff-thread-row{display:flex;align-items:center;gap:3px;border-radius:12px;padding:3px}.ff-thread-row.selected{background:#e6edf3}.ff-thread-row>button{border:0;background:transparent;padding:8px 5px;color:#172a46;cursor:pointer}.ff-thread-open{display:flex;gap:9px;align-items:center;flex:1;min-width:0;text-align:left}.ff-thread-open span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ff-chat-sidebar-foot{font-size:11px;color:#7a8492;border-top:1px solid #e8e1d8;padding:15px}.ff-chat-muted{font-size:12px;color:#798394;padding:10px}.ff-chat-center{display:flex;flex-direction:column;min-width:0;overflow:hidden}.ff-chat-header{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid #ece7e0;padding:16px 20px}.ff-chat-header>div{flex:1;min-width:0;display:grid;gap:4px}.ff-chat-header span{font-size:10px;color:#ff6b5b;font-weight:800;letter-spacing:.13em}.ff-chat-header strong{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ff-chat-storylink{border:1px solid #e8e1d8;border-radius:11px;background:white;padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;cursor:pointer;color:#172a46}.ff-chat-target{padding:12px 20px;border-bottom:1px solid #efebe6;display:flex;align-items:center;justify-content:space-between;gap:12px}.ff-chat-target label{display:flex;gap:10px;align-items:center;font-size:12px;color:#677487}.ff-chat-target select{background:#f8f7f5;padding:9px 11px;border:1px solid #e8e1d8;border-radius:10px;max-width:210px;min-width:0;color:#172a46}.ff-chat-target>span{font-size:11px;color:#8892a0}.ff-chat-transcript{overflow-y:auto;flex:1;min-height:160px;padding:22px;display:flex;flex-direction:column;gap:16px}.ff-chat-bubble{max-width:88%;padding:14px 16px;border-radius:16px;background:#f4f6f8;align-self:flex-start}.ff-chat-bubble.is-user{background:#eaf4fd;align-self:flex-end}.ff-chat-who{display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:11px;font-weight:800;color:#566275}.ff-chat-who button,.ff-chat-proposal-head button{border:0;background:transparent;cursor:pointer;color:#657187}.ff-chat-bubble p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0;font-size:13px;line-height:1.65}.ff-chat-welcome{margin:auto;max-width:390px;text-align:center}.ff-chat-welcome h2{font-size:25px;letter-spacing:-.035em}.ff-chat-welcome p{color:#778395;font-size:13px;line-height:1.7}.ff-chat-welcome-icon{display:inline-grid;place-items:center;width:57px;height:57px;border-radius:17px;background:#fff0e9;color:#ff6b5b}.ff-chat-offline,.ff-chat-error{background:#fff5ef;color:#9b503b;border-radius:10px;padding:10px 15px!important;font-size:12px!important}.ff-chat-error{margin:0 17px 10px}.ff-chat-proposal{border:1px solid #b6d6ed;background:#f2f9ff;border-radius:12px;padding:13px;margin:10px 17px}.ff-chat-proposal-head{display:flex;justify-content:space-between}.ff-chat-proposal textarea{width:100%;margin:10px 0;border:1px solid #ccdbe9;border-radius:10px;padding:10px;resize:vertical}.ff-chat-proposal>div:last-child{display:flex;align-items:center;gap:12px}.ff-chat-apply{display:flex;align-items:center;gap:7px;border:0;background:#172a46;color:white;border-radius:10px;padding:10px 12px;cursor:pointer}.ff-chat-proposal small{color:#617084}.ff-chat-composer{border-top:1px solid #ece7e0;padding:14px 18px;background:white}.ff-chat-composer textarea{width:100%;border:1px solid #dddfe2;border-radius:13px;padding:13px;resize:vertical;min-height:75px;color:#172a46;background:#fdfdfd}.ff-chat-composer>div{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}.ff-chat-composer span{font-size:10px;color:#84909b}.ff-chat-composer button{display:flex;align-items:center;gap:7px;border:0;border-radius:10px;background:#ff6b5b;color:#172a46;font-weight:800;padding:10px 16px;cursor:pointer}.ff-chat-composer button:disabled{opacity:.45;cursor:not-allowed}.ff-chat-menu,.ff-chat-mobile-close{display:none}@media(max-width:850px){.ff-chatroom{grid-template-columns:minmax(0,1fr);position:relative;max-height:none;min-height:650px}.ff-chat-sidebar{display:none;position:absolute;z-index:4;inset:0 auto 0 0;width:min(270px,85%);box-shadow:10px 0 28px #172a4630}.ff-chat-sidebar.open{display:flex}.ff-chat-menu,.ff-chat-mobile-close{display:flex;background:transparent;border:0;cursor:pointer}.ff-chat-header{padding:12px}.ff-chat-storylink{font-size:0;gap:0}.ff-chat-target{padding:10px 12px;flex-wrap:wrap}.ff-chat-transcript{padding:14px;max-height:55vh}.ff-chat-composer{padding:12px}.ff-chat-composer span{display:none}}
+
+/* Project AI Chat attachments: scoped, no changes to other controls. */
+.ff-chat-file-input{display:none!important}
+.ff-chat-attachments{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:11px;max-height:115px;overflow-y:auto}
+.ff-chat-attachment{display:flex;align-items:center;gap:8px;border:1px solid #e8e1d8;border-radius:12px;background:#fff9f2;padding:7px 9px;max-width:min(100%,245px);min-width:0}
+.ff-chat-attachment>img{width:34px;height:34px;flex:none;object-fit:cover;border-radius:8px}
+.ff-chat-attachment>svg{flex:none;color:#172a46}
+.ff-chat-attachment>span{min-width:0;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#172a46}
+.ff-chat-attachment small{display:block;color:#718093;font-size:10px;margin-top:2px}
+.ff-chat-attachment>button{padding:3px!important;background:transparent!important;color:#172a46!important;border:0!important;border-radius:8px!important}
+.ff-chat-composer-actions{display:flex;align-items:center;gap:9px}
+.ff-chat-composer .ff-chat-attach-button{background:#f3f5f7;color:#172a46;border:1px solid #e3e7ec;padding:10px 12px;font-weight:700}
+.ff-chat-composer .ff-chat-attach-button span{display:inline;color:inherit;font-size:12px}
+.ff-chat-composer .ff-chat-attach-button:focus-visible{outline:2px solid #ff6b5b;outline-offset:2px}
+.ff-chat-attachment-history{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.ff-chat-attachment-history span{display:inline-flex;gap:5px;align-items:center;border:1px solid #dae3eb;background:#fff;border-radius:8px;padding:5px 7px;font-size:10px;max-width:210px;overflow-wrap:anywhere}
+@media(max-width:850px){.ff-chat-composer .ff-chat-attach-button span{display:none}.ff-chat-attachments{max-height:100px}}
+
+
+
+
+/* FRAMEFORGE â€” Project AI Chat scroll & composer fix */
+
+.ff-chatroom {
+  display: flex;
+  width: 100%;
+  height: clamp(350px, calc(100dvh - 180px), 900px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Conversation sidebar */
+.ff-chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ff-thread-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Main chat area */
+.ff-chat-center {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Header and context selector stay visible */
+.ff-chat-header,
+.ff-chat-target {
+  flex: 0 0 auto;
+}
+
+/* Only messages scroll */
+.ff-chat-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* Keep the message input visible at the bottom */
+.ff-chat-composer {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 0;
+  margin-top: auto;
+  z-index: 2;
+}
+
+/* Message input should not force the layout wider */
+.ff-chat-composer textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  resize: vertical;
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+  .ff-chatroom {
+    height: clamp(320px, calc(100dvh - 215px), 800px);
+    min-height: 0;
+  }
+
+  .ff-chat-center {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .ff-chat-transcript {
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+
+
+========== src\components\workspace\ProjectAIChatPolish.css ==========
+/* Project AI Chat visual polish. Scoped to ProjectAIChat to preserve other pages. */
+.ff-chatroom {
+  height: clamp(530px, calc(100dvh - 150px), 1050px) !important;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  border-radius: 24px;
+}
+.ff-chatroom .ff-chat-sidebar {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ff-chatroom .ff-thread-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.ff-chatroom .ff-chat-center {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ff-chatroom .ff-chat-header,
+.ff-chatroom .ff-chat-target { flex: 0 0 auto; }
+.ff-chatroom .ff-chat-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #b5c3d4 transparent;
+  padding: 20px 22px 28px;
+}
+.ff-chatroom .ff-chat-transcript::-webkit-scrollbar,
+.ff-chatroom .ff-thread-list::-webkit-scrollbar { width: 7px; }
+.ff-chatroom .ff-chat-transcript::-webkit-scrollbar-thumb,
+.ff-chatroom .ff-thread-list::-webkit-scrollbar-thumb { background: #b5c3d4; border-radius: 20px; }
+.ff-chatroom .ff-chat-bubble {
+  max-width: min(90%, 880px);
+  box-sizing: border-box;
+  border-radius: 20px;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+.ff-chatroom .ff-chat-bubble p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ff-chatroom .ff-chat-bubble.is-user { border-bottom-right-radius: 7px; }
+.ff-chatroom .ff-chat-bubble.is-ai { border-bottom-left-radius: 7px; }
+.ff-chatroom .ff-chat-composer {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 20px 13px;
+  margin: 0;
+  background: #fff;
+  border-top: 1px solid #e7eaf0;
+}
+.ff-chatroom .ff-chat-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.ff-chatroom .ff-chat-compose-shell {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid #d9e1ec;
+  border-radius: 28px;
+  background: #f7f9fc;
+  box-shadow: 0 3px 18px rgb(23 42 70 / 6%);
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.ff-chatroom .ff-chat-compose-shell:focus-within {
+  background: #fff;
+  border-color: #88b2dc;
+  box-shadow: 0 0 0 3px rgb(27 147 245 / 10%);
+}
+.ff-chatroom .ff-chat-compose-shell textarea {
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: auto;
+  min-height: 36px;
+  max-height: 156px;
+  margin: 0;
+  padding: 9px 4px;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  resize: none;
+  overflow-y: auto;
+  box-shadow: none !important;
+  border-radius: 0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #172a46;
+}
+.ff-chatroom .ff-chat-compose-shell textarea::placeholder { color: #8190a5; }
+.ff-chatroom .ff-chat-compose-shell .ff-chat-plus,
+.ff-chatroom .ff-chat-compose-shell .ff-chat-send-arrow {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 39px;
+  width: 39px;
+  height: 39px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  transition: transform 170ms, background 170ms, opacity 170ms;
+}
+.ff-chatroom .ff-chat-compose-shell .ff-chat-plus {
+  color: #172a46;
+  background: #e7edf5;
+}
+.ff-chatroom .ff-chat-compose-shell .ff-chat-plus:hover:not(:disabled) { background: #dbe6f4; transform: rotate(90deg); }
+.ff-chatroom .ff-chat-compose-shell .ff-chat-send-arrow {
+  color: white;
+  background: #172a46;
+}
+.ff-chatroom .ff-chat-compose-shell .ff-chat-send-arrow:hover:not(:disabled) { background: #1b93f5; transform: translateY(-2px); }
+.ff-chatroom .ff-chat-compose-shell .ff-chat-send-arrow:disabled { opacity: .45; cursor: not-allowed; }
+.ff-chatroom .ff-chat-compose-shell .ff-chat-send-arrow.is-thinking svg { animation: ff-chat-spin 1s linear infinite; }
+.ff-chatroom .ff-chat-compose-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px;
+  color: #8794a8;
+  font-size: 11px;
+}
+.ff-chatroom .ff-chat-thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 85%;
+  padding: 12px 16px;
+  margin: 12px 0;
+  color: #475875;
+  background: #f2f5fa;
+  border: 1px solid #e6ebf2;
+  border-radius: 19px 19px 19px 6px;
+  font-size: 13px;
+}
+.ff-chatroom .ff-thinking-dots { display: inline-flex; align-items: center; gap: 4px; }
+.ff-chatroom .ff-thinking-dots i {
+  width: 6px;
+  height: 6px;
+  background: #ff6b5b;
+  border-radius: 50%;
+  animation: ff-chat-pulse 1.1s ease-in-out infinite;
+}
+.ff-chatroom .ff-thinking-dots i:nth-child(2) { animation-delay: 140ms; }
+.ff-chatroom .ff-thinking-dots i:nth-child(3) { animation-delay: 280ms; }
+.ff-chatroom .ff-copy-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  color: #526480;
+  border-radius: 9px;
+  transition: background 160ms, color 160ms, transform 160ms;
+}
+.ff-chatroom .ff-copy-action:hover { background: #e5edf8; transform: translateY(-2px); }
+.ff-chatroom .ff-copy-action.is-copied { color: #21866b; background: #dff5ed; animation: ff-chat-pop 220ms ease-out; }
+@keyframes ff-chat-pulse { 0%,60%,100% { opacity: .35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
+@keyframes ff-chat-spin { to { transform: rotate(360deg); } }
+@keyframes ff-chat-pop { 50% { transform: scale(1.2); } }
+@media (max-width: 768px) {
+  .ff-chatroom { height: clamp(420px, calc(100dvh - 155px), 850px) !important; border-radius: 16px; }
+  .ff-chatroom .ff-chat-transcript { padding: 14px 12px 22px; }
+  .ff-chatroom .ff-chat-bubble { max-width: 96%; }
+  .ff-chatroom .ff-chat-composer { padding: 10px; }
+  .ff-chatroom .ff-chat-compose-hint span:last-child { display: none; }
+  .ff-chatroom .ff-chat-compose-shell { gap: 5px; padding: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ff-chatroom .ff-thinking-dots i,
+  .ff-chatroom .ff-chat-compose-shell .ff-chat-send-arrow.is-thinking svg,
+  .ff-chatroom .ff-copy-action.is-copied { animation: none; }
+}
+
+
+
+========== src\pages\ProjectWorkspace.jsx ==========
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useBlocker, useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft, ArrowUpRight, BookOpen, Brain, Camera, Clapperboard, Save, Pencil, FilePenLine, AlertTriangle, Archive,
+  Film, LayoutDashboard, MessageCircle, MessageSquareText, ScanSearch, ChevronDown, UploadCloud, UsersRound, History,
+} from "lucide-react";
+import { getProject, saveProject } from "../services/projectService";
+
+import IOSSelect from "../components/ui/IOSSelect";
+import SceneBreakdown from "../components/studio/SceneBreakdown";
+import ShotPlanner from "../components/studio/ShotPlanner";
+import Storyboard from "../components/studio/Storyboard";
+import ProjectAIChat from "../components/workspace/ProjectAIChat";
+import { readScript } from "../services/scriptImport";
+import ProjectCritics from "../components/workspace/ProjectCritics";
+import ProjectContinuity from "../components/workspace/ProjectContinuity";
+import ProjectMemory from "../components/workspace/ProjectMemory";
+import CharacterBible from "../components/characters/CharacterBible";
+import VersionHistory from "../components/versions/VersionHistory";
+import ExportBackup from "../components/export/ExportBackup";
+import ProjectDashboard, { lastSectionKey } from "../components/dashboard/ProjectDashboard";
+import { recordVersion, applyVersionFields } from "../services/versionHistory";
+import useWorkspaceKeyboard from "../hooks/useWorkspaceKeyboard";
+import "../styles/WorkspaceKeyboard.css";
+import "./ProjectWorkspace.css";
+import "./WorkspacePolish.css";
+import "./CreativeUpgrade.css";
+import "../styles/WorkspaceRefresh.css";
+import "../styles/FrameforgePolish.css";
+import "../styles/WorkspaceMicroFix.css";
+import "../styles/WorkspaceDraftIndicators.css";
+
+const GENRES = ["Drama", "Thriller", "Mystery", "Horror", "Romance", "RomCom", "Sci-Fi", "Comedy", "Other"];
+const SECTION_FIELDS = { critics: ["latestCritique", "critiques"], continuity: ["continuity", "continuityChecks"], memory: ["creativeDecisions", "creativeMemory", "intentions"], chat: ["conversations", "chats", "chatSessions", "chatHistory"] };
+const sameData = (a,b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+const SECTIONS = [
+  { key: "overview", label: "Overview", icon: LayoutDashboard, hint: "Project progress and tools" },
+  { key: "story", label: "Story", icon: BookOpen, hint: "Create and edit the story" },
+  { key: "characters", label: "Characters", icon: UsersRound, hint: "Manage the character bible" },
+  { key: "versions", label: "Version History", icon: History, hint: "Review and restore saved changes" },
+  { key: "export", label: "Export & Backup", icon: Archive, hint: "Export and restore saved projects" },
+  { key: "scenes", label: "Scenes", icon: Clapperboard, hint: "Develop scene breakdowns" },
+  { key: "shots", label: "Shots", icon: Camera, hint: "Plan camera directions" },
+  { key: "storyboard", label: "Storyboard", icon: Film, hint: "Visualize shot sequence" },
+  { key: "critics", label: "Critics", icon: MessageSquareText, hint: "Receive creative feedback" },
+  { key: "continuity", label: "Continuity", icon: ScanSearch, hint: "Check story consistency" },
+  { key: "memory", label: "Memory", icon: Brain, hint: "Preserve creative intent" },
+  { key: "chat", label: "Project AI Chat", icon: MessageCircle, hint: "Ask about scenes and shots" },
+];
+
+export default function ProjectWorkspace() {
+  const { projectId, section = "overview" } = useParams();
+  const navigate = useNavigate();
+  const [project, setProject] = useState(() => getProject(projectId));
+  const [dirty, setDirty] = useState(false);
+  const [storyMode, setStoryMode] = useState("manual");
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [savedRevision, setSavedRevision] = useState(0);
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const workspaceRef = useRef(null);
+  const leaveDialogRef = useRef(null);
+  // Check each workspace section independently so a draft in Story still shows
+  // its indicator while the user works in Scenes or Shots.
+  const storedSnapshot = savedRevision >= 0 ? getProject(projectId) : null;
+  const draftSections = (() => {
+    if (!project || !storedSnapshot) return [];
+    const outstanding = [];
+    if (!sameData(project.characters || [], storedSnapshot.characters || [])) outstanding.push("characters");
+    if (["title", "idea", "genre", "story", "sourceFilename"].some(k => !sameData(project[k], storedSnapshot[k]))) outstanding.push("story");
+    const dScenes = project.scenes || [], sScenes = storedSnapshot.scenes || [];
+    if (!sameData(dScenes.map(({id,name,heading,description})=>({id,name,heading,description})), sScenes.map(({id,name,heading,description})=>({id,name,heading,description})))) outstanding.push("scenes");
+    const extractShots = scenes => scenes.map(s => ({sceneId:s.id, shots: (s.shots || []).map(shot=>shot)}));
+    if (!sameData(extractShots(dScenes), extractShots(sScenes))) outstanding.push("shots");
+    for (const [key,fields] of Object.entries(SECTION_FIELDS)) {
+      if (fields.some(field => !sameData(project[field],storedSnapshot[field]))) outstanding.push(key);
+    }
+    return outstanding;
+  })();
+  const hasUnsaved = draftSections.length > 0;
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    if (!hasUnsaved) return false;
+    const here = currentLocation.pathname.match(/^\/projects\/([^/]+)/);
+    const there = nextLocation.pathname.match(/^\/projects\/([^/]+)/);
+    return !here || !there || here[1] !== there[1];
+  });
+  useEffect(() => {
+    setShowLeaveDialog(blocker.state === "blocked");
+  }, [blocker.state]);
+  function stayInProject() { setShowLeaveDialog(false); if (blocker.state === "blocked") blocker.reset(); }
+  function leaveProject() { setShowLeaveDialog(false); if (blocker.state === "blocked") blocker.proceed(); }
+  useWorkspaceKeyboard({ workspaceRef, leaveDialogRef, showLeaveDialog, stayInProject });
+  function reviewDrafts() {
+    const first = draftSections[0];
+    stayInProject();
+    if (first) navigate(`/projects/${encodeURIComponent(projectId)}/${first}`);
+  }
+
+  useEffect(() => {
+    setProject(getProject(projectId));
+    setDirty(false);
+    setError("");
+    setStatus("");
+  }, [projectId]);
+
+  useEffect(() => {
+    const warn = (e) => { if (hasUnsaved) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsaved]);
+
+  // Track the last workspace tool without changing existing project storage.
+  useEffect(() => {
+    if (!projectId || section === "overview" || !SECTIONS.some(item => item.key === section)) return;
+    try { localStorage.setItem(lastSectionKey(projectId), section); } catch { /* Restricted browser storage. */ }
+  }, [projectId, section]);
+
+  const base = `/projects/${encodeURIComponent(projectId)}`;
+  const current = SECTIONS.find(s => s.key === section);
+  const CurrentIcon = current?.icon || LayoutDashboard;
+
+  // Edits are held only in React state. The database/browser is not updated until Save Changes.
+  function persist(nextOrUpdater) {
+    setProject(previous => typeof nextOrUpdater === "function" ? nextOrUpdater(previous) : nextOrUpdater);
+    setDirty(true);
+    setStatus("Unsaved changes");
+    setError("");
+  }
+  function update(field, value) { persist(previous => ({ ...previous, [field]: value })); }
+  // An individual Save commits ONLY the selected fields/card. Every other draft stays in memory.
+  function savePartial(merge, success = "Section saved") {
+    try {
+      const latest = getProject(projectId);
+      if (!latest) throw new Error("Project was removed from storage.");
+      const next = merge(latest);
+      if (!next?.title?.trim()) throw new Error("Project title cannot be empty.");
+      saveProject(next);
+      const historyResult = recordVersion(projectId, latest, next, success);
+      if (historyResult.recorded) setHistoryRevision(n => n + 1);
+      setSavedRevision(n => n + 1);
+      setStatus(historyResult.warning ? `${success}. ${historyResult.warning}` : success);
+      setError("");
+      // Do not overwrite any unsaved inputs in React state.
+      const draftComparable = { ...project, updatedAt: null };
+      const savedComparable = { ...next, updatedAt: null };
+      setDirty(JSON.stringify(draftComparable) !== JSON.stringify(savedComparable));
+    } catch (err) { setError(err?.message || "Could not save. Check available browser storage."); }
+  }
+  function restoreHistoryVersion(version, side) {
+    if (hasUnsaved) { setError("Save or discard unsaved changes before restoring a version."); return; }
+    try {
+      const latest = getProject(projectId);
+      if (!latest) throw new Error("Project was removed from storage.");
+      const restored = applyVersionFields(latest, version, side);
+      // Save current data FIRST so it stays recoverable, then update the workspace.
+      const changed = JSON.stringify({ ...latest, updatedAt: null }) !== JSON.stringify({ ...restored, updatedAt: null });
+      if (!changed) { setStatus("This version already matches the current saved fields."); setError(""); return; }
+      saveProject(restored);
+      const historyResult = recordVersion(projectId, latest, restored, `Restored ${version.label}`);
+      setProject(getProject(projectId));
+      setDirty(false);
+      setSavedRevision(n => n + 1);
+      if (historyResult.recorded) setHistoryRevision(n => n + 1);
+      setStatus(historyResult.warning ? `Version restored. ${historyResult.warning}` : "Version restored successfully");
+      setError("");
+    } catch (err) { setError(err?.message || "Unable to restore the selected version."); }
+  }
+  function saveStoryDetails() {
+    const { title, idea, genre } = project;
+    savePartial(latest => ({ ...latest, title: title.trim(), idea, genre }), "Story details saved");
+  }
+  const savedProject = storedSnapshot;
+  const storyDetailsSaved = Boolean(savedProject && ["title", "idea", "genre"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
+  const storyTextSaved = Boolean(savedProject && ["story", "sourceFilename"].every(k => (savedProject[k] || "") === (project?.[k] || "")));
+  function saveStoryText() {
+    const { story, sourceFilename } = project;
+    savePartial(latest => ({ ...latest, story, sourceFilename }), "Story text saved");
+  }
+  function saveScene(sceneId) {
+    const draftScene = project.scenes?.find(scene => scene.id === sceneId);
+    if (!draftScene) return;
+    savePartial(latest => {
+      const original = [...(latest.scenes || [])];
+      const pos = original.findIndex(scene => scene.id === sceneId);
+      const savedScene = pos >= 0 ? { ...original[pos], name: draftScene.name, heading: draftScene.heading, description: draftScene.description } : { ...draftScene, shots: [] };
+      if (pos >= 0) original[pos] = savedScene;
+      else original.push(savedScene);
+      return { ...latest, scenes: original.map((scene, i) => ({ ...scene, number: i + 1 })) };
+    }, "Scene saved");
+  }
+  function saveShot(sceneId, shotId) {
+    const draftScene = project.scenes?.find(scene => scene.id === sceneId);
+    const draftShot = draftScene?.shots?.find(shot => shot.id === shotId);
+    if (!draftShot) return;
+    savePartial(latest => {
+      const scenes = [...(latest.scenes || [])];
+      let pos = scenes.findIndex(scene => scene.id === sceneId);
+      if (pos < 0) throw new Error("Save this scene first, then save its shots.");
+      const shots = [...(scenes[pos].shots || [])];
+      const shotPos = shots.findIndex(shot => shot.id === shotId);
+      if (shotPos < 0) shots.push(draftShot);
+      else shots[shotPos] = draftShot;
+      const draftOrder = (draftScene.shots || []).map(shot => shot.id);
+      shots.sort((a,b) => draftOrder.indexOf(a.id)-draftOrder.indexOf(b.id));
+      scenes[pos] = { ...scenes[pos], shots };
+      return { ...latest, scenes };
+    }, "Shot saved");
+  }
+  function isSceneSaved(scene) {
+    const original = getProject(projectId)?.scenes?.find(s => s.id === scene.id);
+    return Boolean(original && ["name", "heading", "description"].every(k => (original[k] || "") === (scene[k] || "")));
+  }
+  function isShotSaved(sceneId, shot) {
+    const original = getProject(projectId)?.scenes?.find(s => s.id === sceneId)?.shots?.find(s => s.id === shot.id);
+    return Boolean(original && ["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].every(k => (original[k] || "") == (shot[k] || "")));
+  }
+  function handleScenes(action, payload = {}) {
+    let scenes = [...(project.scenes || [])];
+    if (action === "add") scenes.push({ id: crypto.randomUUID(), name: "", heading: "", description: "", shots: [] });
+    else if (action === "edit") scenes = scenes.map(s => s.id === payload.id && ["name", "heading", "description"].includes(payload.field) ? { ...s, [payload.field]: payload.value } : s);
+    else if (action === "delete") {
+      const target = scenes.find(s => s.id === payload.id);
+      if (target?.shots?.length && !window.confirm("This scene has shots. Delete the scene and all its shots?")) return;
+      scenes = scenes.filter(s => s.id !== payload.id);
+      if (getProject(projectId)?.scenes?.some(s => s.id === payload.id)) {
+        savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).filter(s => s.id !== payload.id).map((s,i) => ({ ...s, number:i+1 })) }), "Scene deleted");
+      }
+    } else return;
+    if (action === "delete") {
+      setProject(previous => ({ ...previous, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) }));
+      setDirty(JSON.stringify({ ...project, scenes: scenes.map((s,i) => ({...s,number:i+1})), updatedAt:null }) !== JSON.stringify({ ...getProject(projectId), updatedAt:null }));
+    } else persist(previous => ({ ...previous, scenes: scenes.map((s, i) => ({ ...s, number: i + 1 })) }));
+  }
+
+  function handleShots(sceneId, action, payload = {}) {
+    const scene = project.scenes?.find(s => s.id === sceneId);
+    if (!scene) return;
+    const currentShots = [...(scene.shots || [])];
+    const isSaved = shotId => Boolean(getProject(projectId)?.scenes?.find(s => s.id === sceneId)?.shots?.some(s => s.id === shotId));
+    let nextShots = currentShots;
+    if (action === "add") nextShots = [...currentShots, { id: crypto.randomUUID(), name: "", type: "", angle: "", movement: "", lighting: "", mood: "", duration: "", description: "", notes: "" }];
+    else if (action === "edit") {
+      if (!["name", "type", "angle", "movement", "lighting", "mood", "duration", "description", "notes"].includes(payload.field)) return;
+      nextShots = currentShots.map(shot => shot.id === payload.id ? { ...shot, [payload.field]: payload.value } : shot);
+    } else if (action === "delete") {
+      if (!window.confirm("Delete this shot permanently?")) return;
+      nextShots = currentShots.filter(shot => shot.id !== payload.id);
+      if (isSaved(payload.id)) savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({ ...s, shots: (s.shots || []).filter(shot => shot.id !== payload.id) })) }), "Shot deleted");
+    } else if (action === "move") {
+      const i = currentShots.findIndex(shot => shot.id === payload.id);
+      const j = i + payload.direction;
+      if (i < 0 || j < 0 || j >= currentShots.length) return;
+      nextShots = [...currentShots];
+      [nextShots[i], nextShots[j]] = [nextShots[j], nextShots[i]];
+      const savedOrder = nextShots.map(shot => shot.id);
+      // Saved items can reorder immediately; unsaved shots retain draft-only order.
+      if (currentShots.every(shot => isSaved(shot.id))) {
+        savePartial(latest => ({ ...latest, scenes: (latest.scenes || []).map(s => s.id !== sceneId ? s : ({ ...s,
+          shots: [...(s.shots || [])].sort((a,b) => savedOrder.indexOf(a.id)-savedOrder.indexOf(b.id)) })) }), "Shot order saved");
+      } else {
+        setStatus("Shot moved in draft. Save new shots to keep their order.");
+      }
+    } else return;
+    const nextProject = { ...project, scenes: (project.scenes || []).map(s => s.id === sceneId ? ({ ...s, shots: nextShots }) : s) };
+    setProject(nextProject);
+    const stored = getProject(projectId);
+    setDirty(JSON.stringify({ ...nextProject, updatedAt:null }) !== JSON.stringify({ ...stored, updatedAt:null }));
+    setError("");
+  }
+
+  async function uploadScript(file) {
+    if (!file) return;
+
+    try {
+      const imported = await readScript(file);
+      // Append rather than replace, including when edits happen while PDF extraction is running.
+      persist(previous => ({ ...previous,
+        story: [previous.story?.trimEnd(), imported.text.trim()].filter(Boolean).join("\n\n"),
+        sourceFilename: imported.filename,
+      }));
+      setStatus(`${imported.filename} appended below the existing story. Save Story Text to keep it.`);
+    } catch (err) { setError(err.message || "Could not read script."); }
+  }
+
+  if (!project) return <div className="ws-empty ws-missing"><h1>Project not found</h1><p>It may have been deleted or saved in another browser.</p><Link className="ws-primary" to="/studio">Back to projects</Link></div>;
+  if (!current) return <div className="ws-empty"><h1>Section not found</h1><Link to={base}>Open project overview</Link></div>;
+
+  const sceneCount = project.scenes?.length || 0;
+  const shotCount = (project.scenes || []).reduce((sum, s) => sum + (Array.isArray(s.shots) ? s.shots.length : 0), 0);
+  const memoryCount = project.creativeDecisions?.length || 0;
+
+  return <div ref={workspaceRef} className="project-workspace">
+    <div className="ws-crumb"><Link to="/studio"><ArrowLeft size={16}/> My projects</Link><span>/</span><span>{project.title || "Untitled Story"}</span></div>
+    <header className="ws-project-header"><div><span className="ws-eyebrow">PROJECT WORKSPACE</span><h1>{project.title || "Untitled Story"}</h1><p>{project.genre || "Story"} Â· {project.language || "English"} Â· Saved in this browser</p></div><button className="ws-ghost ws-header-chat" type="button" onClick={()=>navigate(`${base}/chat`)}><MessageCircle size={17}/> Ask AI</button></header>
+    <div className="ff-section-save-indicator" role="status"><span className={`ff-save-dot ${hasUnsaved ? "pending" : ""}`}/><span>{hasUnsaved ? `Unsaved changes in ${draftSections.map(k=>SECTIONS.find(s=>s.key===k)?.label || k).join(", ")}` : "All saved"}</span></div>
+    {error && <div className="ws-error" role="alert">{error}</div>}{status && !error && <div className="ff-operation-status" role="status">{status}</div>}
+    <div className="ws-workspace-grid">
+      <aside className="ws-local-nav">
+        <div className="ws-local-nav-title">PROJECT TOOLS</div>
+        <button type="button" className="ws-mobile-tools-toggle" aria-expanded={mobileToolsOpen} aria-controls="ff-project-tool-list" onClick={()=>setMobileToolsOpen(v=>!v)}><span className="ff-mobile-tools-title"><CurrentIcon size={19}/> <span><small>PROJECT TOOLS</small><strong>{current.label}</strong></span>{draftSections.includes(section) && <span className="ff-draft-marker" title="Unsaved changes"/>}</span><span className="ff-tools-switch">Choose tool <ChevronDown size={17}/></span></button>
+        <div id="ff-project-tool-list" className={`ws-local-links ${mobileToolsOpen ? "ws-show-mobile" : ""}`}>
+          {SECTIONS.map(({ key, label, icon: Icon }) => <NavLink key={key} to={key === "overview" ? base : `${base}/${key}`} end className={({isActive}) => `ws-local-link ${isActive ? "active" : ""}`} onClick={()=>setMobileToolsOpen(false)}><Icon size={19}/><span>{label}</span>{draftSections.includes(key) && <span className="ff-draft-marker" aria-label={`${label} has unsaved changes`} title="Unsaved changes"/>}</NavLink>)}
+        </div>
+      </aside>
+      <main className="ws-main-panel">
+        {section === "overview" && <div className="ff-overview">
+          <div className="ff-overview-hero"><span className="ws-eyebrow">PROJECT OVERVIEW</span><h2>{project.title}</h2><p>{project.idea?.trim() || "Add a story idea or synopsis in the Story section."}</p><div className="ff-overview-meta"><span>{project.genre||"Drama"}</span><span>{project.language||"English"}</span></div><div className="ff-overview-stats"><div><span>Scenes</span><strong>{sceneCount}</strong></div><div><span>Shots planned</span><strong>{shotCount}</strong></div><div><span>Creative decisions</span><strong>{memoryCount}</strong></div></div></div>
+          <div className="ff-overview-grid"><section className="ff-summary-card"><h3>Story status</h3><p>{project.story?.trim()?`${project.story.trim().split(/\s+/).length} words written` : "No story written yet"}</p><p>{sceneCount ? `${sceneCount} scenes outlined` : "Scene breakdown not started"}</p><button className="ws-ghost" onClick={()=>navigate(`${base}/story`)}>Open story editor <ArrowUpRight size={15}/></button></section><section className="ff-summary-card"><h3>Planning progress</h3><p>{sceneCount ? `${(project.scenes||[]).filter(s=>(s.shots||[]).length>0).length} of ${sceneCount} scenes have shot plans` : "Add scenes to begin planning"}</p><p>{shotCount} shots across all scenes</p><button className="ws-ghost" onClick={()=>navigate(`${base}/shots`)}>Open shot planner <ArrowUpRight size={15}/></button></section><section className="ff-summary-card"><h3>Creative progress</h3><p>{memoryCount} saved creative decisions</p><p>{project.latestCritique ? "A creative critique is available" : "No creative critique yet"}</p><button className="ws-ghost" onClick={()=>navigate(`${base}/critics`)}>Open critics <ArrowUpRight size={15}/></button></section></div>
+          <p className="ff-overview-note">Progress is derived from your actual project data; no estimated completion percentage.</p>
+          <ProjectDashboard project={storedSnapshot || project} projectId={projectId} historyRevision={historyRevision} onNavigate={(tool) => navigate(`${base}/${tool}`)}/>
+        </div>}
+        {section === "story" && <div className="ff-story-workspace">
+          <div className="ff-story-head"><div><span className="ws-eyebrow">STORY WORKSPACE</span><h2>Edit your story</h2><p>Keep your original writing in control. AI editing will be available when the Flask + Gemini backend is connected.</p></div></div>
+          <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={()=>setStoryMode("manual")}><Pencil size={18}/> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={()=>setStoryMode("ai")}><FilePenLine size={18}/> Edit with AI</button></div>
+          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><label className="ws-field">Genre<IOSSelect value={project.genre || "Drama"} onChange={e=>update("genre",e.target.value)}>{[...new Set([...GENRES, project.genre].filter(Boolean))].map(g=><option key={g} value={g}>{g}</option>)}</IOSSelect><small>Editable Â· Save Story Details to apply</small></label><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Selected when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea||""} onChange={e=>update("idea",e.target.value)} placeholder="Short description of your story"/></label><label className="ws-field">Project / story title<input value={project.title||""} onChange={e=>update("title",e.target.value)} placeholder="Story name"/></label><div className="ff-inline-save"><span>Title, genre and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15}/> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story||""} onChange={e=>update("story",e.target.value)} placeholder="Write your story here..."/></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17}/> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e=>{const f=e.target.files?.[0];if(f)uploadScript(f);e.target.value="";}}/></label><span>{(project.story||"").trim()?(project.story||"").trim().split(/\s+/).length:0} words Â· Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15}/> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={()=>navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17}/> Open AI writing room</button></div>}
+        </div>}
+        {section === "versions" && <VersionHistory projectId={projectId} revision={historyRevision} hasUnsaved={hasUnsaved} onRestore={restoreHistoryVersion}/>}
+        {section === "export" && <ExportBackup projectId={projectId} hasUnsaved={hasUnsaved}/>}
+        {section === "characters" && <CharacterBible characters={project.characters || []} onChange={value => update("characters", value)} onSave={() => savePartial(latest => ({ ...latest, characters: project.characters || [] }), "Characters saved")} saved={sameData(project.characters || [], storedSnapshot?.characters || [])}/>}
+        {section === "scenes" && <SceneBreakdown scenes={project.scenes || []} onScenesChange={handleScenes} onSaveScene={saveScene} isSceneSaved={isSceneSaved}/>}
+        {section === "shots" && <ShotPlanner scenes={project.scenes || []} onChange={handleShots} onSaveShot={saveShot} isShotSaved={isShotSaved}/>}
+        {section === "storyboard" && <Storyboard scenes={project.scenes || []}/>}
+        {section === "critics" && <ProjectCritics project={project} onSave={value => { persist(value); setStatus("Review draft changed. Use an individual Save action when available."); }}/>}
+        {section === "continuity" && <ProjectContinuity project={project} onSave={persist}/>}
+        {section === "memory" && <ProjectMemory project={project} onSave={persist}/>}
+        {section === "chat" && <ProjectAIChat project={project} onSave={persist} onOpenStory={()=>navigate(`${base}/story`)}/>}
+        {["critics", "continuity", "memory", "chat"].includes(section) && dirty && <div className="ff-other-save"><button type="button" className="ws-small-primary" onClick={() => savePartial(latest => {
+          const keys = section === "chat" ? ["conversations", "chats", "chatSessions", "chatHistory", "story"] : section === "memory" ? ["creativeDecisions", "creativeMemory", "intentions"] : section === "critics" ? ["latestCritique", "critiques", "creativeDecisions", "story", "scenes"] : ["continuity", "continuityChecks"];
+          const delta = Object.fromEntries(keys.filter(k => Object.prototype.hasOwnProperty.call(project,k)).map(k => [k,project[k]]));
+          return { ...latest, ...delta };
+        }, "Section saved")}><Save size={15}/> Save {section === "chat" ? "Conversation" : "This Section"}</button></div>}
+      </main>
+    </div>
+    {showLeaveDialog && blocker.state === "blocked" && <div className="ff-leave-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)stayInProject();}}>
+      <section ref={leaveDialogRef} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby="ff-leave-title" aria-describedby="ff-leave-message" className="ff-leave-dialog">
+        <div className="ff-leave-icon"><AlertTriangle size={23}/></div>
+        <h2 id="ff-leave-title">You have unsaved changes</h2>
+        <p id="ff-leave-message">Changes in <strong>{draftSections.map(k=>SECTIONS.find(s=>s.key===k)?.label || k).join(", ")}</strong> are not saved. Review and use each card's Save button before leaving, or discard those edits.</p>
+        <div className="ff-leave-actions">
+          <button type="button" className="ff-stay-button" onClick={stayInProject}>Stay here</button>
+          <button type="button" className="ff-review-button" onClick={reviewDrafts}>Review changes</button>
+          <button type="button" className="ff-discard-button" onClick={leaveProject}>Leave without saving</button>
+        </div>
+      </section>
+    </div>}
+  </div>;
+}
+
+
+
+========== src\pages\ProjectWorkspace.css ==========
+:root{--ws-border:#e8e1d8;--ws-muted:#657187;--ws-white:#fff;--ws-cream:#faf7f2}
+.project-workspace{max-width:1450px;margin:0 auto;color:#172a46}.ws-crumb{display:flex;align-items:center;gap:11px;margin:4px 0 19px;color:#657187;font-size:13px}.ws-crumb a{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:#172a46}.ws-project-header{display:flex;justify-content:space-between;align-items:center;gap:18px;background:white;padding:25px 30px;border:1px solid var(--ws-border);border-radius:23px;margin-bottom:21px}.ws-project-header h1{font-size:clamp(29px,3.5vw,43px);letter-spacing:-.045em;margin:7px 0;overflow-wrap:anywhere}.ws-project-header p{margin:0;color:var(--ws-muted);font-size:13px}.ws-eyebrow{font-size:10px;letter-spacing:1.6px;font-weight:800;color:#ff6b5b}.ws-workspace-grid{display:grid;grid-template-columns:210px minmax(0,1fr);align-items:start;gap:22px}.ws-local-nav{background:#fff;border:1px solid var(--ws-border);border-radius:22px;padding:14px;position:sticky;top:100px}.ws-local-nav-title{font-size:10px;font-weight:800;letter-spacing:1.2px;color:var(--ws-muted);padding:13px 12px 15px}.ws-local-links{display:flex;flex-direction:column;gap:4px}.ws-local-link{display:flex;gap:12px;align-items:center;padding:12px 12px;border-radius:12px;font-size:12px;font-weight:700;color:#172a46}.ws-local-link:hover{background:#f5f7fa}.ws-local-link.active{background:#e9f4ff;color:#172a46}.ws-local-link.active svg{color:#1b93f5}.ws-mobile-tools-toggle{display:none}.ws-main-panel{min-width:0}.ws-overview-intro{background:#172a46;color:#fff;border-radius:24px;padding:31px;margin-bottom:17px}.ws-overview-intro h2{font-size:clamp(24px,2.8vw,33px);letter-spacing:-.04em;margin:12px 0}.ws-overview-intro p{color:#f7f4ef;opacity:.9;font-size:13px;line-height:1.7;max-width:550px;margin:0}.ws-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:19px}.ws-stats>div{background:#fff;border:1px solid var(--ws-border);border-radius:17px;padding:17px;display:flex;flex-direction:column;gap:5px}.ws-stats strong{font-size:27px}.ws-stats span{font-size:11px;color:var(--ws-muted)}.ws-tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.ws-tool-tile{min-width:0;position:relative;background:#fff;border:1px solid var(--ws-border);border-radius:19px;padding:19px;min-height:165px;transition:transform .18s,border-color .18s}.ws-tool-tile:hover{transform:translateY(-3px);border-color:#1b93f5}.ws-tool-icon{background:#e9f4ff;color:#172a46;border-radius:11px;display:grid;place-items:center;width:42px;height:42px}.ws-tile-arrow{position:absolute;top:22px;right:19px}.ws-tool-tile h3{font-size:16px;margin:19px 0 5px}.ws-tool-tile p{font-size:12px;line-height:1.6;color:var(--ws-muted);margin:0}.ws-panel{background:#fff;border:1px solid var(--ws-border);border-radius:22px;padding:25px;min-width:0}.ws-panel-stack>*{margin-top:0!important;margin-bottom:20px}.ws-panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:25px}.ws-panel-heading h2{font-size:25px;letter-spacing:-.04em;margin:8px 0}.ws-panel-heading p{font-size:13px;line-height:1.7;color:var(--ws-muted);max-width:620px;margin:0}.ws-panel-heading>svg{color:#1b93f5;flex-shrink:0}.ws-primary,.ws-small-primary{background:#ff6b5b;color:#172a46;border:0;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:800;cursor:pointer;text-decoration:none}.ws-primary{padding:13px 19px;font-size:12px}.ws-small-primary{padding:10px 13px;font-size:11px}.ws-primary:disabled,.ws-small-primary:disabled{opacity:.45;cursor:not-allowed}.ws-ghost{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--ws-border);border-radius:999px;padding:10px 14px;background:white;color:#172a46;font-weight:700;font-size:12px;cursor:pointer}.ws-icon-btn{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--ws-border);border-radius:50%;background:white;color:#172a46;cursor:pointer}.ws-field{display:flex;flex-direction:column;gap:9px;font-size:12px;font-weight:700;color:#172a46;min-width:0;margin-bottom:17px}.ws-field input,.ws-field select,.ws-field textarea,.ws-chat-form input{background:#fff;border:1px solid #d8dee7;border-radius:12px;color:#172a46;padding:13px 14px;min-width:0;width:100%;font:inherit;line-height:1.5}.ws-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ws-connection{margin:17px 0 0;padding:14px;border:1px solid var(--ws-border);background:#f6f8fa;border-radius:13px;color:var(--ws-muted);font-size:12px;line-height:1.6}.ws-error{padding:12px 15px;background:#fff;border:1px solid #ff6b5b;border-radius:12px;margin:12px 0;font-size:13px}.ws-empty{text-align:center;background:#fff;border:1px solid var(--ws-border);border-radius:20px;padding:38px 22px;color:#172a46}.ws-empty svg{color:#1b93f5}.ws-empty p{color:var(--ws-muted);font-size:13px}.ws-results{display:grid;gap:13px;margin-top:22px}.ws-review{background:#fff;border:1px solid var(--ws-border);border-radius:16px;padding:18px}.ws-review h3{margin:0 0 10px}.ws-review p{font-size:13px;color:#46566b;line-height:1.7;overflow-wrap:anywhere}.ws-review-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.ws-note{background:#e9f4ff;padding:18px;border-radius:15px;margin-top:15px}.ws-note p{overflow-wrap:anywhere}.ws-memory-add{margin-bottom:20px}.ws-memory-row{display:flex;justify-content:space-between;gap:10px;align-items:center}.ws-chat-log{min-height:240px;max-height:440px;overflow:auto;background:#f6f8fa;border-radius:16px;padding:15px;display:flex;flex-direction:column;gap:12px}.ws-chat-empty{display:grid;place-content:center;text-align:center;color:var(--ws-muted);min-height:180px;font-size:13px}.ws-chat-empty svg{margin:auto;color:#1b93f5}.ws-message{padding:13px 16px;border:1px solid var(--ws-border);background:#fff;border-radius:15px;max-width:88%;overflow-wrap:anywhere}.ws-message.ws-user{align-self:flex-end;background:#e9f4ff}.ws-message strong{font-size:11px}.ws-message p{margin:7px 0 0;font-size:13px;line-height:1.65;white-space:pre-wrap}.ws-chat-form{display:flex;gap:10px;margin-top:13px}.ws-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.ws-missing{margin:40px auto;max-width:600px}
+@media(max-width:1120px){.ws-workspace-grid{grid-template-columns:178px minmax(0,1fr);gap:14px}.ws-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ws-local-link{padding:12px 9px;font-size:11px}}
+@media(max-width:768px){.ws-project-header{padding:22px}.ws-workspace-grid{grid-template-columns:1fr}.ws-local-nav{position:static;padding:10px;margin-bottom:3px}.ws-local-nav-title{display:none}.ws-mobile-tools-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:0;color:#172a46;font-weight:800;padding:12px;text-align:left}.ws-local-links{display:none}.ws-local-links.ws-show-mobile{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px}.ws-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ws-overview-intro{padding:23px}.ws-header-chat{padding:10px;font-size:11px}.ws-panel{padding:18px}.ws-fields-grid{grid-template-columns:1fr}}
+@media(max-width:430px){.ws-tool-grid{grid-template-columns:1fr}.ws-tool-tile{min-height:115px}.ws-stats>div{padding:12px}.ws-stats strong{font-size:23px}.ws-chat-form{flex-direction:column}.ws-chat-form button{align-self:flex-end}.ws-project-header{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.ws-tool-tile{transition:none}}
+
+
+
