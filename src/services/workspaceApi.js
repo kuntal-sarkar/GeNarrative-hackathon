@@ -34,3 +34,41 @@ export async function requestProjectAIWithAttachments(projectId, operation, payl
   if (!response.ok) throw new Error(data?.error || `Attachment request failed (${response.status}). The backend must support multipart uploads.`);
   return data;
 }
+
+
+// Character Bible AI — Flask + Gemini integration
+// POST /api/ai/characters/generate
+export async function requestCharacterBible(payload) {
+  if (!aiConfigured) {
+    throw new Error(
+      "AI backend not connected. Set VITE_API_BASE_URL."
+    );
+  }
+
+  const response = await fetch(
+    `${BASE}/api/ai/characters/generate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Invalid response from Character Bible API.");
+  }
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(
+      data?.error || `Character Bible request failed (${response.status})`
+    );
+  }
+
+  return data;
+}

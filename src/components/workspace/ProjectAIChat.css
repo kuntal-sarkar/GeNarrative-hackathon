@@ -16,3 +16,93 @@
 .ff-chat-attachment-history{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 .ff-chat-attachment-history span{display:inline-flex;gap:5px;align-items:center;border:1px solid #dae3eb;background:#fff;border-radius:8px;padding:5px 7px;font-size:10px;max-width:210px;overflow-wrap:anywhere}
 @media(max-width:850px){.ff-chat-composer .ff-chat-attach-button span{display:none}.ff-chat-attachments{max-height:100px}}
+
+
+
+
+/* FRAMEFORGE — Project AI Chat scroll & composer fix */
+
+.ff-chatroom {
+  display: flex;
+  width: 100%;
+  height: clamp(350px, calc(100dvh - 180px), 900px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Conversation sidebar */
+.ff-chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ff-thread-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Main chat area */
+.ff-chat-center {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Header and context selector stay visible */
+.ff-chat-header,
+.ff-chat-target {
+  flex: 0 0 auto;
+}
+
+/* Only messages scroll */
+.ff-chat-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* Keep the message input visible at the bottom */
+.ff-chat-composer {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 0;
+  margin-top: auto;
+  z-index: 2;
+}
+
+/* Message input should not force the layout wider */
+.ff-chat-composer textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  resize: vertical;
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+  .ff-chatroom {
+    height: clamp(320px, calc(100dvh - 215px), 800px);
+    min-height: 0;
+  }
+
+  .ff-chat-center {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .ff-chat-transcript {
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+}
