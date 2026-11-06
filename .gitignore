@@ -38,3 +38,12 @@ workspace-backup-*/
 # Cache and coverage
 .vite/
 coverage/
+
+# FrameForge temporary scripts and backups
+*.backup.py
+*.bak
+*.orig
+*.rej
+frameforge_chat_*.py
+chat-final-redesign-source.txt
+add_character_project_prop.ps1
