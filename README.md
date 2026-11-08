@@ -9,16 +9,72 @@
 Take a story from concept to scenes, shots, and storyboard planning—then build towards transparent AI-assisted critique, continuity analysis, and creative decision memory without taking control away from the creator.
 
 **GeNarrative Clash 2026 · Hackathon Project**  
-**Team Runtime Error**
+**Built by Team Runtime Error**
 
-[Overview](#overview) · [Current Progress](#development-progress--feature-status) · [Features](#features-in-detail) · [Architecture](#architecture--system-design) · [Run Locally](#getting-started) · [Team](#meet-team-runtime-error) · [Roadmap](#roadmap)
+![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-Backend-202020?style=for-the-badge&logo=flask&logoColor=white)
+![Python](https://img.shields.io/badge/Python-AI_Services-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-AI_Integration-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active_Development-FF6B5B?style=for-the-badge)
+
+[**Download ZIP**](https://github.com/kuntal-sarkar/GeNarrative-hackathon/archive/refs/heads/main.zip) · [**View Source**](https://github.com/kuntal-sarkar/GeNarrative-hackathon) · [**Quick Start**](#quick-start--frontend--backend) · [**Full Setup**](#getting-started--complete-local-setup) · [**Team**](#meet-team-runtime-error)
+
+[Overview](#overview) · [Current Progress](#development-progress--feature-status) · [Features](#features-in-detail) · [Architecture](#architecture--system-design) · [Roadmap](#roadmap)
 
 </div>
 
 ---
 
 > [!IMPORTANT]
-> **Project status — 7 November 2026.** FRAMEFORGE has an interactive React frontend for project-based, manually driven storytelling workflows, with local browser persistence and UI/service integration points for future AI features. **Real Gemini-backed generation, multi-perspective AI reviews, AI chat responses, and automated continuity checking are not yet verified as connected or operational.** Backend and database development are team workstreams; their live integration is not asserted here. This README reflects the latest shared project documentation and discussions, **not a fresh audit of the team's current repository**. Verify the working branch before changing status labels.
+> **Project status — November 2026.** FRAMEFORGE includes a React frontend, Flask backend, project planning tools, and AI service integrations under active development. The repository's `TEAM_SETUP.md` records **Project AI Chat, Creative Critics, Continuity Checker, and Character Bible** as previously integrated/tested on the original development machine. **Every teammate must verify them locally** after configuring Flask and their Gemini key. AI scene breakdown, shot generation, and storyboard/image generation are still undergoing integration/verification. Database persistence and deployed production operation are **not claimed**. Feature status is based on project documentation and the public repository, not a successful end-to-end test performed here.
+
+## Quick Start — Frontend + Backend
+
+> **Windows / PowerShell recommended.** Run the **backend and frontend in two separate terminals**. For a full first-time setup and troubleshooting, see [Complete Local Setup](#getting-started--complete-local-setup) and [TEAM_SETUP.md](TEAM_SETUP.md).
+
+**1. Download the source** — use [Download ZIP](https://github.com/kuntal-sarkar/GeNarrative-hackathon/archive/refs/heads/main.zip) and extract it, **or clone**:
+
+```powershell
+git clone -b main https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
+cd GeNarrative-hackathon
+```
+
+**2. Install frontend dependencies and configure local API URL** (repository root):
+
+```powershell
+npm install
+Set-Content -Path '.env.local' -Value 'VITE_API_BASE_URL=http://127.0.0.1:5000'
+```
+
+**3. Prepare the backend** (same root, PowerShell):
+
+```powershell
+cd backend
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Create `backend/.env` yourself (do **not** commit it):
+
+```dotenv
+GEMINI_API_KEY=YOUR_PRIVATE_GEMINI_API_KEY
+GEMINI_MODEL=gemini-3.1-flash-lite
+```
+
+**4. Start both services:**
+
+| Terminal A — Flask backend | Terminal B — React frontend |
+| --- | --- |
+| From `backend/`: ` .\.venv\Scripts\python.exe app.py ` | From repository root: `npm run dev` |
+| Expected local address: `http://127.0.0.1:5000` | Usually: `http://localhost:5173` |
+
+**5. Open** the Vite URL printed in Terminal B. A Gemini API key is required for backend-powered AI calls, but not for basic manual frontend operations. The app is **not** a hosted public demo; each teammate runs it locally.
+
+> [!WARNING]
+> Do **not** put `GEMINI_API_KEY` in `.env.local`, any `VITE_*` variable, the source code, or GitHub. The key belongs exclusively in the local Flask `backend/.env`.
+
+---
 
 ## Overview
 
@@ -30,7 +86,7 @@ Creative work rarely follows a straight line. Ideas turn into scripts, scripts i
 
 The product's distinguishing direction is a **Creative Critics system**: different specialist viewpoints on the same creative material, transparent areas of agreement, and a deliberate creator decision such as **Accept**, **Modify**, or **Disagree with AI**. The creator's intention should become part of **Creative Memory**, helping future revisions preserve context.
 
-The current milestone focuses on making the foundational project/story/scene/shot workflows usable **without fictional AI outputs or demo data**. AI-assisted functionality is the next integration milestone.
+The current milestone focuses on making the foundational project/story/scene/shot workflows usable **without fictional AI outputs or demo data**. Selected AI features have been integrated and tested on the original development machine; the next milestone is robust end-to-end verification and completing the remaining generation tools.
 
 ## The Problem We're Solving
 
@@ -90,16 +146,17 @@ The table deliberately distinguishes **interactive frontend workflows**, **UI sh
 | Shots | Scene-linked shot planning, camera/direction notes, shot ordering | Frontend workflow | Genuine AI shot assistance |
 | Storyboard | Shot-order visualization from real project data | Frontend visualization | Image references, generated frames, richer tools |
 | Project Workspace | Project-specific Story, Scenes, Shots, Storyboard, Critics, Memory, Chat, Continuity navigation | Frontend workflow | Continued navigation and responsive QA |
-| Creative Critics | Review-oriented interface and proposed human decision path | UI/integration foundation | Actual AI critics, grounded findings, live consensus |
+| Creative Critics | Backend-linked review previously tested on development machine; human decision UI | **Previously tested; retest locally** | Verify results, stability, evidence, multi-perspective consensus |
 | Creative Memory | Project-specific intent/decision recording and viewing as documented | Frontend workflow | Connected storage and use as AI context |
-| Continuity Checker | Project-specific review interface | UI/integration foundation | Actual scene/timeline/character consistency analysis |
-| Project AI Chat | Project-scoped conversation interface | UI/integration foundation | Live contextual model responses and persistence |
-| Global/Home Assistant | Dashboard assistant UI | UI/integration foundation | Reliable overview of actual project status |
+| Continuity Checker | AI continuity workflow previously tested on original machine | **Previously tested; retest locally** | Validate findings and project context on each laptop |
+| Project AI Chat | Flask/Gemini integration previously tested on original machine | **Previously tested; retest locally** | Validate contextual replies, failures, and save behavior |
+| Character Bible | AI character analysis listed as previously integrated/tested in TEAM_SETUP.md | **Previously tested; retest locally** | Confirm character extraction, edits, storage, and project scope |
+| Global/Home Assistant | Dashboard assistant UI | UI/integration foundation | Verify reliable overview of actual project status |
 | Responsive Layout | Desktop sidebar, mobile bottom navigation | Frontend workflow | Device-by-device visual/accessibility verification |
 | Local Data Storage | Browser `localStorage`-based project persistence | Local persistence | Database migration, backups, synchronization |
 | API Service Boundary | Frontend service adapter concept, including `workspaceApi.js` | Integration foundation | Final contract, Flask endpoints, auth, error cases |
-| Backend + Gemini | Team architecture/development workstream | **Not verified connected** | Real implementation and end-to-end test |
-| Hosted DB + Auth | Backend/DB design and development workstream | **Not verified integrated** | Working schema, migrations, secure project access |
+| Backend + Gemini | Flask service and Gemini integration code documented by team setup | **Previously tested for selected flows** | Repeat end-to-end tests; finish other AI services |
+| Hosted DB + Auth | Backend/DB development workstream | **Not verified integrated** | Working schema, migrations, secure project access |
 
 ### What the current frontend milestone achieves
 
@@ -175,11 +232,11 @@ The purpose of Creative Memory is to preserve **what a creator intended, what wa
 
 ### 10. Continuity Checker
 
-The Continuity area lays groundwork for identifying inconsistencies across a project. Planned future categories include timeline changes, character facts/behavior, locations, scene logic, and prop/object continuity. A valid finding should point to the relevant project evidence and allow the creator to mark intentional deviations. **Live AI continuity detection is pending.**
+The Continuity area lays groundwork for identifying inconsistencies across a project. Planned future categories include timeline changes, character facts/behavior, locations, scene logic, and prop/object continuity. A valid finding should point to the relevant project evidence and allow the creator to mark intentional deviations. **An AI continuity flow was previously tested on the original development machine; results should be revalidated in each setup.**
 
 ### 11. Project AI Chat and Home Assistant
 
-- **Project AI Chat:** Future context-aware discussion of an active project's story, scenes, shots, critiques, and decisions.
+- **Project AI Chat:** Context-aware project chat with a Flask/Gemini integration previously tested on the original development machine; verify current response quality and error handling.
 - **Home Assistant:** Future high-level help with actual project status and navigation.
 - **Continuity follow-up chat:** A discussed extension for asking questions about consistency findings.
 
@@ -205,7 +262,7 @@ The most recent agreed color direction is:
 
 ## Architecture & System Design
 
-### Current documented frontend and planned backend
+### Current frontend, local backend, and target production architecture
 
 ```text
                       USER / BROWSER
@@ -236,7 +293,7 @@ The most recent agreed color direction is:
                         Human reviews outcome
 ```
 
-The right-hand backend/AI side illustrates the **target architecture**, not a confirmed end-to-end deployed system.
+Flask and Gemini are used for selected locally tested AI flows. Any hosted production deployment, durable database, and untested AI generation routes remain **target architecture**, not verified shipped infrastructure.
 
 ### Frontend stack
 
@@ -272,7 +329,7 @@ User [future authentication]
        ├── Creative Memory entries
        ├── Continuity review and findings
        ├── Project chat history
-       └── Character Bible [future]
+       └── Character Bible [previously locally tested]
 ```
 
 Project IDs, stable record identifiers, and appropriate ownership/permission checks should protect project boundaries. A production database migration must not silently erase existing local projects.
@@ -354,39 +411,153 @@ GeNarrative-hackathon/
 └── FRAMEFORGE_PROJECT_CONTEXT.md   # Internal engineering/AI handoff document
 ```
 
-## Getting Started
+## Getting Started — Complete Local Setup
+
+This section mirrors the project's [TEAM_SETUP.md](TEAM_SETUP.md) for **Windows PowerShell** and covers both frontend and backend. It assumes you have access to the repository and a valid Gemini API key for AI calls.
 
 ### Prerequisites
 
-- Node.js + npm compatible with the repository's installed Vite version.
-- A modern browser.
-- Git to clone and collaborate on the repository.
+Install **Git**, **Node.js + npm** (a version supported by the repository's Vite version), **Python + pip**, and a code editor. Verify:
 
-### Run the frontend locally
+```powershell
+git --version
+node --version
+npm --version
+py --version
+```
 
-```bash
-git clone https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
+### Download / clone / update
+
+**Download without Git:** [Download latest repository ZIP](https://github.com/kuntal-sarkar/GeNarrative-hackathon/archive/refs/heads/main.zip), extract it, and open the extracted folder in a terminal.
+
+**Clone with Git (recommended for contributors):**
+
+```powershell
+git clone -b main https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
 cd GeNarrative-hackathon
+```
+
+**Already cloned?** From the repository root, if your changes are committed or safely backed up:
+
+```powershell
+git switch main
+git pull origin main
+```
+
+Do not pull over important uncommitted work without checking `git status` first.
+
+### Frontend installation and configuration
+
+**Run from the project root**, where `package.json` exists:
+
+```powershell
 npm install
+Set-Content -Path '.env.local' -Value 'VITE_API_BASE_URL=http://127.0.0.1:5000'
+```
+
+The root `.env.local` contains **only the local Flask URL**, not an API key. Restart Vite if you change it. To launch:
+
+```powershell
 npm run dev
 ```
 
-Open the local URL shown by the Vite CLI (often `http://localhost:5173`).
+Open the terminal-reported URL (commonly **http://localhost:5173**).
 
-### Common commands
+### Backend installation and configuration
 
-```bash
-npm run dev       # Start local dev server
-npm run build     # Build production frontend into dist/
-npm run preview   # Preview the built frontend
-npm run lint      # Run lint only if present in this checkout
+Open **Terminal A** in the project root:
+
+```powershell
+cd backend
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-**No Gemini API key is needed to use the current manual frontend workflows.** UI areas awaiting AI services should report that limitation rather than silently returning fake answers.
+Create `backend/.env` (not `.env.txt`) with the following **template only**:
 
-### Environment and development safety
+```dotenv
+GEMINI_API_KEY=YOUR_PRIVATE_GEMINI_API_KEY
+GEMINI_MODEL=gemini-3.1-flash-lite
+```
 
-When the team connects the backend, add the approved **public backend URL** through the appropriate Vite environment setup. Keep backend credentials out of git and commit a safe example file rather than `.env` secrets. Align endpoint definitions with backend owners; do not assume that the sample route in this README already exists.
+The model identifier above comes from the team's setup document; confirm availability and configuration if your Google AI account differs. You can use a privately shared team development key or your own key. Usage quotas and possible charges apply to the corresponding provider account. **Never commit `.env`.**
+
+Run Flask from the `backend/` directory:
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+```
+
+The expected local URL is **http://127.0.0.1:5000**; if your terminal reports another port, update `VITE_API_BASE_URL` in root `.env.local` and restart React. Using the virtual environment's Python executable directly avoids PowerShell activation-policy issues.
+
+### Run frontend and backend simultaneously
+
+Keep **two separate terminals open**:
+
+| Terminal | Working directory | Command | Purpose |
+| --- | --- | --- | --- |
+| **A — Backend** | `GeNarrative-hackathon/backend` | `.\.venv\Scripts\python.exe app.py` | Flask REST API and Gemini calls |
+| **B — Frontend** | `GeNarrative-hackathon` | `npm run dev` | React/Vite user interface |
+
+**Local architecture:** Browser (`localhost:5173`) → Flask (`127.0.0.1:5000`) → Gemini API (for supported AI actions). The frontend is usable for manual project work without a key; AI actions require a running configured backend.
+
+### Development and production commands
+
+Run frontend commands in the **repository root**:
+
+```powershell
+npm run dev       # Development server
+npm run build     # Build distributable frontend
+npm run preview   # Preview built frontend
+npm run lint      # Static linting (if available in current package.json)
+```
+
+Run backend commands inside **`backend/`**:
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+> [!NOTE]
+> `npm run preview` is a **local frontend preview**, not a hosted deployment. Flask must still run separately for backend-backed features. This repository's documented workflow is local development, not a published deployment guide.
+
+### Verify installation and AI features
+
+1. Confirm the React page opens; create a project and save real story content.
+2. Confirm Flask runs without missing-module or missing-key errors.
+3. Test **Project AI Chat**, **Creative Critics**, **Continuity Checker**, and **Character Bible**. These were documented as working on the original development machine; **verify on every new laptop**.
+4. Treat **AI scene breakdown, AI shot generation, and storyboard/image generation** as active integration/QA work until tested in your current checkout.
+5. Verify project data stays associated with its correct project. `localStorage` content does **not** sync through Git.
+
+### Troubleshooting
+
+| Problem | Fix / check |
+| --- | --- |
+| `npm run dev` fails | Run from repository root; verify `package.json`, Node version, then `npm install` |
+| Python cannot import a dependency | Reinstall with `backend/.venv/Scripts/python.exe -m pip install -r requirements.txt` |
+| Flask connection refused / `Failed to fetch` | Start Terminal A, confirm the actual port, and inspect root `.env.local` |
+| `GEMINI_API_KEY` missing | Create `backend/.env`; check the name is not `.env.txt`, restart Flask |
+| Gemini `401` / `403` | Verify key, account permissions, and selected model access |
+| Gemini `429` | Check provider quotas or rate limits; a shared key shares quotas |
+| `/` on Flask returns `404` | The API may have no root route; inspect Flask output and use a defined endpoint |
+| AI image generation fails | Confirm that image service/provider and any additional credentials are configured |
+| Projects absent on a teammate's device | Expected with browser `localStorage`; Git does not transfer user projects |
+| Port `5000` or `5173` already occupied | Stop conflicting process, or update URL/port configuration consistently |
+
+### Safe collaboration
+
+```powershell
+git status
+git switch -c feature/your-task
+# Edit project files, then selectively stage only reviewed changes:
+git add src backend README.md
+git commit -m "feat: describe your change"
+git push -u origin feature/your-task
+```
+
+Open a PR into `main`. **Do not indiscriminately use `git add -A` without reviewing the staged files**: the project has previously accumulated local patch scripts, backups, and temporary files. Always keep `.env`, `.env.local`, and virtual environments out of version control. See [TEAM_SETUP.md](TEAM_SETUP.md) for the complete teammate onboarding workflow.
 
 ## Data Handling, Security & Limitations
 
@@ -394,7 +565,7 @@ When the team connects the backend, add the approved **public backend URL** thro
 - **Data loss risk:** Clearing browser data can remove local projects. Keep independent copies of valuable original scripts.
 - **No verified production authentication or collaboration:** Do not claim multi-user authorization, cloud sync, or shared live editing until it is implemented and tested.
 - **Script import limitations:** Text PDFs are supported in the documented frontend; scanned PDFs need OCR; formatting preservation may be incomplete.
-- **AI currently pending:** No verified real Gemini replies, AI critics, scene extraction, automated continuity results, or generated storyboard frames.
+- **AI verification is feature-specific:** Chat, Critics, Continuity, and Character Bible were previously tested on the original machine per `TEAM_SETUP.md`; other AI generation features still need verification and/or integration.
 - **Decision safety:** Model-produced suggestions are untrusted proposals until validated and explicitly approved by the creator.
 - **Future user privacy:** Implement ownership isolation, data retention policies, input limits, safe file handling, and access checks before hosting real user content.
 - **Accessible design:** Continue keyboard, focus, readable contrast, form labels, and mobile verification as the app evolves.
@@ -450,13 +621,13 @@ The following documents **meaningful progress and lessons**, without implying al
 - [ ] Calculate truthful consensus from actual returned findings
 - [ ] Implement story editing proposals and scene/shot assistance with human approval
 - [ ] Implement real continuity analysis over current project data
-- [ ] Enable real project-context AI Chat and useful Home Assistant responses
+- [ ] Revalidate project-context AI Chat on teammates' setups; integrate reliable Home Assistant responses
 - [ ] Connect authenticated, durable database storage and safe migrations
 - [ ] Persist critic decisions and make approved Creative Memory available as relevant AI context
 
 ### Milestone 3 — Product hardening and advanced workflows
 
-- [ ] Character Bible and persistent character facts
+- [ ] Harden previously tested Character Bible integration and persist character facts durably
 - [ ] Storyboard reference media and optional generated frames
 - [ ] Revision history, review diffs, undo/restore
 - [ ] Export, import/backup, and recovery paths
@@ -496,7 +667,7 @@ All four members contributed to the direction and development of FRAMEFORGE; the
 | **Member 2** | Diya Shree |
 | **Member 3** | Swati Singh |
 | **Repository** | [GeNarrative-hackathon](https://github.com/kuntal-sarkar/GeNarrative-hackathon) |
-| **Development status** | Interactive frontend milestone; real AI/backend integration pending verification |
+| **Development status** | Interactive frontend and Flask/Gemini flows in development; selected features previously tested locally |
 
 ## Hackathon Fit & What Makes It Different
 
