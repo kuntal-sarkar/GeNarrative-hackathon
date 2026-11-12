@@ -1,3 +1,4 @@
+import { APP_NAME } from "../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -204,7 +205,7 @@ export default function Studio() {
                   <button type="button" className="ff-project-card-link" onClick={() => navigate(`/projects/${encodeURIComponent(p.id)}`)} aria-label={`Open ${title}`}>
                     <div className={`ff-project-art art-${index % 4}`}>
                       <div className="ff-project-art-inner"><Clapperboard size={28} /><span>{String(index + 1).padStart(2, "0")}</span></div>
-                      <span className="ff-project-art-caption">FRAMEFORGE / PROJECT</span>
+                      <span className="ff-project-art-caption">{`${APP_NAME} / PROJECT`}</span>
                     </div>
                     <div className="ff-project-main">
                       <div className="ff-project-title-line"><h3>{title}</h3><ArrowUpRight size={19} /></div>

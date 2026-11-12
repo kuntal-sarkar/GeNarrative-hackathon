@@ -1,3 +1,4 @@
+import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 // Single source of truth for Settings navigation labels, icons, and groupings.
 export const SETTINGS_ITEMS = [
   {
@@ -12,7 +13,7 @@ export const SETTINGS_ITEMS = [
     "title": "Terms & Conditions",
     "icon": "scroll-text",
     "group": "Legal & Policies",
-    "description": "Rules for using FRAMEFORGE."
+    "description": "Rules for using TAKEGRID."
   },
   {
     "id": "cookies",
@@ -103,11 +104,11 @@ export const SETTINGS_ITEMS = [
     "title": "Built by Team Runtime Error",
     "icon": "heart-handshake",
     "group": "About & Credits",
-    "description": "The team behind FRAMEFORGE."
+    "description": "The team behind TAKEGRID."
   },
   {
     "id": "about",
-    "title": "About FRAMEFORGE",
+    "title": `About ${APP_NAME}`,
     "icon": "clapperboard",
     "group": "About & Credits",
     "description": "Product mission and background."

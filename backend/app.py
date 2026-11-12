@@ -8,6 +8,7 @@ from flask_cors import CORS
 from routes.ai_routes import ai_bp
 
 from routes.project_ai_routes import project_ai_bp
+from routes.global_ai_routes import global_ai_bp  # TAKEGRID_GLOBAL_AI_V1
 
 load_dotenv()
 
@@ -29,6 +30,7 @@ CORS(
 # Register AI endpoints.
 app.register_blueprint(ai_bp)
 app.register_blueprint(project_ai_bp)
+app.register_blueprint(global_ai_bp)  # TAKEGRID_GLOBAL_AI_V1
 
 
 @app.get("/")

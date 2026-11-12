@@ -1,6 +1,10 @@
 
 from flask import Blueprint, jsonify, request
 from google.genai import errors
+import httpx
+import logging
+
+_reimagine_log = logging.getLogger(__name__)  # TAKEGRID_REIMAGINE_RELIABILITY_V1
 
 from services.gemini_service import generate_text
 from utils.validators import validate_prompt
@@ -53,10 +57,10 @@ def test_ai():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini quota exceeded. Try again later."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily unavailable."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "AI service request failed."
@@ -111,13 +115,13 @@ def project_chat():
         if status == 429:
             return jsonify({
                 "success": False,
-                "error": "Gemini quota exceeded. Try again later."
+                "error": "AI is busy right now. Please try again shortly."
             }), 429
 
         if status == 503:
             return jsonify({
                 "success": False,
-                "error": "Gemini is temporarily unavailable."
+                "error": "AI is temporarily unavailable."
             }), 503
 
         return jsonify({
@@ -181,10 +185,10 @@ def creative_critics():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini quota exceeded. Try again later."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily unavailable."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "Creative Critics AI service failed."
@@ -241,10 +245,10 @@ def story_edit():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini Free Tier quota exceeded."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily overloaded."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "Story editing AI request failed."
@@ -255,10 +259,25 @@ def story_edit():
             "error": message,
         }), http_status
 
-    except Exception:
+    except httpx.TimeoutException:
+        _reimagine_log.warning("Reimagine AI transport timed out", exc_info=True)
         return jsonify({
             "success": False,
-            "error": "Unable to generate story edit.",
+            "error": "Story editing timed out while contacting AI. No changes were saved.",
+        }), 504
+
+    except httpx.TransportError:
+        _reimagine_log.warning("Reimagine AI connection failed", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "AI connection failed during Reimagine. No changes were saved.",
+        }), 503
+
+    except Exception:
+        _reimagine_log.exception("Reimagine unexpected error")
+        return jsonify({
+            "success": False,
+            "error": "Unable to generate story edit. Check Flask server logs.",
         }), 500
 
 
@@ -297,10 +316,10 @@ def scene_breakdown():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini Free Tier quota exceeded."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily unavailable."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "Scene Breakdown AI request failed."
@@ -358,10 +377,10 @@ def shot_generation():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini Free Tier quota exceeded. Try again later."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily unavailable."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "Shot Generation AI request failed."
@@ -414,10 +433,10 @@ def character_generation():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini Free Tier quota exceeded. Try again later."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily unavailable."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "Character Bible AI request failed."
@@ -468,10 +487,10 @@ def continuity_check():
         status = getattr(exc, "code", None)
 
         if status == 429:
-            message = "Gemini Free Tier quota exceeded. Try again later."
+            message = "AI is busy right now. Please try again shortly."
             http_status = 429
         elif status == 503:
-            message = "Gemini is temporarily unavailable."
+            message = "AI is temporarily unavailable."
             http_status = 503
         else:
             message = "Continuity Checker AI request failed."
@@ -542,7 +561,7 @@ def storyboard_image():
             "error": "Unable to generate storyboard image.",
         }), 500
 
-# FRAMEFORGE_STORYBOARD_V1_ROUTES
+# TAKEGRID_STORYBOARD_V1_ROUTES
 # Local development storage. Add authentication, quotas, and durable object storage before production deployment.
 from services.storyboard_frame_store import save_frame as ff_save_frame, find_frame as ff_find_frame
 from flask import send_file as ff_send_file

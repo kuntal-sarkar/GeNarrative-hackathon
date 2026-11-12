@@ -1,0 +1,25 @@
+/* TakeGrid Creative Memory V1 UI repair (scoped; no global workspace overrides). */
+.tg-memory-panel, .tg-memory-panel * { box-sizing: border-box; }
+.tg-memory-panel .ws-memory-add { min-width: 0; }
+.tg-memory-panel .ws-memory-add > .ws-field { min-width: 0; width: 100%; }
+.tg-memory-panel .ws-memory-add textarea { display: block; resize: vertical; min-height: 100px; }
+.tg-memory-panel .tg-memory-select-field { display: flex; flex-direction: column; gap: 9px; }
+.tg-memory-panel .tg-memory-select-field > label { font-size: 12px; font-weight: 700; }
+.tg-memory-panel .tg-memory-ios-select { width: 100%; }
+.tg-memory-panel .tg-memory-ios-select .ff-ios-select__trigger { min-height: 54px; border-radius: 17px; background: #fff; }
+.tg-memory-panel .tg-memory-row { align-items: flex-start; min-width: 0; }
+.tg-memory-panel .tg-memory-row > strong { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.55; }
+.tg-memory-panel .tg-memory-row > div { flex-shrink: 0; }
+.tg-memory-panel .tg-memory-editor { width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.tg-memory-panel .tg-memory-editor-label { font-size: 12px; font-weight: 700; color: #52647a; }
+.tg-memory-panel .tg-memory-editor-input { display: block; width: 100%; min-width: 0; min-height: 125px; max-width: 100%; padding: 14px 16px; border: 1px solid #d8dee7; border-radius: 14px; resize: vertical; background: #fff; font: inherit; font-size: 13px; line-height: 1.65; color: #172a46; overflow-wrap: anywhere; }
+.tg-memory-panel .tg-memory-editor-input:focus { outline: 2px solid #a6d9ff; outline-offset: 1px; }
+.tg-memory-panel .tg-memory-editor-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.tg-memory-panel .tg-memory-editor-actions .ws-primary, .tg-memory-panel .tg-memory-editor-actions .ws-ghost { width: auto; min-height: 42px; margin: 0; }
+.tg-memory-panel .tg-memory-reason { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 768px) {
+  .tg-memory-panel .tg-memory-row { gap: 8px; }
+  .tg-memory-panel .tg-memory-row > div { gap: 5px !important; }
+  .tg-memory-panel .ws-icon-btn { width: 32px; height: 32px; }
+  .tg-memory-panel .tg-memory-editor-actions { align-items: stretch; }
+}

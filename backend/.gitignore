@@ -11,3 +11,10 @@ __pycache__/
 # Local files
 *.log
 .pytest_cache/
+# Generated runtime assets
+storage/
+generated_images/
+
+# Local test artifacts
+*.backup.py
+__pycache__/

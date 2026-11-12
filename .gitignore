@@ -47,3 +47,23 @@ coverage/
 frameforge_chat_*.py
 chat-final-redesign-source.txt
 add_character_project_prop.ps1
+
+# Local patch installers and backups
+apply_*.py
+fix_takegrid_*.py
+*.branding-backup
+*.reimagine-backup
+*.takegrid-*-backup
+*.pre-takegrid-cleanup
+*.before-role-fix-*
+*.scene-label-v2-backup
+*.targeted-v2-backup
+
+# Secrets and local environments
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+dist/
+__pycache__/

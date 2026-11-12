@@ -1,3 +1,4 @@
+import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Images, LayoutGrid, List, X, Maximize2, WandSparkles, RefreshCw, Save, LoaderCircle } from "lucide-react";
 import IOSSelect from "../ui/IOSSelect";
@@ -127,7 +128,7 @@ export default function Storyboard({ scenes = [], onSaveFrame }) {
         <button type="button" className={view === "sequence" ? "selected" : ""} onClick={() => setView("sequence")} aria-pressed={view === "sequence"}><List size={16}/> Sequence</button>
       </div>
     </div>
-    {!aiConfigured && <p className="ws-connection">FRAMEFORGE AI backend is not connected. Set VITE_API_BASE_URL.</p>}
+    {!aiConfigured && <p className="ws-connection">{`${APP_NAME} AI backend is not connected. Set VITE_API_BASE_URL.`}</p>}
     {!!error && <p className="ff-storyboard-ai-alert" role="alert">{error}</p>}
     {!frames.length ? <div className="storyboard-empty"><Images size={28}/><h3>No storyboard frames yet</h3><p>Save a scene and its shots in Shot Planner first.</p></div>
       : <div className={`storyboard-frames ${view}`}>

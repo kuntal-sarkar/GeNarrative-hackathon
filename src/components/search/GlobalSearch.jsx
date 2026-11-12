@@ -1,3 +1,4 @@
+import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X, FolderOpen, BookOpen, Clapperboard, Camera, UsersRound, Brain, CornerDownLeft } from "lucide-react";
@@ -100,7 +101,7 @@ export default function GlobalSearch() {
   return <>
     <button ref={trigger} type="button" className="ff-global-search-launch" onClick={show} aria-label="Search all projects" title="Search all projects (Ctrl+K)"><Search size={19}/><span className="ff-global-search-hint">Ctrl K</span></button>
     {mounted && <div className={`ff-global-search-overlay ${open ? "is-open" : "is-closing"}`} onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
-      <section ref={dialog} className="ff-global-search-dialog" role="dialog" aria-modal="true" aria-label="Search across FRAMEFORGE" onKeyDown={keydown}>
+      <section ref={dialog} className="ff-global-search-dialog" role="dialog" aria-modal="true" aria-label={`Search across ${APP_NAME}`} onKeyDown={keydown}>
         <div className="ff-global-search-input-row"><Search size={21}/><input ref={input} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search projects, stories, scenes, characters..." aria-label="Search saved projects"/><button type="button" className="ff-global-search-close" onClick={close} aria-label="Close search"><X size={19}/></button></div>
         <div className="ff-global-search-results" aria-live="polite">
           {!query.trim() ? <div className="ff-global-search-empty">Search your saved projects, stories, scenes, shots, characters and creative memories.</div> : !results.length ? <div className="ff-global-search-empty">No saved content matches “{query}”.</div> : grouped.map(group => <div className="ff-global-search-group" key={group.category}><h3>{group.category} <span>{group.items.length}</span></h3>{group.items.map(item => {

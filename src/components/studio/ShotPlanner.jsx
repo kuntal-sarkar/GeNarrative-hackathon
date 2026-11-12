@@ -1,3 +1,4 @@
+import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useRef, useState } from "react";
 import IOSSelect from "../ui/IOSSelect";
 import { formatDuration } from "../../utils/formatDuration";
@@ -189,7 +190,7 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
 
     {aiOpen && <div ref={panelRef} style={{ ...panelStyle, scrollMarginTop: 95 }} aria-busy={aiBusy}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <strong>{aiBusy ? "FRAMEFORGE AI is planning shots..." : "AI shot suggestions"}</strong>
+        <strong>{aiBusy ? `${APP_NAME} AI is planning shots...` : "AI shot suggestions"}</strong>
         <button type="button" onClick={() => { requestRef.current++; setAiOpen(false); setAiBusy(false); setSuggestions([]); }} aria-label="Close AI suggestions" style={buttonStyle}><X size={15}/> Close</button>
       </div>
       <p className="ff-shot-ai-hint">Suggestions are temporary. Add a shot as a draft, review its performance and optional dialogue, then Save Shot. Existing shots are never overwritten.</p>
@@ -220,7 +221,7 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
         </div>
       </article>}
       {!aiBusy && !currentSuggestion && !aiError && <p>No remaining suggestions. Generate again to start a new analysis.</p>}
-      {!!notes.length && <details style={{ marginTop: 14 }}><summary>FRAMEFORGE AI creative notes</summary><ul>{notes.map((note, i) => <li key={i}>{note}</li>)}</ul></details>}
+      {!!notes.length && <details style={{ marginTop: 14 }}><summary>{`${APP_NAME} AI creative notes`}</summary><ul>{notes.map((note, i) => <li key={i}>{note}</li>)}</ul></details>}
     </div>}
 
     {!shots.length ? <div className="shot-blank">No shots planned for this scene yet.</div> : <div className="ff-shot-list">

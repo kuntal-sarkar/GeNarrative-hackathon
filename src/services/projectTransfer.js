@@ -75,12 +75,12 @@ export function exportPdf(projectId, selection) {
   const popup = window.open("", "_blank");
   if (!popup) throw new Error("The browser blocked the PDF window. Allow pop-ups for this site and try again.");
   const sections = report.chunks.length ? report.chunks.map(c => `<section><h2>${escapeHtml(c.title)}</h2><div class="content">${escapeHtml(c.text)}</div></section>`).join("") : "<p>No saved content in this section yet.</p>";
-  const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>${escapeHtml(report.title)} - FRAMEFORGE</title><style>
+  const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>${escapeHtml(report.title)} - TAKEGRID</title><style>
     @page{size:A4;margin:20mm 18mm}*{box-sizing:border-box}body{font:12pt/1.6 system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:#172a46;max-width:850px;margin:36px auto;padding:0 24px}
     header{border-bottom:2px solid #ff6b5b;padding-bottom:18px;margin-bottom:28px}small{color:#6c7f9d;letter-spacing:.13em;font-weight:700;font-size:10px}h1{font-size:27px;line-height:1.22;margin:8px 0}header p{margin:0;color:#5e708b;font-size:12px}h2{font-size:16px;margin:28px 0 12px;break-after:avoid}section{break-inside:auto}.content{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:11pt;line-height:1.65}section+section{border-top:1px solid #dce5ed;margin-top:28px}footer{margin-top:36px;font-size:10px;color:#7b8ca0}
     .notice{margin:12px 0 22px;border:1px solid #f4d4cb;border-radius:10px;background:#fff4dc;padding:12px 15px;font-size:12px;print-color-adjust:exact}
     @media print{body{max-width:none;margin:0;padding:0}.notice{display:none}}
-  </style></head><body><div class="notice">Choose <strong>Save as PDF</strong> in the print dialog. This preview uses your browser's PDF engine for accurate text and language support.</div><header><small>FRAMEFORGE / CREATIVE PRODUCTION</small><h1>${escapeHtml(report.title)}</h1><p>${escapeHtml(report.meta)}</p></header>${sections}<footer>Exported from saved project content · FRAMEFORGE</footer></body></html>`;
+  </style></head><body><div class="notice">Choose <strong>Save as PDF</strong> in the print dialog. This preview uses your browser's PDF engine for accurate text and language support.</div><header><small>TAKEGRID / CREATIVE PRODUCTION</small><h1>${escapeHtml(report.title)}</h1><p>${escapeHtml(report.meta)}</p></header>${sections}<footer>Exported from saved project content · TAKEGRID</footer></body></html>`;
   popup.document.open();
   popup.document.write(html);
   popup.document.close();
@@ -110,7 +110,7 @@ export async function inspectBackup(file) {
   if (file.size > MAX_BACKUP_BYTES) throw new Error("Backup is larger than the 12 MB safety limit.");
   const data = JSON.parse(await file.text());
   if (!isObject(data) || data.format !== FORMAT || data.version !== VERSION || !isObject(data.project) || !Array.isArray(data.versions)) {
-    throw new Error("This is not a compatible FRAMEFORGE project backup (version 1).");
+    throw new Error("This is not a compatible TAKEGRID project backup (version 1).");
   }
   const p = data.project;
   if (typeof p.id !== "string" || !p.id || typeof p.title !== "string" || !p.title.trim() ||

@@ -1,4 +1,4 @@
-"""Persistent, local-only frame storage for FRAMEFORGE storyboard v1.
+"""Persistent, local-only frame storage for TAKEGRID storyboard v1.
 Stores validated image files under backend/storage/storyboard; no base64 in project localStorage.
 """
 from pathlib import Path
