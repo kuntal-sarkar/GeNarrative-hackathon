@@ -129,12 +129,12 @@ export default function ProjectCritics({ project, onSave, onDecision }) {
   const [reviewProgress, setReviewProgress] = useState("");
   const [error, setError] = useState("");
   const [decisionMessage, setDecisionMessage] = useState("");
-  // FRAMEFORGE_CRITICS_REIMAGINE_V1
+  // TAKEGRID_CRITICS_REIMAGINE_V1
   const [reimagineTarget, setReimagineTarget] = useState(null);
   const [reimagineInstructions, setReimagineInstructions] = useState("");
   const [reimagineResult, setReimagineResult] = useState(null);
   const [reimagineBusy, setReimagineBusy] = useState(false);
-  // FRAMEFORGE_CRITICS_TARGETED_V2: only the chosen passage is sent for editing.
+  // TAKEGRID_CRITICS_TARGETED_V2: only the chosen passage is sent for editing.
   const [passageMode, setPassageMode] = useState("paragraph");
   const [passageIndex, setPassageIndex] = useState(0);
   const [customExcerpt, setCustomExcerpt] = useState("");

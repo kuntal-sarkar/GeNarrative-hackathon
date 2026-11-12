@@ -1,4 +1,4 @@
-# FRAMEFORGE — Team Local Development Setup
+# TAKEGRID — Team Local Development Setup
 
 > **For Windows / PowerShell** · Repository: [GeNarrative-hackathon](https://github.com/kuntal-sarkar/GeNarrative-hackathon) · Branch: `main`
 >
@@ -110,7 +110,7 @@ You can use the venv's Python directly without activating the environment, avoid
 
 **Option A — Team's shared key (all members use the project owner's Gemini API account):**
 
-- The project owner should ideally create a **separate key for FRAMEFORGE team development**, with appropriate quotas and monitoring.
+- The project owner should ideally create a **separate key for TAKEGRID team development**, with appropriate quotas and monitoring.
 - Share it privately using a trusted secret-sharing/password-manager mechanism. **Do not send it in the Git repository, issues, screenshots, or a public chat.**
 - Each member stores that key in their **own** `backend/.env`.
 
@@ -164,7 +164,7 @@ Open the URL displayed by Vite, usually `http://localhost:5173`. Keep **both** t
 
 ## 6. Test AI features end to end
 
-In FRAMEFORGE, create a **new local test project**, add a short story, and **save the story** first. Then try:
+In TAKEGRID, create a **new local test project**, add a short story, and **save the story** first. Then try:
 
 | Feature | Test | Status before fresh teammate test |
 |---|---|---|

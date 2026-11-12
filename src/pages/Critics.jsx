@@ -47,11 +47,11 @@ export default function Critics() {
 
   useEffect(() => {
     const sync = () => setProjects(getProjects());
-    window.addEventListener("frameforge:projects-changed", sync);
+    window.addEventListener("takegrid:projects-changed", sync);
     window.addEventListener("storage", sync);
     window.addEventListener("focus", sync);
     return () => {
-      window.removeEventListener("frameforge:projects-changed", sync);
+      window.removeEventListener("takegrid:projects-changed", sync);
       window.removeEventListener("storage", sync);
       window.removeEventListener("focus", sync);
     };

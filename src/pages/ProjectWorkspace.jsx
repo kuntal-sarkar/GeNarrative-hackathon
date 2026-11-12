@@ -54,7 +54,7 @@ import "./CreativeUpgrade.css";
 
 import "../styles/WorkspaceRefresh.css";
 
-import "../styles/FrameforgePolish.css";
+import "../styles/TAKEGRIDPolish.css";
 
 import "../styles/WorkspaceMicroFix.css";
 
@@ -522,7 +522,7 @@ export default function ProjectWorkspace() {
   }
 
 
-  // FRAMEFORGE_STORYBOARD_V1_SAVE
+  // TAKEGRID_STORYBOARD_V1_SAVE
   // Only approve frames for an already saved shot; preserve all other unsaved edits.
   async function saveStoryboardFrame(sceneId, shotId, storyboardImage) {
     try {

@@ -63,10 +63,10 @@ export default function GlobalSearch() {
     if (!open) return;
     input.current?.focus();
     const changed = () => setRevision(n => n + 1);
-    window.addEventListener("frameforge:projects-changed", changed);
+    window.addEventListener("takegrid:projects-changed", changed);
     window.addEventListener("storage", changed);
     return () => {
-      window.removeEventListener("frameforge:projects-changed", changed);
+      window.removeEventListener("takegrid:projects-changed", changed);
       window.removeEventListener("storage", changed);
     };
   }, [open]);

@@ -30,7 +30,7 @@ dist-ssr
 *.pem
 *.key
 
-# FrameForge local backups
+# TAKEGRID local backups
 *-backup-*/
 cleanup-backup-*/
 workspace-backup-*/
@@ -39,7 +39,7 @@ workspace-backup-*/
 .vite/
 coverage/
 
-# FrameForge temporary scripts and backups
+# TAKEGRID temporary scripts and backups
 *.backup.py
 *.bak
 *.orig

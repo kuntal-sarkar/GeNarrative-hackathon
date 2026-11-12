@@ -9,9 +9,9 @@ export default function RecentProjects() {
   const [projects, setProjects] = useState(getProjects);
   useEffect(() => {
     const refresh = () => setProjects(getProjects());
-    window.addEventListener("frameforge:projects-changed", refresh);
+    window.addEventListener("takegrid:projects-changed", refresh);
     window.addEventListener("storage", refresh);
-    return () => { window.removeEventListener("frameforge:projects-changed", refresh); window.removeEventListener("storage", refresh); };
+    return () => { window.removeEventListener("takegrid:projects-changed", refresh); window.removeEventListener("storage", refresh); };
   }, []);
   function start() { try { const p = createProject("blank"); navigate("/studio", {state:{projectId:p.id}}); } catch { window.alert("Could not create project."); } }
   const sorted = [...projects].sort((a,b) => (b.updatedAt||"").localeCompare(a.updatedAt||""));

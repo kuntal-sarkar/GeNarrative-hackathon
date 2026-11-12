@@ -104,7 +104,7 @@ export async function requestSceneBreakdown(payload) {
   return data;
 }
 
-// FRAMEFORGE_STORYBOARD_V1_API
+// TAKEGRID_STORYBOARD_V1_API
 export async function requestStoryboardImage(description, style = "black_white", quality = "standard") {
   if (!aiConfigured) throw new Error(`${APP_NAME} AI backend is not connected.`);
   const response = await fetch(`${BASE}/api/ai/storyboard/image`, {
@@ -136,7 +136,7 @@ export function storyboardFrameUrl(frameId) {
   return `${BASE}/api/ai/storyboard/frames/${encodeURIComponent(frameId)}`;
 }
 
-// FRAMEFORGE_CRITICS_REIMAGINE_V1
+// TAKEGRID_CRITICS_REIMAGINE_V1
 // Reuse the existing Flask Story Editor; no backend or other AI feature changes.
 export async function requestStoryReimagination(payload) {
   if (!aiConfigured) throw new Error("AI backend not connected. Set VITE_API_BASE_URL.");

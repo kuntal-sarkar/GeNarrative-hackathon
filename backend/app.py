@@ -37,7 +37,7 @@ app.register_blueprint(global_ai_bp)  # TAKEGRID_GLOBAL_AI_V1
 def home():
     return jsonify({
         "success": True,
-        "message": "FRAMEFORGE backend is running",
+        "message": "TAKEGRID backend is running",
     })
 
 
@@ -46,7 +46,7 @@ def health():
     return jsonify({
         "success": True,
         "status": "healthy",
-        "service": "FRAMEFORGE AI Backend",
+        "service": "TAKEGRID AI Backend",
     })
 
 
