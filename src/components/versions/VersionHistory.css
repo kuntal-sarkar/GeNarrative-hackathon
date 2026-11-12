@@ -72,7 +72,7 @@
 .vh-diff-text{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:720px){.vh-grid{height:auto;min-height:0}.vh-detail{overflow:visible}.vh-preview{flex:none!important;max-height:55vh!important;min-height:220px!important}}
 
-/* FRAMEFORGE_VERSION_INNER_STORY_SCROLL_V1
+/* TAKEGRID_VERSION_INNER_STORY_SCROLL_V1
    Keep full Before/After content scrollable INSIDE its existing white field card.
    This is scoped to Version History; no layout, JSX or save/restore changes. */
 .vh-root .vh-field-content {

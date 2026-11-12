@@ -55,10 +55,10 @@ export default function Studio() {
 
   useEffect(() => {
     const sync = () => setProjects(getProjects());
-    window.addEventListener("frameforge:projects-changed", sync);
+    window.addEventListener("takegrid:projects-changed", sync);
     window.addEventListener("storage", sync);
     return () => {
-      window.removeEventListener("frameforge:projects-changed", sync);
+      window.removeEventListener("takegrid:projects-changed", sync);
       window.removeEventListener("storage", sync);
     };
   }, []);

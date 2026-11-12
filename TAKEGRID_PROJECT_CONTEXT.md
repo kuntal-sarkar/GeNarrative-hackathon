@@ -1,13 +1,13 @@
-# FRAMEFORGE — Complete Project Context & AI Teammate Handoff
+# TAKEGRID — Complete Project Context & AI Teammate Handoff
 
-> **Audience:** FRAMEFORGE developers, teammates, reviewers, and any AI assistant helping with this codebase.  
-> **Context date:** 7 November 2026 (based on project discussions and the provided README).  
-> **Important:** This is a project handoff and decision record, **not** a claim that every proposed feature exists in the repository. Read the current code before editing.  
+> **Audience:** TAKEGRID developers, teammates, reviewers, and any AI assistant helping with this codebase.
+> **Context date:** 7 November 2026 (based on project discussions and the provided README).
+> **Important:** This is a project handoff and decision record, **not** a claim that every proposed feature exists in the repository. Read the current code before editing.
 > **Related document:** [README.md](./README.md) — public GitHub-facing project overview.
 
 ---
 
-## 0. Instructions for any AI assistant working on FRAMEFORGE
+## 0. Instructions for any AI assistant working on TAKEGRID
 
 **Read this section before suggesting or writing code.**
 
@@ -32,7 +32,7 @@
 
 | Item | Context |
 | --- | --- |
-| Product | **FRAMEFORGE** |
+| Product | **TAKEGRID** |
 | Tagline | **Every creative decision has a story.** |
 | Purpose | Human-first creative workspace for filmmaking, scripts, scenes, shots, storyboards, feedback, and preserved creative intent |
 | Hackathon | **GeNarrative Clash 2026** |
@@ -50,7 +50,7 @@
 - The team discussed an **Innovation Track** Google Form vs. official website problem statements. Prior understanding was that the official event problem statement should be selected; do not assert organizer acceptance without confirmation.
 - Hackathon positioning: not merely another script generator; the value is accountable AI-assisted creative critique integrated with production planning.
 
-## 2. Problem FRAMEFORGE solves
+## 2. Problem TAKEGRID solves
 
 Storytellers frequently work across unrelated text editors, shot planners, feedback messages, and notes. This disconnect makes it difficult to track revisions, act on different viewpoints, detect narrative contradictions, and remember why a creator intentionally rejected a suggestion. Conventional AI generators may produce content without explaining tradeoffs or preserving creator agency.
 
@@ -322,9 +322,9 @@ src/
 
 ### Early setup
 
-- Project was originally prototyped in directories including `D:\gnerrative demo\frameforge-ai\frameforge-ai`.
-- Later working frontend path discussed: `D:\Gnarrative\frameforge-frontend`.
-- Patch/cleanup workspaces were separately extracted under `D:\unzip here\frameforge-frontend-cleanup` and `D:\unzip here\frameforge-project-workspace`.
+- Project was originally prototyped in directories including `D:\gnerrative demo\TAKEGRID-ai\TAKEGRID-ai`.
+- Later working frontend path discussed: `D:\Gnarrative\TAKEGRID-frontend`.
+- Patch/cleanup workspaces were separately extracted under `D:\unzip here\TAKEGRID-frontend-cleanup` and `D:\unzip here\TAKEGRID-project-workspace`.
 - **Do not assume these paths are current or accessible to teammates.** Use repo-root-relative paths for changes.
 
 ### Dependency/network issues
@@ -475,7 +475,7 @@ These are **plans**, not shipped commitments.
 
 ### Suggested task briefing for another ChatGPT (copy/paste)
 
-> You are helping develop **FRAMEFORGE**, a React/Vite project-centered creative workspace for GeNarrative Clash 2026. Read `FRAMEFORGE_PROJECT_CONTEXT.md` and the actual files I provide before suggesting changes. This project **must not** use hardcoded sample projects, fake AI responses, local regex scene parsing, or pretend an AI backend is connected. The current prototype uses localStorage and manual story/scene/shot workflows; Flask + Gemini integration is planned. Maintain project-scoped data, explicit Save behavior for story edits, slim desktop/mobile navigation, and final palette `#FFF4DC`, `#FF6B5B`, `#172A46`, `#1B93F5` with white cards. Only change the files required for my task, preserve existing work, and clearly mark unimplemented functionality. First inspect supplied code and explain your plan; then give exact edits and verification steps.
+> You are helping develop **TAKEGRID**, a React/Vite project-centered creative workspace for GeNarrative Clash 2026. Read `TAKEGRID_PROJECT_CONTEXT.md` and the actual files I provide before suggesting changes. This project **must not** use hardcoded sample projects, fake AI responses, local regex scene parsing, or pretend an AI backend is connected. The current prototype uses localStorage and manual story/scene/shot workflows; Flask + Gemini integration is planned. Maintain project-scoped data, explicit Save behavior for story edits, slim desktop/mobile navigation, and final palette `#FFF4DC`, `#FF6B5B`, `#172A46`, `#1B93F5` with white cards. Only change the files required for my task, preserve existing work, and clearly mark unimplemented functionality. First inspect supplied code and explain your plan; then give exact edits and verification steps.
 
 ## 14. Open questions to verify from the latest repo
 
@@ -496,6 +496,6 @@ The conversation and supplied README do **not** verify all of these details. Ins
 
 ## 15. Final positioning
 
-**FRAMEFORGE is not intended to be an AI that replaces a filmmaker or writer.** Its core proposition is a human-led workspace with structured production planning, multiple AI critical viewpoints, traceable decisions, and long-term creative memory. The interactive frontend is the current foundation; meaningful AI analysis must come from **real, validated backend calls** and remain subordinate to the creator's judgment.
+**TAKEGRID is not intended to be an AI that replaces a filmmaker or writer.** Its core proposition is a human-led workspace with structured production planning, multiple AI critical viewpoints, traceable decisions, and long-term creative memory. The interactive frontend is the current foundation; meaningful AI analysis must come from **real, validated backend calls** and remain subordinate to the creator's judgment.
 
 **One-line handoff:** *Build real workflows, show honest states, preserve project context and human decisions, and never fake the intelligence.*

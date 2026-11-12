@@ -27,10 +27,10 @@ export default function Memory() {
 
   useEffect(() => {
     const refresh = () => setProjects(getProjects());
-    window.addEventListener("frameforge:projects-changed", refresh);
+    window.addEventListener("takegrid:projects-changed", refresh);
     window.addEventListener("storage", refresh);
     window.addEventListener("focus", refresh);
-    return () => { window.removeEventListener("frameforge:projects-changed", refresh); window.removeEventListener("storage", refresh); window.removeEventListener("focus", refresh); };
+    return () => { window.removeEventListener("takegrid:projects-changed", refresh); window.removeEventListener("storage", refresh); window.removeEventListener("focus", refresh); };
   }, []);
 
   const selected = projects.find(p => p.id === projectId) || null;

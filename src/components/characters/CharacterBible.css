@@ -92,7 +92,7 @@ html body .ff-char .ff-char__search:focus-within{border:1px solid #dfe6ec!import
 @media(max-width:720px){.ff-char__body{grid-template-columns:minmax(0,1fr)}.ff-char__head-actions{justify-content:flex-start}}
 @media(max-width:480px){.ff-char__head-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ff-char__head-actions .ff-char__add,.ff-char__ai-top{min-width:0;width:100%;white-space:normal;text-align:center;line-height:1.3;padding:10px 9px;font-size:11px!important}}
 
-/* FRAMEFORGE CHARACTER BIBLE: list spacing and editor polish only. */
+/* TAKEGRID CHARACTER BIBLE: list spacing and editor polish only. */
 /* Keep search pill and list-item dimensions; give the first card breathing room. */
 .ff-char .ff-char__list {
   padding-top: 13px;

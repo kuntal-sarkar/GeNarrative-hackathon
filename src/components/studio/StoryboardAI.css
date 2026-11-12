@@ -1,4 +1,4 @@
-/* FRAMEFORGE storyboard: scoped polish overrides. Load after base styles. */
+/* TAKEGRID storyboard: scoped polish overrides. Load after base styles. */
 .ff-storyboard-compact .storyboard-frames { align-items:start; gap:18px; }
 .ff-storyboard-compact .storyboard-frame { display:flex; flex-direction:column; min-width:0; overflow:hidden; border:1px solid #dfe6ef; border-radius:20px; box-shadow:0 5px 18px rgba(23,42,70,.035); background:#fff; }
 .ff-storyboard-compact .storyboard-frame-main { display:block; width:100%; color:inherit; text-align:left; background:transparent; border:0; padding:0; cursor:pointer; }

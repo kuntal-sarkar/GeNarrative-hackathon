@@ -14,7 +14,24 @@ DEFAULT_BRAND = {
     "founderAndLeader": "Kuntal Sarkar",
     "members": ["Aditi Singh", "Diya Shree", "Swati Singh"],
 }
-BRAND_PATH = Path(__file__).resolve().parents[2] / "frameforge-frontend" / "src" / "config" / "branding.json"
+def resolve_brand_path():
+    backend_dir = Path(__file__).resolve().parents[1]
+    project_dir = backend_dir.parent
+
+    candidates = (
+        project_dir / "src" / "config" / "branding.json",
+        project_dir / "takegrid-frontend" / "src" / "config" / "branding.json",
+        project_dir / "frameforge-frontend" / "src" / "config" / "branding.json",
+    )
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+
+    return candidates[0]
+
+
+BRAND_PATH = resolve_brand_path()
 
 def get_brand():
     try:

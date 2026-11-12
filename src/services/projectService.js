@@ -33,7 +33,7 @@ export function createProject(mode = "blank") {
     createdAt: now, updatedAt: now,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify([project, ...getProjects()]));
-  window.dispatchEvent(new Event("frameforge:projects-changed"));
+  window.dispatchEvent(new Event("takegrid:projects-changed"));
   return project;
 }
 
@@ -45,13 +45,13 @@ export function saveProject(project) {
     ? existing.map((p) => p.id === saved.id ? saved : p)
     : [saved, ...existing];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  window.dispatchEvent(new Event("frameforge:projects-changed"));
+  window.dispatchEvent(new Event("takegrid:projects-changed"));
   return saved;
 }
 
 export function deleteProject(id) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(getProjects().filter((p) => p.id !== id)));
-  window.dispatchEvent(new Event("frameforge:projects-changed"));
+  window.dispatchEvent(new Event("takegrid:projects-changed"));
 }
 
 // Do not erase old drafts. Provide an explicit migration path only if requested.

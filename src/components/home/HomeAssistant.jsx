@@ -278,9 +278,9 @@ export default function HomeAssistant() {
 
   useEffect(() => {
     const update = () => setProjects(getProjects());
-    window.addEventListener('frameforge:projects-changed', update);
+    window.addEventListener('takegrid:projects-changed', update);
     window.addEventListener('storage', update);
-    return () => { window.removeEventListener('frameforge:projects-changed', update); window.removeEventListener('storage', update); };
+    return () => { window.removeEventListener('takegrid:projects-changed', update); window.removeEventListener('storage', update); };
   }, []);
   useEffect(() => {
     const valid = new Set(projects.map(p => p.id));
