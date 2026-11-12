@@ -95,7 +95,7 @@ export function exportJsonBackup(projectId) {
     format: FORMAT, version: VERSION, exportedAt: new Date().toISOString(),
     project: clone(project), versions: readVersions(projectId),
   };
-  downloadText(`${cleanFilename(project.title)}-frameforge-backup.json`, JSON.stringify(payload, null, 2) + "\n", "application/json;charset=utf-8");
+  downloadText(`${cleanFilename(project.title)}-takegrid-backup.json`, JSON.stringify(payload, null, 2) + "\n", "application/json;charset=utf-8");
 }
 
 function validVersion(entry) {

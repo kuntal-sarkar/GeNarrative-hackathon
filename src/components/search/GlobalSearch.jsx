@@ -1,5 +1,6 @@
 import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Search, X, FolderOpen, BookOpen, Clapperboard, Camera, UsersRound, Brain, CornerDownLeft } from "lucide-react";
 import { searchSavedProjects } from "../../services/globalSearch";
@@ -100,7 +101,7 @@ export default function GlobalSearch() {
   let resultIndex = -1;
   return <>
     <button ref={trigger} type="button" className="ff-global-search-launch" onClick={show} aria-label="Search all projects" title="Search all projects (Ctrl+K)"><Search size={19}/><span className="ff-global-search-hint">Ctrl K</span></button>
-    {mounted && <div className={`ff-global-search-overlay ${open ? "is-open" : "is-closing"}`} onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
+    {mounted && createPortal(<div className={`ff-global-search-overlay ${open ? "is-open" : "is-closing"}`} onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
       <section ref={dialog} className="ff-global-search-dialog" role="dialog" aria-modal="true" aria-label={`Search across ${APP_NAME}`} onKeyDown={keydown}>
         <div className="ff-global-search-input-row"><Search size={21}/><input ref={input} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search projects, stories, scenes, characters..." aria-label="Search saved projects"/><button type="button" className="ff-global-search-close" onClick={close} aria-label="Close search"><X size={19}/></button></div>
         <div className="ff-global-search-results" aria-live="polite">
@@ -113,6 +114,6 @@ export default function GlobalSearch() {
         </div>
         <footer className="ff-global-search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span><span><kbd>Enter</kbd> Open</span><span><kbd>Esc</kbd> Close</span></footer>
       </section>
-    </div>}
+    </div>, document.body)}
   </>;
 }

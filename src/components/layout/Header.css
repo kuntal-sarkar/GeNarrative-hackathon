@@ -1,12 +1,134 @@
-.app-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 1100;
-  height: 76px; padding: 0 clamp(18px, 3.2vw, 56px);
-  display: flex; align-items: center; justify-content: space-between;
-  background: #FFFFFF; border-bottom: 1px solid var(--surface-border);
+/* TAKEGRID top navigation - one consolidated responsive layout. */
+.app-layout > .app-header {
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 1100;
+  top: 14px;
+  left: clamp(112px, 8.65vw, 166px);
+  right: clamp(24px, 4.5vw, 86px);
+  width: auto;
+  height: 68px;
+  padding: 0 clamp(16px, 2vw, 30px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid rgba(23, 42, 70, .12);
+  border-radius: 999px;
+  box-shadow: 0 12px 36px rgba(23, 42, 70, .13), 0 2px 7px rgba(23, 42, 70, .04);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
-.app-brand {display: flex;align-items: center;gap: 12px;min-width: 0;}
-.app-brand-icon {display:grid;place-items:center;width:42px;height:42px;background:var(--color-navy);color:#FFFFFF;border-radius:13px;flex-shrink:0;}
-.app-brand-name {font-family:"Space Grotesk",sans-serif;font-size:19px;font-weight:700;letter-spacing:-.6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.profile-button {display:grid;place-items:center;width:41px;height:41px;border:1px solid var(--surface-border);border-radius:50%;background:#FFFFFF;color:var(--color-navy);}
-.profile-button:disabled{opacity:.55;cursor:not-allowed;}
-@media(max-width:768px){.app-header{height:66px;padding:0 17px}.app-brand-icon{width:37px;height:37px}.app-brand-name{font-size:16px}.profile-button{width:37px;height:37px}}
+.app-header .app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 0 1 auto;
+  text-decoration: none;
+}
+.app-header .app-brand-logo {
+  display: block;
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  flex: none;
+}
+.app-header .app-brand-name {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-header-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+  margin-left: auto;
+}
+.app-header-actions .ff-global-search-launch {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+  margin: 0;
+  flex: 0 0 auto;
+  align-self: center;
+}
+.app-header .profile-button {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 41px;
+  height: 41px;
+  padding: 0;
+  flex: 0 0 auto;
+  border: 1px solid var(--surface-border, #e4e8ee);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-navy, #172a46);
+}
+.app-header .profile-button:disabled { opacity: .55; cursor: not-allowed; }
+/* Subtle "take number" marker in the unused desktop top-left gutter. */
+@media (min-width: 1200px) {
+  .app-layout::before {
+    content: "TAKE  /  01";
+    position: fixed;
+    top: 42px;
+    left: 28px;
+    z-index: 1090;
+    color: #172a46;
+    border-left: 3px solid #ff6b5b;
+    padding: 5px 0 5px 9px;
+    font: 700 10px/1 system-ui, sans-serif;
+    letter-spacing: 1.2px;
+    pointer-events: none;
+    opacity: .75;
+  }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .app-layout > .app-header {
+    left: 104px;
+    right: 20px;
+    padding-inline: 18px;
+  }
+}
+@media (max-width: 768px) {
+  .app-layout > .app-header {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    left: 8px;
+    right: 8px;
+    height: 60px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .app-header .app-brand-logo { width: 40px; height: 40px; }
+  .app-header .app-brand-name { font-size: 16px; }
+  .app-header-actions { gap: 8px; }
+  .app-header .profile-button { width: 37px; height: 37px; }
+}
+@media (max-width: 380px) {
+  .app-layout > .app-header { padding-inline: 10px; }
+  .app-header .app-brand { gap: 6px; }
+  .app-header .app-brand-logo { width: 35px; height: 35px; }
+  .app-header .app-brand-name { font-size: 14px; }
+  .app-header-actions { gap: 6px; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .app-layout > .app-header {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
