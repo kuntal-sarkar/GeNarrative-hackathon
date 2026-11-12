@@ -1,3 +1,4 @@
+import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, Clapperboard, Save, MapPin, WandSparkles, LoaderCircle, Check, X, ChevronRight } from "lucide-react";
 import { aiConfigured, requestSceneBreakdown } from "../../services/workspaceApi";
@@ -122,7 +123,7 @@ export default function SceneBreakdown({ scenes = [], onScenesChange, onSaveScen
         <button type="button" className="scene-outline-btn" onClick={() => setAiOpen(false)} aria-label="Close AI panel"><X size={15}/> Close</button>
       </div>
       <p style={{ margin: "8px 0 14px" }}>Review one scene at a time. <strong>Add Scene</strong> puts it at the bottom of your scene list as an unsaved draft. <strong>Skip</strong> ignores it. No existing scenes or shots will be changed.</p>
-      {aiBusy && <p role="status"><LoaderCircle size={16} className="ff-char__spin"/> FRAMEFORGE AI is analyzing your story...</p>}
+      {aiBusy && <p role="status"><LoaderCircle size={16} className="ff-char__spin"/>{` ${APP_NAME} AI is analyzing your story...`}</p>}
       {aiError && <p role="alert" style={{ color: "#b42318" }}>{aiError}</p>}
       {!aiBusy && current && <article style={{ display: "grid", gap: 10, borderTop: "1px solid #e6e9ee", paddingTop: 16 }}>
         <span style={{ color: "#637083", fontSize: 13, fontWeight: 600 }}>Suggestion {currentIndex + 1} of {aiSuggestions.length}</span>

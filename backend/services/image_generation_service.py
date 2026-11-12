@@ -137,7 +137,7 @@ def generate_storyboard_image(
 
     if response.status_code >= 500:
         raise ImageGenerationError(
-            "Cloudflare image service is temporarily unavailable."
+            "TAKEGRID image service is temporarily unavailable."
         )
 
     if not response.ok:

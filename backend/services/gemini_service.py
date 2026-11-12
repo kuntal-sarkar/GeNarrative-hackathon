@@ -1,8 +1,9 @@
+from services.brand_identity import brand_system_instruction  # TAKEGRID_BRANDING_V1
 
 import os
 
 from dotenv import load_dotenv
-from google import genai
+from services.gemini_model_router import client_for
 
 load_dotenv()
 
@@ -12,7 +13,7 @@ MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 if not API_KEY:
     raise RuntimeError("GEMINI_API_KEY is missing in .env")
 
-client = genai.Client(api_key=API_KEY)
+client = client_for("general")  # Resilient per-feature model routing
 
 
 def generate_text(prompt: str) -> str:
@@ -27,11 +28,12 @@ def generate_text(prompt: str) -> str:
     response = client.models.generate_content(
         model=MODEL,
         contents=prompt,
+        config={"system_instruction": brand_system_instruction("You are a creative filmmaking assistant.")},
     )
 
     result = (response.text or "").strip()
 
     if not result:
-        raise RuntimeError("Gemini returned an empty response")
+        raise RuntimeError("AI returned an empty response")
 
     return result

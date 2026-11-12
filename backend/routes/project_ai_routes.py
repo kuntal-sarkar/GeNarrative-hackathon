@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from google.genai import errors
 
 from services.project_chat_service import generate_project_chat
+from services.creative_memory_context import select_creative_decisions
 from utils.validators import validate_prompt
 
 project_ai_bp = Blueprint(
@@ -12,83 +13,165 @@ project_ai_bp = Blueprint(
 )
 
 
+# TAKEGRID_AI_STORY_V1 — support JSON and browser multipart/form-data safely.
+import io
+from pathlib import Path
+from google.genai import types as genai_types
+from services.story_creation_service import create_story_draft, compose_story_from_conversation
+from services.story_editor_service import edit_story
+
+_ALLOWED_CHAT_TYPES = {".txt", ".md", ".pdf", ".png", ".jpg", ".jpeg", ".webp"}
+_IMAGE_MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
+
+def _read_chat_request():
+    if request.mimetype == "multipart/form-data":
+        raw = request.form.get("payload", "")
+        if len(raw) > 65000:
+            raise ValueError("Request metadata too large.")
+        import json
+        try:
+            data = json.loads(raw)
+        except (ValueError, TypeError):
+            raise ValueError("Invalid attachment request payload.")
+        uploads = request.files.getlist("files")
+    else:
+        data = request.get_json(silent=True)
+        uploads = []
+    if not isinstance(data, dict):
+        raise ValueError("Request body must be an object.")
+    if len(uploads) > 5:
+        raise ValueError("Maximum 5 attachments per message.")
+    total_size = 0
+    parts = []
+    names = []
+    for file in uploads:
+        name = Path(file.filename or "").name[:180]
+        ext = Path(name).suffix.lower()
+        if ext not in _ALLOWED_CHAT_TYPES:
+            raise ValueError("Unsupported file type. Use PDF, TXT, MD, PNG, JPG or WebP.")
+        content = file.read(10 * 1024 * 1024 + 1)
+        if not content or len(content) > 10 * 1024 * 1024:
+            raise ValueError("Each attachment must be 1 byte to 10 MB.")
+        total_size += len(content)
+        if total_size > 25 * 1024 * 1024:
+            raise ValueError("Combined attachments cannot exceed 25 MB.")
+        names.append(name)
+        if ext in (".txt", ".md"):
+            try:
+                text = content.decode("utf-8-sig")
+            except UnicodeDecodeError:
+                raise ValueError(f"{name} is not readable UTF-8 text.")
+            if len(text) > 25000:
+                raise ValueError(f"{name} contains too much text (max 25,000 characters).")
+            parts.append({"name": name, "kind": "text", "text": text})
+        elif ext == ".pdf":
+            try:
+                from pypdf import PdfReader
+                reader = PdfReader(io.BytesIO(content), strict=False)
+                if len(reader.pages) > 30:
+                    raise ValueError(f"{name}: max 30 PDF pages.")
+                text = "\n".join(page.extract_text() or "" for page in reader.pages)
+            except ImportError:
+                raise ValueError("PDF support requires pypdf. Run pip install pypdf in the backend venv.")
+            except ValueError:
+                raise
+            except Exception:
+                raise ValueError(f"Could not read {name} as a PDF.")
+            if not text.strip():
+                raise ValueError(f"{name} appears scanned or contains no selectable text. Upload TXT/MD instead.")
+            if len(text) > 25000:
+                raise ValueError(f"{name} contains too much extracted text (max 25,000 characters).")
+            parts.append({"name": name, "kind": "text", "text": text})
+        else:
+            # Inline binary vision data; never persist blobs inside project localStorage.
+            parts.append({"name": name, "kind": "image", "mime": _IMAGE_MIME[ext], "data": content})
+    return data, parts, names
+
 @project_ai_bp.post("/<project_id>/ai/chat")
 def project_chat_compat(project_id):
-    data = request.get_json(silent=True)
-
-    if not isinstance(data, dict):
-        return jsonify({
-            "success": False,
-            "error": "Request body must be a JSON object."
-        }), 400
-
     try:
-        message = validate_prompt({
-            "prompt": data.get("message")
-        })
-
+        data, parts, names = _read_chat_request()
+        message = validate_prompt({"prompt": data.get("message")})
         context = data.get("context") or {}
-
         if not isinstance(context, dict):
             raise ValueError("Project context must be an object.")
-
-        # Frontend sends project data inside "context".
-        # Add its request scope without modifying existing data.
-        project_context = {
-            **context,
-            "target": data.get("target", "project"),
-            "sceneId": data.get("sceneId"),
-            "language": data.get("language", "English"),
-        }
-
+        context = {**context, "target": data.get("target", "project"),
+                   "sceneId": data.get("sceneId"), "language": data.get("language", "English")}
         history = data.get("history") or []
-
-        # The existing chat service handles the latest 10 messages.
-        answer = generate_project_chat(
-            message=message,
-            project_context=project_context,
-            history=history,
-        )
-
-        # Frontend ProjectAIChat.jsx expects "answer",
-        # whereas the original backend endpoint returns "response".
-        return jsonify({
-            "success": True,
-            "answer": answer,
-            "proposedRevision": None,
-        }), 200
-
+        # Existing chat continues to work; attachments are supplied to the SAME
+        # model request as actual content, not merely as filenames.
+        answer = generate_project_chat(message=message, project_context=context,
+                                       history=history, attachments=parts)
+        return jsonify({"success": True, "answer": answer, "proposedRevision": None,
+                        "processedAttachments": names}), 200
     except ValueError as exc:
-        return jsonify({
-            "success": False,
-            "error": str(exc)
-        }), 400
-
+        return jsonify({"success": False, "error": str(exc)}), 400
     except errors.APIError as exc:
-        status = getattr(exc, "code", None)
-
-        if status == 429:
-            return jsonify({
-                "success": False,
-                "error": "Gemini quota exceeded."
-            }), 429
-
-        if status == 503:
-            return jsonify({
-                "success": False,
-                "error": "Gemini is temporarily unavailable."
-            }), 503
-
-        return jsonify({
-            "success": False,
-            "error": "AI service request failed."
-        }), 502
-
+        code = getattr(exc, "code", None)
+        return jsonify({"success": False, "error": "AI is busy right now. Please try again shortly." if code == 429
+                        else "AI is temporarily unavailable." if code == 503
+                        else "AI service request failed."}), code if code in (429, 503) else 502
     except Exception:
-        return jsonify({
-            "success": False,
-            "error": "Unable to complete chat request."
-        }), 500
+        return jsonify({"success": False, "error": "Unable to complete chat request."}), 500
+
+@project_ai_bp.post("/<project_id>/ai/story/draft")
+def project_story_draft(project_id):
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "error": "JSON request body required."}), 400
+    try:
+        return jsonify(create_story_draft(data.get("context") or {}, data.get("instructions") or "")), 200
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    except errors.APIError as exc:
+        code = getattr(exc, "code", None)
+        return jsonify({"success": False, "error": "AI is busy right now. Please try again shortly." if code == 429
+                        else "AI is temporarily unavailable." if code == 503
+                        else "AI story generation failed."}), code if code in (429, 503) else 502
+    except Exception:
+        return jsonify({"success": False, "error": "Could not generate story draft."}), 500
+
+@project_ai_bp.post("/<project_id>/ai/story/compose")
+def project_story_compose(project_id):
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "error": "JSON request body required."}), 400
+    try:
+        return jsonify(compose_story_from_conversation(data.get("context") or {}, data.get("history") or [])), 200
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    except errors.APIError as exc:
+        code = getattr(exc, "code", None)
+        return jsonify({"success": False, "error": "AI is busy right now. Please try again shortly." if code == 429
+                        else "AI is temporarily unavailable." if code == 503
+                        else "AI story extraction failed."}), code if code in (429, 503) else 502
+    except Exception:
+        return jsonify({"success": False, "error": "Could not extract story from chat."}), 500
+
+@project_ai_bp.post("/<project_id>/ai/story/revise")
+def project_story_revise(project_id):
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "error": "JSON request body required."}), 400
+    try:
+        context = data.get("context") or {}
+        story = context.get("story") or ""
+        instructions = data.get("instructions") or ""
+        mode = data.get("mode") or "improve"
+        result = edit_story(story=story, mode=mode, instructions=instructions,
+                            project_context=context)
+        return jsonify({"success": True, "answer": result.get("summary", "Revision ready."),
+                        "proposedRevision": {"target": "story", "text": result["edited_story"],
+                                             "source": "revise", "summary": result.get("summary", "")}}), 200
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    except errors.APIError as exc:
+        code = getattr(exc, "code", None)
+        return jsonify({"success": False, "error": "AI is busy right now. Please try again shortly." if code == 429
+                        else "AI is temporarily unavailable." if code == 503
+                        else "AI revision failed."}), code if code in (429, 503) else 502
+    except Exception:
+        return jsonify({"success": False, "error": "Could not revise story."}), 500
 
 
 @project_ai_bp.post("/<project_id>/ai/critique")
@@ -106,6 +189,8 @@ def project_critique_compat(project_id):
 
     try:
         project = data.get("projectData")
+        # TAKEGRID_CREATIVE_MEMORY_V1: memory remains advisory context only.
+        creator_memory = select_creative_decisions(data.get("creativeDecisions"))
         if not isinstance(project, dict):
             raise ValueError("Project data is required.")
 
@@ -178,6 +263,7 @@ def project_critique_compat(project_id):
                 "reviewScope": selection,
                 "language": language,
                 "creatorInstructions": notes,
+                "creativeDecisions": creator_memory,
             },
             focus=notes.strip() or "general",
         )
@@ -216,13 +302,13 @@ def project_critique_compat(project_id):
         if status == 429:
             return jsonify({
                 "success": False,
-                "error": "Gemini quota exceeded.",
+                "error": "AI is busy right now. Please try again shortly.",
             }), 429
 
         if status == 503:
             return jsonify({
                 "success": False,
-                "error": "Gemini is temporarily unavailable.",
+                "error": "AI is busy right now. Please try again shortly..",
             }), 503
 
         return jsonify({
@@ -235,6 +321,34 @@ def project_critique_compat(project_id):
             "success": False,
             "error": "Unable to generate creative critique.",
         }), 500
+
+
+# TAKEGRID_UNIFIED_CRITICS_V4 — synthesize real partial AI reviews.
+@project_ai_bp.post("/<project_id>/ai/critique/synthesize")
+def project_critique_synthesis(project_id):
+    from services.creative_critics_service import synthesize_critic_reviews
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "error": "JSON request body required."}), 400
+    try:
+        result = synthesize_critic_reviews(
+            reviews=data.get("reviews"),
+            language=data.get("language", "English"),
+            focus=data.get("focus", ""),
+            creative_decisions=select_creative_decisions(data.get("creativeDecisions")),
+        )
+        return jsonify({"success": True, **result}), 200
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    except errors.APIError as exc:
+        status = getattr(exc, "code", None)
+        if status == 429:
+            return jsonify({"success": False, "error": "AI is busy right now. Please try again shortly."}), 429
+        if status == 503:
+            return jsonify({"success": False, "error": "AI is busy right now. Please try again shortly."}), 503
+        return jsonify({"success": False, "error": "Review synthesis AI request failed."}), 502
+    except Exception:
+        return jsonify({"success": False, "error": "Could not consolidate creative reviews."}), 500
 
 
 @project_ai_bp.post("/<project_id>/ai/continuity")
@@ -305,13 +419,13 @@ def project_continuity_compat(project_id):
         if status == 429:
             return jsonify({
                 "success": False,
-                "error": "Gemini quota exceeded.",
+                "error": "AI is busy right now. Please try again shortly.",
             }), 429
 
         if status == 503:
             return jsonify({
                 "success": False,
-                "error": "Gemini is temporarily unavailable.",
+                "error": "AI is temporarily unavailable.",
             }), 503
 
         return jsonify({

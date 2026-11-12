@@ -1,3 +1,4 @@
+import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import IOSSelect from "../ui/IOSSelect";
@@ -87,11 +88,11 @@ export default function ExportBackup({ projectId, hasUnsaved }) {
 
     <section className="ff-eb__restore" aria-labelledby="ff-eb-restore">
       <div className="ff-eb__cardtitle"><span className="ff-eb__icon"><Upload size={20}/></span><div><h3 id="ff-eb-restore">Restore from backup</h3><p>Import a JSON backup as a separate project—no overwriting.</p></div></div>
-      <input ref={fileRef} type="file" accept=".json,application/json" className="ff-eb__hidden" onChange={chooseFile} aria-label="Choose FRAMEFORGE backup JSON file"/>
+      <input ref={fileRef} type="file" accept=".json,application/json" className="ff-eb__hidden" onChange={chooseFile} aria-label={`Choose ${APP_NAME} backup JSON file`}/>
       <button type="button" className="ff-eb__choose" onClick={()=>fileRef.current?.click()} disabled={working}><Upload size={17}/> Choose backup file</button>
       {working && <p className="ff-eb__muted" role="status">Validating backup...</p>}
       {inspected && <div className="ff-eb__preview">
-        <div><span className="ff-eb__preview-kicker"><CheckCircle2 size={16}/> Valid FRAMEFORGE backup</span><h4>{inspected.preview.title}</h4><p>{[inspected.preview.genre,inspected.preview.language].filter(Boolean).join(" · ") || "Saved creative project"}</p><div className="ff-eb__stats"><span>{inspected.preview.scenes} scenes</span><span>{inspected.preview.shots} shots</span><span>{inspected.preview.characters} characters</span><span>{inspected.preview.versions} versions</span></div></div>
+        <div><span className="ff-eb__preview-kicker"><CheckCircle2 size={16}/>{` Valid ${APP_NAME} backup`}</span><h4>{inspected.preview.title}</h4><p>{[inspected.preview.genre,inspected.preview.language].filter(Boolean).join(" · ") || "Saved creative project"}</p><div className="ff-eb__stats"><span>{inspected.preview.scenes} scenes</span><span>{inspected.preview.shots} shots</span><span>{inspected.preview.characters} characters</span><span>{inspected.preview.versions} versions</span></div></div>
         <button type="button" className="ff-eb__primary" onClick={importProject} disabled={working || hasUnsaved}>Restore as new project <ArrowRight size={17}/></button>
       </div>}
       {inspected && hasUnsaved && <p className="ff-eb__muted">Save or discard current edits before restoring a project.</p>}

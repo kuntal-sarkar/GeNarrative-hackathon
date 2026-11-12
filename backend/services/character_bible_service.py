@@ -1,9 +1,10 @@
+from services.brand_identity import brand_system_instruction  # TAKEGRID_BRANDING_V1
 
 import json
 import os
 
 from dotenv import load_dotenv
-from google import genai
+from services.gemini_model_router import client_for
 from google.genai import types
 from pydantic import BaseModel, Field
 
@@ -19,7 +20,7 @@ CHARACTER_MODEL = (
 if not API_KEY:
     raise RuntimeError("GEMINI_API_KEY is missing")
 
-client = genai.Client(api_key=API_KEY)
+client = client_for("characters")  # Resilient per-feature model routing
 
 
 class CharacterProfile(BaseModel):
@@ -43,7 +44,7 @@ class CharacterBibleResponse(BaseModel):
 
 
 SYSTEM_INSTRUCTION = """
-You are FRAMEFORGE's Character Bible assistant.
+You are TAKEGRID's Character Bible assistant.
 
 Your task is to analyze characters from creator-provided
 stories and project information.
@@ -69,6 +70,7 @@ Rules:
 - Respond in the language of the supplied material
   when practical.
 """
+SYSTEM_INSTRUCTION = brand_system_instruction(SYSTEM_INSTRUCTION)  # TAKEGRID_BRANDING_V1
 
 
 def generate_character_bible(
@@ -141,7 +143,7 @@ Return structured character profiles.
 
     if not response.text:
         raise RuntimeError(
-            "Gemini returned an empty character analysis"
+            "TAKEGRID returned an empty character analysis"
         )
 
     result = CharacterBibleResponse.model_validate_json(
@@ -157,7 +159,7 @@ Return structured character profiles.
 
     if len(names) != len(set(names)):
         raise RuntimeError(
-            "Gemini returned duplicate character profiles"
+            "TAKEGRID returned duplicate character profiles"
         )
 
     return {

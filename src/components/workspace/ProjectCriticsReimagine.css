@@ -1,0 +1,64 @@
+/* TakeGrid Critics UI V3 — scoped to Reimagine; no global style changes. */
+.ff-reimagine-panel { margin-top: 16px; padding: clamp(14px,2vw,22px); border: 1px solid #e1e7ee; border-radius: 18px; background: #fff; color: #172a46; min-width: 0; }
+.ff-reimagine-heading { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.ff-reimagine-heading h4, .ff-reimagine-preview h4 { margin: 0 0 6px; font-size: 1.08rem; letter-spacing: -.02em; }
+.ff-reimagine-heading p,.ff-reimagine-help { color: #68788d; font-size: .88rem; line-height: 1.6; margin: 0 0 12px; }
+.ff-reimagine-tag { flex-shrink:0; padding: 6px 10px; border-radius: 100px; background: #eaf4ff; color: #186da6; font-size:.75rem; font-weight:700; }
+.ff-reimagine-panel .ws-field { display: flex; flex-direction: column; gap: 8px; margin: 0 0 15px; font-weight: 650; }
+.ff-reimagine-panel textarea { box-sizing: border-box; width:100%; min-width:0; margin-top: 0; }
+/* IOSSelect handles native/mobile picker behavior; desktop fields sit on one horizontal line. */
+.ff-reimagine-panel .ff-reimagine-inline-field { display: flex; flex-direction:row; align-items:center; gap:14px; justify-content:space-between; }
+.ff-reimagine-field-label { flex: 0 0 160px; }
+.ff-reimagine-inline-field > :last-child { flex:1; min-width:0; }
+.ff-reimagine-select { width:100%; min-width:0; max-width:100%; min-height:42px; padding: 9px 12px; border:1px solid #d6e0eb; border-radius: 13px; background: #f8fafc; color: #172a46; font:inherit; }
+.ff-reimagine-preview { margin-top: 22px; padding-top: 18px; border-top: 1px solid #e4eaf0; }
+/* The comparison is deliberately VERTICAL at every breakpoint. */
+.ff-reimagine-compare { display:flex; flex-direction:column; gap:11px; margin: 16px 0 18px; }
+.ff-reimagine-compare section { min-width:0; border:1px solid #e2e7ed; border-radius:14px; padding: 0; overflow:hidden; }
+.ff-reimagine-before { background:#fffaf7; border-color:#f1e0d7 !important; }
+.ff-reimagine-after { background:#f5faf8; border-color:#d7eae1 !important; }
+.ff-compare-head { padding: 11px 14px; border-bottom: 1px solid rgba(23,42,70,.07); display:flex; align-items:center; gap:9px; }
+.ff-compare-step { font-size:.72rem; font-weight:800; color:#8290a0; }
+.ff-compare-label { font-size:.86rem; font-weight:750; color:#172a46; }
+.ff-compare-status { margin-left:auto; padding:3px 8px; border-radius:6px; font-size:.71rem; font-weight:750; background:rgba(23,42,70,.055); color:#546779; }
+.ff-compare-content { white-space:pre-wrap; overflow-wrap:anywhere; word-break:normal; padding:14px 16px 17px; line-height:1.75; font-size:.94rem; max-height:320px; overflow-y:auto; }
+.ff-compare-transition { text-align:center; font-size:.77rem; font-weight:750; color:#61778b; }
+.ff-compare-transition span { display:inline-flex; align-items:center; justify-content:center; background:#eaf4ff; color:#187ac2; width:23px; height:23px; border-radius:50%; margin-right:5px; }
+.ff-reimagine-explanation { padding:16px; background:#f8fafc; border:1px solid #e3eaf1; border-radius:14px; margin-bottom:17px; }
+.ff-reimagine-explanation h5 { font-size:.94rem; margin:0 0 8px; font-weight:750; }
+.ff-reimagine-summary { margin:0; font-size:.89rem; line-height:1.65; color:#485f77; }
+.ff-reimagine-changes { display:grid; gap:8px; margin:12px 0 0; padding:0; list-style:none; counter-reset: takegrid-change; }
+.ff-reimagine-changes li { display:flex; align-items:flex-start; gap:10px; font-size:.87rem; line-height:1.55; color:#304761; }
+.ff-reimagine-changes li::before { counter-increment: takegrid-change; content: counter(takegrid-change); display:flex; flex:0 0 22px; height:22px; justify-content:center; align-items:center; background:#e9f2fd; color:#196ea9; border-radius:7px; font-size:.72rem; font-weight:800; }
+.ff-reimagine-changes li span { flex:1; min-width:0; }
+/* Compact multi-line skeleton, not a large full-width empty rectangle. */
+.ff-reimagine-loading { background: #f9fbfd; border:1px solid #e2eaf1; border-radius:14px; padding:15px 16px; margin-top:14px; }
+.ff-loading-header { display:flex; align-items:center; gap:12px; }
+.ff-loading-header > div { display:flex; flex-direction:column; gap:3px; }
+.ff-loading-header strong { font-size:.9rem; font-weight:750; }
+.ff-loading-header span:not(.ff-loading-pulse) { color:#688098; line-height:1.4; font-size:.78rem; }
+.ff-loading-pulse { width:10px; height:10px; flex-shrink:0; background:#ff6b5b; border-radius:50%; box-shadow: 0 0 0 4px #ffe9e5; animation:tg-pulse 1.5s ease-in-out infinite; }
+.ff-loading-skeleton { margin:14px 0 1px 22px; max-width:520px; }
+.ff-skeleton { height:10px; border-radius:6px; background:linear-gradient(100deg,#e7edf3 25%,#f7f9fc 45%,#e7edf3 65%); background-size:220% 100%; animation:tg-shimmer 1.5s ease-in-out infinite; }
+.ff-skeleton-title { height:13px; width:39%; margin-bottom:11px; }
+.ff-skeleton-line { width:89%; margin-bottom:9px; }
+.ff-skeleton-short { width:63%; }
+@keyframes tg-shimmer { 0%{background-position-x:100%}100%{background-position-x:-100%} }
+@keyframes tg-pulse { 0%,100%{opacity:.6}50%{opacity:1} }
+@media (max-width:760px) { .ff-reimagine-heading{flex-wrap:wrap}.ff-reimagine-panel{padding:13px} .ff-reimagine-panel .ff-reimagine-inline-field{flex-direction:column;align-items:stretch;gap:7px}.ff-reimagine-field-label{flex:auto}.ff-reimagine-inline-field > :last-child {width:100%}.ff-compare-content{padding:12px 13px;max-height:260px} }
+@media (prefers-reduced-motion:reduce) { .ff-skeleton,.ff-loading-pulse{animation:none} }
+
+/* TAKEGRID_UNIFIED_CRITICS_V4 — scoped to Critics, preserves other workspace styles. */
+.tg-review-loading { margin:20px 0; padding:18px; border:1px solid #dce5ed; border-radius:18px; background:#fff; }
+.tg-review-loading-head { display:flex; align-items:flex-start; gap:12px; color:#172a46; }
+.tg-review-loading-head strong { font-size:.95rem; }
+.tg-review-loading-head p { margin:5px 0 0; font-size:.84rem; color:#64758a; }
+.tg-review-loading-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.tg-review-loading-card { min-width:0; padding:16px; border:1px solid #e5ebf1; background:#f8fafc; border-radius:14px; }
+.tg-review-loading-card .ff-skeleton-title { width:65%; }
+.tg-review-loading-card .ff-skeleton-line { width:95%; }
+.tg-review-loading-card .ff-skeleton-short { width:72%; }
+.ws-panel .ws-review-actions { display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
+.ws-panel .ws-review-actions .tg-review-reimagine-action { white-space:normal; }
+@media (max-width:760px) { .tg-review-loading-grid { grid-template-columns:1fr; } .tg-review-loading-card:nth-child(3) { display:none; } }
+@media (prefers-reduced-motion:reduce) { .tg-review-loading .ff-skeleton {animation:none;} }

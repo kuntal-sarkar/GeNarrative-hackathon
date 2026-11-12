@@ -1,3 +1,5 @@
+// TAKEGRID_V10_STORY_CHAT_POLISH
+// TAKEGRID_V9_STORY_CHAT
 import { useEffect, useRef, useState } from "react";
 
 import { Link, NavLink, useBlocker, useNavigate, useParams } from "react-router-dom";
@@ -754,6 +756,46 @@ export default function ProjectWorkspace() {
 
   }
 
+  // Autosave only conversation keys; never commit unrelated Story/Scenes drafts.
+  // No version-history spam for each chat message, but browser storage is updated.
+  useEffect(() => {
+    if (!project?.id || project.id !== projectId) return;
+    const current = getProject(projectId);
+    if (!current) return;
+    const keys = ["chatThreads", "activeChatThreadId", "chatMessages"];
+    if (keys.every(k => sameData(project[k], current[k]))) return;
+    const timer = setTimeout(() => {
+      try {
+        const latest = getProject(projectId);
+        if (!latest) return;
+        const changes = Object.fromEntries(keys.filter(k => Object.prototype.hasOwnProperty.call(project, k)).map(k=>[k,project[k]]));
+        saveProject({...latest,...changes});
+        setSavedRevision(v=>v+1);
+      } catch (e) { setError(`Chat auto-save failed: ${e.message || "Browser storage unavailable"}`); }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [project?.chatThreads, project?.activeChatThreadId, projectId]);
+
+  // Explicit Push to Story is the only step that persists generated story text.
+  function pushAIStory(text, mode) {
+    const latest = getProject(projectId);
+    if (!latest) throw new Error("Project no longer exists.");
+    if (!text?.trim()) throw new Error("Story draft is empty.");
+    if (!sameData(project.story || "", latest.story || "")) {
+      throw new Error("You have unsaved Story edits. Save or discard them before pushing an AI draft.");
+    }
+    const nextStory = mode === "append" && latest.story?.trim()
+      ? `${latest.story.trimEnd()}\n\n${text.trim()}` : text.trim();
+    const next = {...latest, story: nextStory};
+    saveProject(next);
+    const result = recordVersion(projectId, latest, next, "AI Story Studio — Push to Story");
+    if (result.recorded) setHistoryRevision(v=>v+1);
+    setProject(prev=>({...prev,story:nextStory}));
+    setSavedRevision(v=>v+1);
+    setStatus(result.warning ? `Story saved. ${result.warning}` : "AI Story pushed and saved");
+    setError("");
+  }
+
   function saveChatConversation() {
 
     savePartial(latest => {
@@ -822,11 +864,11 @@ export default function ProjectWorkspace() {
 
         {section === "story" && <div className="ff-story-workspace">
 
-          <div className="ff-story-head"><div><span className="ws-eyebrow">STORY WORKSPACE</span><h2>Edit your story</h2><p>Keep your original writing in control. AI editing will be available when the Flask + Gemini backend is connected.</p></div></div>
+          <div className="ff-story-head"><div><span className="ws-eyebrow">STORY WORKSPACE</span><h2>Edit your story</h2><p>Keep your original writing in control. Write your story manually or use AI Story Studio for a draft you approve.</p></div></div>
 
-          <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={() => setStoryMode("manual")}><Pencil size={18} /> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={() => setStoryMode("ai")}><FilePenLine size={18} /> Edit with AI</button></div>
+          <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={() => setStoryMode("manual")}><Pencil size={18} /> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={() => navigate(`${base}/chat?editStory=${Date.now()}`)}><FilePenLine size={18} /> Edit with AI</button></div>
 
-          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><label className="ws-field">Genre<IOSSelect value={project.genre || "Drama"} onChange={e => update("genre", e.target.value)}>{[...new Set([...GENRES, project.genre].filter(Boolean))].map(g => <option key={g} value={g}>{g}</option>)}</IOSSelect><small>Editable · Save Story Details to apply</small></label><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Selected when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea || ""} onChange={e => update("idea", e.target.value)} placeholder="Short description of your story" /></label><label className="ws-field">Project / story title<input value={project.title || ""} onChange={e => update("title", e.target.value)} placeholder="Story name" /></label><div className="ff-inline-save"><span>Title, genre and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15} /> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story || ""} onChange={e => update("story", e.target.value)} placeholder="Write your story here..." /></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17} /> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e => { const f = e.target.files?.[0]; if (f) uploadScript(f); e.target.value = ""; }} /></label><span>{(project.story || "").trim() ? (project.story || "").trim().split(/\s+/).length : 0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15} /> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : <div className="ff-story-panel"><h3>AI-powered editing</h3><p>Open the project AI writing room to request rewrites, improve dialogue and discuss edits. You can continue any conversation later. Proposed story changes require your approval and must be saved with the relevant section Save button.</p><p className="ws-connection">Backend not connected. No generated content or pretend AI results.</p><button className="ws-primary" type="button" onClick={() => navigate(`${base}/chat`, { state: { chatIntent: "story" } })}><MessageCircle size={17} /> Open AI writing room</button></div>}
+          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><label className="ws-field">Genre<IOSSelect value={project.genre || "Drama"} onChange={e => update("genre", e.target.value)}>{[...new Set([...GENRES, project.genre].filter(Boolean))].map(g => <option key={g} value={g}>{g}</option>)}</IOSSelect><small>Editable · Save Story Details to apply</small></label><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Selected when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea || ""} onChange={e => update("idea", e.target.value)} placeholder="Short description of your story" /></label><label className="ws-field">Project / story title<input value={project.title || ""} onChange={e => update("title", e.target.value)} placeholder="Story name" /></label><div className="ff-inline-save"><span>Title, genre and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15} /> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story || ""} onChange={e => update("story", e.target.value)} placeholder="Write your story here..." /></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17} /> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e => { const f = e.target.files?.[0]; if (f) uploadScript(f); e.target.value = ""; }} /></label><span>{(project.story || "").trim() ? (project.story || "").trim().split(/\s+/).length : 0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15} /> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : null}
 
         </div>}
 
@@ -848,17 +890,17 @@ export default function ProjectWorkspace() {
 
         {section === "memory" && <ProjectMemory project={project} onSave={persist} />}
 
-        {section === "chat" && <ProjectAIChat project={project} onSave={persist} onSaveConversation={saveChatConversation} canSaveConversation={draftSections.includes("chat")} onOpenStory={() => navigate(`${base}/story`)} />}
+        {section === "chat" && <ProjectAIChat project={project} onSave={persist} onPushStory={pushAIStory} onOpenStory={() => navigate(`${base}/story`)} />}
 
-        {["critics", "continuity", "memory"].includes(section) && dirty && <div className="ff-other-save"><button type="button" className="ws-small-primary" onClick={() => savePartial(latest => {
+        {["critics", "continuity", "memory"].includes(section) && (section === "critics" || dirty) && <div className="ff-other-save"><button type="button" className="ws-small-primary" disabled={section === "critics" && !draftSections.includes("critics")} onClick={() => savePartial(latest => {
 
-          const keys = section === "chat" ? ["conversations", "chats", "chatSessions", "chatHistory", "story"] : section === "memory" ? ["creativeDecisions", "creativeMemory", "intentions"] : section === "critics" ? ["latestCritique", "critiques", "creativeDecisions", "story", "scenes"] : ["continuity", "continuityChecks", "continuityIssues"];
+          const keys = section === "chat" ? ["conversations", "chats", "chatSessions", "chatHistory", "story"] : section === "memory" ? ["creativeDecisions", "creativeMemory", "intentions"] : section === "critics" ? ["latestCritique", "critiques", "creativeDecisions"] : ["continuity", "continuityChecks", "continuityIssues"];
 
           const delta = Object.fromEntries(keys.filter(k => Object.prototype.hasOwnProperty.call(project, k)).map(k => [k, project[k]]));
 
           return { ...latest, ...delta };
 
-        }, "Section saved")}><Save size={15} /> Save {section === "chat" ? "Conversation" : "This Section"}</button></div>}
+        }, "Section saved")}><Save size={15} /> {section === "critics" && !draftSections.includes("critics") ? "Saved" : section === "chat" ? "Save Conversation" : "Save This Section"}</button></div>}
 
       </main>
 
