@@ -62,3 +62,9 @@
 @media (prefers-reduced-motion: reduce) {
   .ff-global-search-overlay.is-closing { pointer-events: none; opacity: 0; }
 }
+
+/* Search now lives inside the header actions. Modal is portaled to document.body. */
+.app-header .ff-global-search-launch {
+  position: static; top: auto; right: auto; z-index: auto;
+  margin: 0; flex: 0 0 auto; align-self: center;
+}
