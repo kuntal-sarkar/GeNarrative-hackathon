@@ -755,3 +755,16 @@
 .tg-v14-overlay .tg-v14-submit {min-height:43px;justify-content:center;border:0;border-radius:999px!important;background:#172a46!important;color:#fff!important;font-size:13px!important;cursor:pointer;}
 .tg-v14-submit:disabled {opacity:.45;cursor:not-allowed;}
 @media(max-width:520px){.tg-v14-overlay{padding:10px!important}.tg-v14-build-head{padding:20px 18px 14px}.tg-v14-build-body{padding:4px 18px 12px}.tg-v14-build-foot{padding:15px 18px 18px}.tg-v14-build-head h3{font-size:21px!important}}
+
+/* Floating Global AI shortcut */
+.tg-floating-ai { position: fixed; right: 40px; bottom: 60px; z-index: 1200; width: 58px; height: 58px; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #172a46; color: #ffffff; cursor: pointer; box-shadow: 0 0 12px rgba(255, 107, 91, 0.25), 0 0 25px rgba(255, 107, 91, 0.15); animation: tg-ai-float 2.8s ease-in-out infinite, tg-ai-glow 2.8s ease-in-out infinite; transition: scale 0.25s ease, box-shadow 0.25s ease; }
+
+.tg-floating-ai:hover { scale: 1.15; box-shadow: 0 0 20px rgba(255, 107, 91, 0.65), 0 0 40px rgba(255, 107, 91, 0.4); }
+
+@keyframes tg-ai-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+@keyframes tg-ai-glow { 0%, 100% { box-shadow: 0 0 10px rgba(255, 107, 91, 0.5), 0 0 20px rgba(255, 107, 91, 0.12); } 50% { box-shadow: 0 0 16px rgba(255, 107, 91, 0.45), 0 0 32px rgba(255, 107, 91, 0.25); } }
+
+@media (max-width: 768px) { .tg-floating-ai { width: 52px; height: 52px; right: 18px; bottom: 45px; } }
+
+@media (prefers-reduced-motion: reduce) { .tg-floating-ai { animation: none; } }

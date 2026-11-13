@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUp, BookOpen, Check, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, LoaderCircle, MessageCircle, Paperclip, Pin, Plus, Search, ThumbsDown, ThumbsUp, Trash2, Square, Mic, X } from 'lucide-react';
+import { ArrowUp, BookOpen, Check, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, LoaderCircle, MessageCircle, Paperclip, Pin, Plus, Search, ThumbsDown, ThumbsUp, Trash2, Square, Mic, X, Bot } from 'lucide-react';
 import { getProjects, createProject, saveProject, deleteProject } from '../../services/projectService';
 import { requestGlobalAI } from '../../services/globalAI';
 import { APP_NAME } from '../../config/branding';
@@ -246,6 +246,10 @@ export default function HomeAssistant() {
     if (!open) requestedOpenScrollRef.current = true;
     setOpen(value => !value);
   }
+  function openGlobalAI() {
+  if (!open) requestedOpenScrollRef.current = true;
+  setOpen(true);
+  }
   // Match Project AI Chat: expand the composer upward as the draft grows.
   // The conversation stays underneath the floating composer; beyond the cap,
   // only the textarea itself becomes scrollable.
@@ -459,6 +463,15 @@ export default function HomeAssistant() {
   }
   const hasSelection = selectedContext.length > 0;
   return <section className="home-assistant-section" id="global-ai-assistant">
+    <button
+      type="button"
+      className="tg-floating-ai"
+      onClick={openGlobalAI}
+      aria-label="Open TAKEGRID AI"
+      title="Talk to TAKEGRID AI"
+    >
+      <Bot size={25} />
+    </button>
     <div className="assistant-panel tg-global-panel">
       <div className="assistant-panel-header">
         <div className="assistant-title-group"><span className="assistant-icon"><MessageCircle size={24}/></span>
