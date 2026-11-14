@@ -755,3 +755,40 @@
 .tg-v14-overlay .tg-v14-submit {min-height:43px;justify-content:center;border:0;border-radius:999px!important;background:#172a46!important;color:#fff!important;font-size:13px!important;cursor:pointer;}
 .tg-v14-submit:disabled {opacity:.45;cursor:not-allowed;}
 @media(max-width:520px){.tg-v14-overlay{padding:10px!important}.tg-v14-build-head{padding:20px 18px 14px}.tg-v14-build-body{padding:4px 18px 12px}.tg-v14-build-foot{padding:15px 18px 18px}.tg-v14-build-head h3{font-size:21px!important}}
+
+
+/* TAKEGRID_CHAT_DISCLAIMER_DUAL_FIX_V1 */
+/* Clean white disclaimer merged visually above the Home AI composer. */
+.tg-global-panel .tg-global-compose .tg-global-disclaimer {
+  display: table !important;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 3;
+  max-width: min(94%, 850px);
+  width: max-content;
+  margin: 0 auto -9px !important;
+  padding: 8px 16px 15px !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 16px 16px 0 0 !important;
+  background: #ffffff !important;
+  color: #596a83 !important;
+  box-shadow: none !important;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 600;
+  white-space: normal;
+  pointer-events: none;
+}
+.tg-global-panel .tg-global-compose .tg-global-form {
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 640px) {
+  .tg-global-panel .tg-global-compose .tg-global-disclaimer {
+    max-width: 96%;
+    padding: 7px 12px 14px !important;
+    font-size: 10px;
+  }
+}

@@ -1,3 +1,4 @@
+import { authorizedAIFetch } from "./aiAuth";
 import { APP_NAME } from "../config/branding"; // TAKEGRID_BRANDING_V1
 // Flask API base URL is configured at build-time via VITE_API_BASE_URL.
 // No API key or privileged token should ever be placed in Vite environment variables.
@@ -15,7 +16,7 @@ export async function requestProjectAI(projectId, operation, payload, options = 
   signal?.addEventListener("abort", abort, { once: true });
   const timer = controller ? setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs) : null;
   try {
-    const response = await fetch(`${BASE}/api/projects/${encodeURIComponent(projectId)}/ai/${operation}`, {
+    const response = await authorizedAIFetch(`${BASE}/api/projects/${encodeURIComponent(projectId)}/ai/${operation}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
       signal: controller ? controller.signal : signal,
     });
@@ -41,7 +42,7 @@ export async function requestProjectAIWithAttachments(projectId, operation, payl
   const form = new FormData();
   form.append("payload", JSON.stringify(payload));
   for (const file of files) form.append("files", file, file.name);
-  const response = await fetch(`${BASE}/api/projects/${encodeURIComponent(projectId)}/ai/${operation}`, {
+  const response = await authorizedAIFetch(`${BASE}/api/projects/${encodeURIComponent(projectId)}/ai/${operation}`, {
     method: "POST",
     body: form, // Browser sets multipart/form-data boundary automatically.
   });
@@ -61,7 +62,7 @@ export async function requestCharacterBible(payload) {
     );
   }
 
-  const response = await fetch(
+  const response = await authorizedAIFetch(
     `${BASE}/api/ai/characters/generate`,
     {
       method: "POST",
@@ -91,7 +92,7 @@ export async function requestCharacterBible(payload) {
 // Scene Breakdown AI â€” reuse the existing Flask endpoint and private backend key.
 export async function requestSceneBreakdown(payload) {
   if (!aiConfigured) throw new Error("AI backend not connected. Set VITE_API_BASE_URL.");
-  const response = await fetch(`${BASE}/api/ai/scenes/breakdown`, {
+  const response = await authorizedAIFetch(`${BASE}/api/ai/scenes/breakdown`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -107,7 +108,7 @@ export async function requestSceneBreakdown(payload) {
 // TAKEGRID_STORYBOARD_V1_API
 export async function requestStoryboardImage(description, style = "black_white", quality = "standard") {
   if (!aiConfigured) throw new Error(`${APP_NAME} AI backend is not connected.`);
-  const response = await fetch(`${BASE}/api/ai/storyboard/image`, {
+  const response = await authorizedAIFetch(`${BASE}/api/ai/storyboard/image`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ description, style, quality }),
@@ -125,15 +126,24 @@ export async function uploadStoryboardFrame(blob) {
   if (!aiConfigured) throw new Error(`${APP_NAME} AI backend is not connected.`);
   const formData = new FormData();
   formData.append("image", blob, "frame.png");
-  const response = await fetch(`${BASE}/api/ai/storyboard/frames`, { method: "POST", body: formData });
+  const response = await authorizedAIFetch(`${BASE}/api/ai/storyboard/frames`, { method: "POST", body: formData });
   let data = null;
   try { data = await response.json(); } catch { /* non-json error */ }
   if (!response.ok || !data?.success || !data.frameId) throw new Error(data?.error || `Could not store image (${response.status}).`);
   return data;
 }
-export function storyboardFrameUrl(frameId) {
-  if (!aiConfigured || !/^[0-9a-f-]{36}$/.test(String(frameId || ""))) return "";
-  return `${BASE}/api/ai/storyboard/frames/${encodeURIComponent(frameId)}`;
+// TAKEGRID_STORYBOARD_PRIVATE_FRAMES_V1: browsers cannot attach JWTs via <img src>.
+export async function fetchPrivateStoryboardFrame(frameId, signal) {
+  if (!aiConfigured || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(frameId || ""))) {
+    throw new Error("Invalid storyboard frame ID.");
+  }
+  const response = await authorizedAIFetch(`${BASE}/api/ai/storyboard/frames/${encodeURIComponent(frameId)}`, {
+    method: "GET", signal,
+  });
+  if (!response.ok) throw new Error(response.status === 404 ? "Saved frame unavailable or not owned by this account." : `Could not load frame (${response.status}).`);
+  const contentType = response.headers.get("content-type") || "";
+  if (!/^image\/(png|jpeg|webp)(?:;|$)/i.test(contentType)) throw new Error("Invalid image response.");
+  return response.blob();
 }
 
 // TAKEGRID_CRITICS_REIMAGINE_V1
@@ -145,7 +155,7 @@ export async function requestStoryReimagination(payload) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 150_000);
   try {
-    const response = await fetch(`${BASE}/api/ai/story/edit`, {
+    const response = await authorizedAIFetch(`${BASE}/api/ai/story/edit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

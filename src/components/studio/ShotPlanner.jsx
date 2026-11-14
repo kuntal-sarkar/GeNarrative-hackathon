@@ -1,3 +1,4 @@
+import { authorizedAIFetch } from '../../services/aiAuth';
 import { APP_NAME } from "../../config/branding"; // TAKEGRID_BRANDING_V1
 import { useEffect, useRef, useState } from "react";
 import IOSSelect from "../ui/IOSSelect";
@@ -106,7 +107,7 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
     setNotes([]);
     requestAnimationFrame(() => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
     try {
-      const response = await fetch(`${API_BASE}/api/ai/shots/generate`, {
+      const response = await authorizedAIFetch(`${API_BASE}/api/ai/shots/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
