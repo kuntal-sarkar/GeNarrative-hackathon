@@ -68,3 +68,11 @@
   position: static; top: auto; right: auto; z-index: auto;
   margin: 0; flex: 0 0 auto; align-self: center;
 }
+
+@media (min-width: 769px) {
+  .app-header .ff-global-search-launch {
+    min-width: 190px;
+    justify-content: flex-start;
+    padding-inline: 17px;
+  }
+}
