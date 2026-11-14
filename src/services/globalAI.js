@@ -1,3 +1,4 @@
+import { authorizedAIFetch } from './aiAuth';
 const BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 export async function requestGlobalAI(operation, payload, files = [], signal) {
@@ -12,7 +13,7 @@ export async function requestGlobalAI(operation, payload, files = [], signal) {
     options.headers = { 'Content-Type': 'application/json' };
     options.body = JSON.stringify(payload);
   }
-  const response = await fetch(`${BASE}/api/global-ai/${operation}`, options);
+  const response = await authorizedAIFetch(`${BASE}/api/global-ai/${operation}`, options);
   const result = await response.json().catch(() => null);
   if (!response.ok || !result?.success) {
     const status = response.status;

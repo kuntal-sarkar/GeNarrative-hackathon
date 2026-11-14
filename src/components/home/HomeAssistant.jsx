@@ -3,17 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowUp, BookOpen, Check, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, LoaderCircle, MessageCircle, Paperclip, Pin, Plus, Search, ThumbsDown, ThumbsUp, Trash2, Square, Mic, X, Bot } from 'lucide-react';
 import { getProjects, createProject, saveProject, deleteProject } from '../../services/projectService';
 import { requestGlobalAI } from '../../services/globalAI';
+import { useAuth } from '../../context/AuthContext';
+import { fetchGlobalChat, pushGlobalChat } from '../../services/cloudGlobalChat';
 import { APP_NAME } from '../../config/branding';
 import './HomeAssistant.css';
 
 const CHAT_KEY = 'takegrid_global_assistant_threads_v1';
 const CURRENT_KEY = 'takegrid_global_assistant_current_v1';
+const PENDING_PREFIX = 'takegrid:global-chat-pending:v1:';
+const accountPendingKey = (uid) => `${PENDING_PREFIX}${uid}`;
 const makeId = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
 const MAX_ATTACHMENTS = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
-const ALLOWED_FILE_EXTENSIONS = new Set(['txt','md','pdf','png','jpg','jpeg','webp']);
+const ALLOWED_FILE_EXTENSIONS = new Set(['txt', 'md', 'pdf', 'png', 'jpg', 'jpeg', 'webp']);
 const loadingRegular = [
   'Thinking through the possibilities...', 'Reading the creative context...',
   'Connecting story worlds...', 'Reviewing character motivations...',
@@ -131,7 +135,7 @@ function InlineFormatted({ text }) {
       rendered.push(<Heading key={key} className="tg-ai-heading">{inlineAI(heading[2], key)}</Heading>); i++; continue;
     }
     if (/^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
-      rendered.push(<hr key={key} className="tg-ai-rule"/>); i++; continue;
+      rendered.push(<hr key={key} className="tg-ai-rule" />); i++; continue;
     }
     const list = line.match(/^\s*([-*+â€¢]|\d+[.)])\s+(.+)$/);
     if (list) {
@@ -163,6 +167,12 @@ function InlineFormatted({ text }) {
 
 export default function HomeAssistant() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const [hydratedOwner, setHydratedOwner] = useState(null);
+  const [globalSyncError, setGlobalSyncError] = useState('');
+  const [globalSyncBusy, setGlobalSyncBusy] = useState(false);
+  const lastSyncedSnapshot = useRef('');
+  const inFlightSync = useRef(false);
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState(getProjects);
   const [selected, setSelected] = useState(() => getProjects().slice(0, 12).map(p => p.id));
@@ -290,11 +300,117 @@ export default function HomeAssistant() {
     const valid = new Set(projects.map(p => p.id));
     setSelected(ids => ids.filter(id => valid.has(id)));
   }, [projects]);
+  // Global Home chat is independent of project JSON. Load only the signed-in
+  // user's cloud history; never silently import another browser account's history.
   useEffect(() => {
-    try { localStorage.setItem(CHAT_KEY, JSON.stringify(threads.slice(0, 30))); setStorageError(''); }
-    catch { setStorageError('Chat could not be saved. Browser storage may be full.'); }
-  }, [threads]);
-  useEffect(() => { try { localStorage.setItem(CURRENT_KEY, activeId); } catch { /* optional UI preference */ } }, [activeId]);
+    if (authLoading) return;
+    let cancelled = false;
+    if (!user?.id) {
+      setHydratedOwner(null);
+      setThreads(loadThreads());
+      setActiveId(localStorage.getItem(CURRENT_KEY) || '');
+      setGlobalSyncError('');
+      return;
+    }
+    const uid = user.id;
+    setHydratedOwner(null);
+    setGlobalSyncError('');
+    (async () => {
+      try {
+        const { chat } = await fetchGlobalChat();
+        if (cancelled) return;
+        const pending = JSON.parse(localStorage.getItem(accountPendingKey(uid)) || 'null');
+        const source = pending && Array.isArray(pending.threads)
+          ? pending
+          : { threads: chat?.threads || [], currentId: chat?.current_id || '' };
+        const nextThreads = Array.isArray(source.threads) ? source.threads.filter(t => t && typeof t.id === 'string' && Array.isArray(t.messages)).slice(0, 30) : [];
+        const nextId = source.currentId || '';
+        lastSyncedSnapshot.current = JSON.stringify({ threads: nextThreads, currentId: nextId });
+        setThreads(nextThreads);
+        setActiveId(nextId);
+        setHydratedOwner(uid);
+        if (pending) {
+          lastSyncedSnapshot.current = '__PENDING__';
+          setGlobalSyncError('Unsynced changes from this browser are ready to retry.');
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setGlobalSyncError(`Could not load cloud chat: ${e.message}`);
+          // Do NOT mark ready on failure; old browser history must not overwrite cloud.
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, authLoading]);
+
+  async function retryCloudChatSync() {
+    const uid = user?.id;
+    if (!uid || hydratedOwner !== uid || inFlightSync.current) return;
+    const pendingKey = accountPendingKey(uid);
+    const pending = JSON.parse(localStorage.getItem(pendingKey) || 'null');
+    if (!pending) return;
+    inFlightSync.current = true;
+    setGlobalSyncBusy(true);
+    try {
+      await pushGlobalChat(pending.threads, pending.currentId);
+      // If new changes were queued during the request, keep them for next retry.
+      const latest = localStorage.getItem(pendingKey);
+      if (latest === JSON.stringify(pending)) {
+        localStorage.removeItem(pendingKey);
+        lastSyncedSnapshot.current = latest;
+        setGlobalSyncError('');
+      } else {
+        // A newer local change arrived while this request was in flight.
+        window.setTimeout(() => { void retryCloudChatSync(); }, 700);
+      }
+    } catch (e) {
+      setGlobalSyncError(`Cloud chat save failed: ${e.message}`);
+    } finally {
+      inFlightSync.current = false;
+      setGlobalSyncBusy(false);
+    }
+  }
+
+  // Queue the complete current snapshot locally before network save. Do not
+  // send on first hydration or while user identity is changing.
+  useEffect(() => {
+    if (!user?.id || hydratedOwner !== user.id || authLoading) return;
+    const snapshot = JSON.stringify({ threads: threads.slice(0, 30), currentId: activeId });
+    if (snapshot === lastSyncedSnapshot.current) return;
+    try {
+      localStorage.setItem(accountPendingKey(user.id), snapshot);
+      lastSyncedSnapshot.current = snapshot;
+      setStorageError('');
+    } catch {
+      setStorageError('Global chat could not be cached. Browser storage may be full.');
+      return;
+    }
+    const timer = window.setTimeout(() => { void retryCloudChatSync(); }, 900);
+    return () => window.clearTimeout(timer);
+  }, [threads, activeId, user?.id, hydratedOwner, authLoading]);
+
+  // Legacy local history is kept for anonymous use. Signed-in users can import
+  // it explicitly via the button below; no automatic cross-account copying.
+  useEffect(() => {
+    if (authLoading || user?.id) return;
+    try {
+      localStorage.setItem(CHAT_KEY, JSON.stringify(threads.slice(0, 30)));
+      localStorage.setItem(CURRENT_KEY, activeId);
+      setStorageError('');
+    } catch { setStorageError('Chat could not be saved. Browser storage may be full.'); }
+  }, [threads, activeId, user?.id, authLoading]);
+
+  function importLegacyChats() {
+    if (!user?.id || hydratedOwner !== user.id) return;
+    const old = loadThreads();
+    if (!old.length) return;
+    if (!window.confirm(`Import ${old.length} older browser conversation(s) into this account? Existing cloud chats will be preserved.`)) return;
+    setThreads(current => {
+      const existing = new Set(current.map(t => t.id));
+      return [...current, ...old.filter(t => !existing.has(t.id))].slice(0, 30);
+    });
+  }
+
   // Scroll INSIDE the chat panel, never scroll the Home document.
   // useLayoutEffect handles both opening a saved conversation and new replies.
   const visibleCount = threads.find(t => t.id === activeId)?.messages?.length || 0;
@@ -318,7 +434,8 @@ export default function HomeAssistant() {
   }
 
   function toggleReaction(threadId, messageId, rating) {
-    setThreads(old => old.map(t => t.id === threadId ? { ...t,
+    setThreads(old => old.map(t => t.id === threadId ? {
+      ...t,
       messages: t.messages.map(m => m.id === messageId ? { ...m, reaction: m.reaction === rating ? null : rating } : m)
     } : t));
   }
@@ -362,9 +479,11 @@ export default function HomeAssistant() {
     return t;
   }
   function append(id, m) {
-    setThreads(old => old.map(t => t.id === id ? { ...t,
+    setThreads(old => old.map(t => t.id === id ? {
+      ...t,
       title: t.messages.length === 0 && m.role === 'user' ? m.content.slice(0, 55) : t.title,
-      messages: [...t.messages, m].slice(-100) } : t));
+      messages: [...t.messages, m].slice(-100)
+    } : t));
   }
   async function send(e, preset) {
     e?.preventDefault?.();
@@ -373,8 +492,10 @@ export default function HomeAssistant() {
     const t = currentThread();
     const files = [...attachments];
     const oldHistory = t.messages.map(m => ({ role: m.role, content: m.content }));
-    append(t.id, { id: makeId(), role: 'user', content: message,
-      attachments: files.map(f => f.name), at: now() });
+    append(t.id, {
+      id: makeId(), role: 'user', content: message,
+      attachments: files.map(f => f.name), at: now()
+    });
     setDraft(''); setAttachments([]); setError(''); setNotice(''); setThinkingSequence(makeLoadingSequence()); setThinkingIndex(0); setBusy('chat');
     controller.current = new AbortController();
     const epoch = ++requestEpoch.current;
@@ -441,11 +562,13 @@ export default function HomeAssistant() {
       let created = null;
       try {
         created = createProject('ai');
-        const result = saveProject({ ...created,
+        const result = saveProject({
+          ...created,
           title, genre: String(generated?.genre || chosen.type).trim() || 'Drama',
           language: String(generated?.language || chosen.language).trim() || 'English',
           idea, story: String(generated?.story || ''), chatThreads: [], activeChatThreadId: null,
-          sourceProjectIds: selectedContext.map(item => item.id) });
+          sourceProjectIds: selectedContext.map(item => item.id)
+        });
         setCreatedId(result.id);
         setBuildFields({ title: '', type: '', language: '', direction: '' });
         navigate(`/projects/${encodeURIComponent(result.id)}/story`);
@@ -474,10 +597,10 @@ export default function HomeAssistant() {
     </button>
     <div className="assistant-panel tg-global-panel">
       <div className="assistant-panel-header">
-        <div className="assistant-title-group"><span className="assistant-icon"><MessageCircle size={24}/></span>
+        <div className="assistant-title-group"><span className="assistant-icon"><MessageCircle size={24} /></span>
           <div><span className="assistant-kicker">GLOBAL AI ASSISTANT</span><h2>Discuss all your projects.</h2></div></div>
         <button type="button" className="tg-global-toggle" onClick={toggleGlobalDashboard}>
-          {open ? <><ChevronUp size={17}/> Close</> : <><MessageCircle size={17}/> Open AI</>}
+          {open ? <><ChevronUp size={17} /> Close</> : <><MessageCircle size={17} /> Open AI</>}
         </button>
       </div>
       <p className="assistant-intro">Explore ideas, compare selected projects, connect story worlds and create new projectsâ€”always with your approval.</p>
@@ -488,21 +611,21 @@ export default function HomeAssistant() {
             {threads.length === 0 && <div className="tg-global-history-empty">Your conversations will show up here.</div>}
             {[['Pinned', pinnedThreads], ['Recent', recentThreads]].map(([section, items]) => items.length ?
               <div className="tg-global-history-group" key={section}>
-                <div className="tg-global-history-label">{section === 'Pinned' && <Pin size={12} aria-hidden="true"/>}{section}</div>
+                <div className="tg-global-history-label">{section === 'Pinned' && <Pin size={12} aria-hidden="true" />}{section}</div>
                 {items.map(t => <div className={`tg-global-thread${t.pinned ? ' is-pinned' : ''}${t.id === activeId ? ' is-current' : ''}`} key={t.id}>
                   <button type="button" className={`tg-global-thread-open${t.id === activeId ? ' active' : ''}`} onClick={() => { setActiveId(t.id); setProposal(null); setError(''); }} disabled={!!busy} title={t.title}>{t.title}</button>
                   <div className="tg-global-thread-controls">
-                    <button type="button" className={`tg-global-pin${t.pinned ? ' is-pinned' : ''}`} title={t.pinned ? 'Unpin conversation' : 'Pin conversation'} aria-label={`${t.pinned ? 'Unpin' : 'Pin'} ${t.title}`} aria-pressed={!!t.pinned} onClick={() => togglePinThread(t.id)} disabled={!!busy}><Pin size={14} fill={t.pinned ? 'currentColor' : 'none'}/></button>
+                    <button type="button" className={`tg-global-pin${t.pinned ? ' is-pinned' : ''}`} title={t.pinned ? 'Unpin conversation' : 'Pin conversation'} aria-label={`${t.pinned ? 'Unpin' : 'Pin'} ${t.title}`} aria-pressed={!!t.pinned} onClick={() => togglePinThread(t.id)} disabled={!!busy}><Pin size={14} fill={t.pinned ? 'currentColor' : 'none'} /></button>
                     <button type="button" className="tg-global-delete" title="Delete conversation" aria-label={`Delete ${t.title}`} onClick={() => {
                       if (!window.confirm('Delete this conversation?')) return;
                       setThreads(old => old.filter(x => x.id !== t.id));
                       if (activeId === t.id) { setActiveId(''); setProposal(null); }
-                    }} disabled={!!busy}><Trash2 size={14}/></button>
+                    }} disabled={!!busy}><Trash2 size={14} /></button>
                   </div>
                 </div>)}
               </div> : null)}
           </div>
-          <button type="button" className="tg-global-new tg-global-new-floating" onClick={startNew} disabled={!!busy}><Plus size={16}/> New chat</button>
+          <button type="button" className="tg-global-new tg-global-new-floating" onClick={startNew} disabled={!!busy}><Plus size={16} /> New chat</button>
           <div className="tg-global-sidebar-footer">
             <div>Chat autosaves Â· Shift+Enter for newline Â· Files aren't stored</div>
             <div className="tg-global-scroll-help"><strong>Scroll guide</strong><span>Chat replies: scroll inside chat.</span><span>History: scroll inside sidebar.</span><span>Outside dashboard: page scrolls normally.</span></div>
@@ -510,18 +633,18 @@ export default function HomeAssistant() {
         </aside>
         <div className="tg-global-main">
           <div className="tg-global-scope">
-            <span><BookOpen size={16}/> {APP_NAME} Global AI</span>
+            <span><BookOpen size={16} /> {APP_NAME} Global AI</span>
             <div className="tg-global-header-actions">
               <div className="tg-global-picker-wrap" ref={projectPicker}>
                 <button type="button" className="tg-global-picker-trigger" aria-expanded={showProjects} aria-haspopup="dialog" onClick={() => setShowProjects(v => !v)} title="Choose project context">
-                  <FolderOpen size={16}/><span>Projects</span><b>{selectedContext.length}</b><ChevronDown size={15}/>
+                  <FolderOpen size={16} /><span>Projects</span><b>{selectedContext.length}</b><ChevronDown size={15} />
                 </button>
                 {showProjects && <div className="tg-global-project-popover" role="dialog" aria-label="Select project context">
-                  <div className="tg-global-picker-title"><strong>Project context</strong><button type="button" onClick={() => setShowProjects(false)} aria-label="Close project selector"><X size={16}/></button></div>
-                  <label className="tg-global-project-search"><Search size={16}/><input type="search" value={projectSearch} onChange={e => setProjectSearch(e.target.value)} placeholder="Search projects..." aria-label="Search projects"/></label>
+                  <div className="tg-global-picker-title"><strong>Project context</strong><button type="button" onClick={() => setShowProjects(false)} aria-label="Close project selector"><X size={16} /></button></div>
+                  <label className="tg-global-project-search"><Search size={16} /><input type="search" value={projectSearch} onChange={e => setProjectSearch(e.target.value)} placeholder="Search projects..." aria-label="Search projects" /></label>
                   <div className="tg-global-project-quick">
-                    <button type="button" className="tg-global-select-all" disabled={!!busy || projects.length === 0} onClick={() => setSelected(projects.slice(0,12).map(p => p.id))}><Check size={14}/> Select all</button>
-                    <button type="button" className="tg-global-clear-all" disabled={!!busy || selected.length === 0} onClick={() => setSelected([])}><X size={14}/> Clear</button>
+                    <button type="button" className="tg-global-select-all" disabled={!!busy || projects.length === 0} onClick={() => setSelected(projects.slice(0, 12).map(p => p.id))}><Check size={14} /> Select all</button>
+                    <button type="button" className="tg-global-clear-all" disabled={!!busy || selected.length === 0} onClick={() => setSelected([])}><X size={14} /> Clear</button>
                     <span className="tg-global-selection-count">{selected.length}/12</span>
                   </div>
                   <div className="tg-global-project-list">{filteredProjects.length ? filteredProjects.map(p => {
@@ -530,13 +653,13 @@ export default function HomeAssistant() {
                       aria-pressed={chosen} disabled={!!busy || (selected.length >= 12 && !chosen)}
                       onClick={() => setSelected(old => old.includes(p.id) ? old.filter(id => id !== p.id) : old.length < 12 ? [...old, p.id] : old)}>
                       <span className="tg-global-project-choice-title">{p.title}</span>
-                      <span className="tg-global-project-choice-indicator" aria-hidden="true"><Check size={15} strokeWidth={3}/></span>
+                      <span className="tg-global-project-choice-indicator" aria-hidden="true"><Check size={15} strokeWidth={3} /></span>
                     </button>;
                   }) : <p className="tg-global-empty-projects">No matching projects</p>}</div>
                   <small>Only selected projects are included in AI context. Max 12.</small>
                 </div>}
               </div>
-              <button type="button" className="tg-global-propose tg-global-header-create" onClick={openBuildForm} disabled={!!busy}><FilePlus2 size={16}/><span>Build New Project</span></button>
+              <button type="button" className="tg-global-propose tg-global-header-create" onClick={openBuildForm} disabled={!!busy}><FilePlus2 size={16} /><span>Build New Project</span></button>
             </div>
           </div>
           <div className="tg-global-messages" ref={transcriptRef} role="log" aria-live="polite">
@@ -548,50 +671,50 @@ export default function HomeAssistant() {
               </div></div>}
             {active?.messages?.map(m => <div key={m.id} className={`tg-global-message ${m.role}`}>
               <div className="tg-global-message-stack">
-                <div className="tg-global-bubble"><InlineFormatted text={m.content}/>{m.attachments?.length > 0 && <small>Attached: {m.attachments.join(', ')}</small>}</div>
+                <div className="tg-global-bubble"><InlineFormatted text={m.content} />{m.attachments?.length > 0 && <small>Attached: {m.attachments.join(', ')}</small>}</div>
                 <div className="tg-global-message-actions">
-                  <button type="button" onClick={() => copyReply(m.id, m.content)} title="Copy message" aria-label={copiedId === m.id ? 'Copied' : 'Copy message'}>{copiedId === m.id ? <span className="tg-global-copy-confirm"><Check size={15} strokeWidth={3}/></span> : <Copy size={15}/>}</button>
+                  <button type="button" onClick={() => copyReply(m.id, m.content)} title="Copy message" aria-label={copiedId === m.id ? 'Copied' : 'Copy message'}>{copiedId === m.id ? <span className="tg-global-copy-confirm"><Check size={15} strokeWidth={3} /></span> : <Copy size={15} />}</button>
                   {m.role !== 'user' && <>
-                    <button type="button" className={m.reaction === 'like' ? 'is-active' : ''} aria-pressed={m.reaction === 'like'} aria-label="Like response" title="Like response" onClick={() => toggleReaction(active.id, m.id, 'like')}><ThumbsUp size={15}/></button>
-                    <button type="button" className={m.reaction === 'dislike' ? 'is-active' : ''} aria-pressed={m.reaction === 'dislike'} aria-label="Dislike response" title="Dislike response" onClick={() => toggleReaction(active.id, m.id, 'dislike')}><ThumbsDown size={15}/></button>
+                    <button type="button" className={m.reaction === 'like' ? 'is-active' : ''} aria-pressed={m.reaction === 'like'} aria-label="Like response" title="Like response" onClick={() => toggleReaction(active.id, m.id, 'like')}><ThumbsUp size={15} /></button>
+                    <button type="button" className={m.reaction === 'dislike' ? 'is-active' : ''} aria-pressed={m.reaction === 'dislike'} aria-label="Dislike response" title="Dislike response" onClick={() => toggleReaction(active.id, m.id, 'dislike')}><ThumbsDown size={15} /></button>
                   </>}
                 </div>
               </div>
             </div>)}
-            {busy === 'chat' && <div className="tg-global-pending" role="status"><span className="tg-global-thinking-dots" aria-hidden="true"><i/><i/><i/></span><span>{thinkingSequence[thinkingIndex]}</span></div>}
+            {busy === 'chat' && <div className="tg-global-pending" role="status"><span className="tg-global-thinking-dots" aria-hidden="true"><i /><i /><i /></span><span>{thinkingSequence[thinkingIndex]}</span></div>}
 
           </div>
-          {busy === 'proposal' && <div className="tg-global-proposal-progress" role="status" aria-live="polite"><span className="tg-global-proposal-spinner" aria-hidden="true"/><div><strong>Building your new project</strong><span>{thinkingSequence[thinkingIndex]}</span></div></div>}
+          {busy === 'proposal' && <div className="tg-global-proposal-progress" role="status" aria-live="polite"><span className="tg-global-proposal-spinner" aria-hidden="true" /><div><strong>Building your new project</strong><span>{thinkingSequence[thinkingIndex]}</span></div></div>}
           {buildFormOpen && <div className="tg-global-proposal-overlay tg-v14-overlay" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) closeBuildForm(); }}>
             <form className="tg-global-proposal tg-global-build-form tg-v14-build" role="dialog" aria-modal="true" aria-labelledby="tg-v14-build-title" onSubmit={buildProposal}>
               <div className="tg-v14-build-head">
                 <div><span className="tg-v14-eyebrow">NEW PROJECT</span><h3 id="tg-v14-build-title">What are you making?</h3><p>Share the idea. We'll handle the first draft.</p></div>
-                <button type="button" className="tg-v14-close" onClick={closeBuildForm} aria-label="Close project form"><X size={17}/></button>
+                <button type="button" className="tg-v14-close" onClick={closeBuildForm} aria-label="Close project form"><X size={17} /></button>
               </div>
               <div className="tg-v14-build-body">
-                <label className="tg-v14-field"><span>Project name <small>Optional</small></span><input ref={buildFormTitleRef} value={buildFields.title} maxLength={160} placeholder="We'll suggest one if left empty" onChange={e => setBuildFields(p => ({ ...p, title: e.target.value }))}/></label>
-                <label className="tg-v14-field"><span>What kind of project? <small className="tg-v14-required">Required</small></span><textarea required rows={3} minLength={3} maxLength={1200} placeholder="A mystery thriller set in rainy Kolkata..." value={buildFields.type} onChange={e => setBuildFields(p => ({ ...p, type: e.target.value }))}/></label>
-                <label className="tg-v14-field"><span>Language <small>Optional</small></span><input maxLength={70} placeholder="English, Hindi, Bengali..." value={buildFields.language} onChange={e => setBuildFields(p => ({ ...p, language: e.target.value }))}/></label>
-                <label className="tg-v14-field"><span>Anything else? <small>Optional</small></span><textarea rows={2} maxLength={2500} placeholder="Tone, characters, setting, creative boundaries..." value={buildFields.direction} onChange={e => setBuildFields(p => ({ ...p, direction: e.target.value }))}/></label>
+                <label className="tg-v14-field"><span>Project name <small>Optional</small></span><input ref={buildFormTitleRef} value={buildFields.title} maxLength={160} placeholder="We'll suggest one if left empty" onChange={e => setBuildFields(p => ({ ...p, title: e.target.value }))} /></label>
+                <label className="tg-v14-field"><span>What kind of project? <small className="tg-v14-required">Required</small></span><textarea required rows={3} minLength={3} maxLength={1200} placeholder="A mystery thriller set in rainy Kolkata..." value={buildFields.type} onChange={e => setBuildFields(p => ({ ...p, type: e.target.value }))} /></label>
+                <label className="tg-v14-field"><span>Language <small>Optional</small></span><input maxLength={70} placeholder="English, Hindi, Bengali..." value={buildFields.language} onChange={e => setBuildFields(p => ({ ...p, language: e.target.value }))} /></label>
+                <label className="tg-v14-field"><span>Anything else? <small>Optional</small></span><textarea rows={2} maxLength={2500} placeholder="Tone, characters, setting, creative boundaries..." value={buildFields.direction} onChange={e => setBuildFields(p => ({ ...p, direction: e.target.value }))} /></label>
               </div>
-              <div className="tg-v14-build-foot"><p>Creates a new project using TAKEGRID AI. Your existing projects stay unchanged.</p><button className="tg-global-approve tg-v14-submit" type="submit" disabled={!buildFields.type.trim()}><FilePlus2 size={17}/> Create project</button></div>
+              <div className="tg-v14-build-foot"><p>Creates a new project using TAKEGRID AI. Your existing projects stay unchanged.</p><button className="tg-global-approve tg-v14-submit" type="submit" disabled={!buildFields.type.trim()}><FilePlus2 size={17} /> Create project</button></div>
             </form>
           </div>}
           {error && <div role="alert" className="tg-global-error">{error}</div>}
           {storageError && <div role="alert" className="tg-global-error">{storageError}</div>}
           {notice && <div className="tg-global-notice">{notice}</div>}
           {actionToast && <div className="tg-global-action-toast" role="status">{actionToast}</div>}
-          {voiceToast && <div className="tg-global-voice-toast" role="status"><Mic size={15}/> Voice input is coming to TAKEGRID soon!</div>}
+          {voiceToast && <div className="tg-global-voice-toast" role="status"><Mic size={15} /> Voice input is coming to TAKEGRID soon!</div>}
           <div className="tg-global-compose">
             <p className="tg-global-disclaimer">TAKEGRID can make mistakes. Verify important details and review AI suggestions before using them.</p>
-            {!!attachments.length && <div className="tg-global-files">{attachments.map((f,i) => <span key={i}><Paperclip size={12}/>{f.name} Â· {humanSize(f.size)}<button onClick={() => setAttachments(a => a.filter((_, j) => i !== j))} aria-label={`Remove ${f.name}`}><X size={14}/></button></span>)}</div>}
+            {!!attachments.length && <div className="tg-global-files">{attachments.map((f, i) => <span key={i}><Paperclip size={12} />{f.name} Â· {humanSize(f.size)}<button onClick={() => setAttachments(a => a.filter((_, j) => i !== j))} aria-label={`Remove ${f.name}`}><X size={14} /></button></span>)}</div>}
             <form onSubmit={send} className="tg-global-form">
-              <input ref={fileInput} type="file" hidden multiple accept=".txt,.md,.pdf,.png,.jpg,.jpeg,.webp" onChange={e => { addFiles([...e.target.files]); e.target.value=''; }}/>
-              <button type="button" className="tg-global-add-file" title="Add reference files" aria-label="Attach files" onClick={() => fileInput.current?.click()} disabled={!!busy}><Plus size={21}/></button>
-              <textarea ref={composerInputRef} rows={1} value={draft} disabled={!!busy} onChange={e => setDraft(e.target.value)} placeholder="Ask TAKEGRID AI about your projects..." onKeyDown={e => {if(e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing){e.preventDefault();send(e);}}}/>
+              <input ref={fileInput} type="file" hidden multiple accept=".txt,.md,.pdf,.png,.jpg,.jpeg,.webp" onChange={e => { addFiles([...e.target.files]); e.target.value = ''; }} />
+              <button type="button" className="tg-global-add-file" title="Add reference files" aria-label="Attach files" onClick={() => fileInput.current?.click()} disabled={!!busy}><Plus size={21} /></button>
+              <textarea ref={composerInputRef} rows={1} value={draft} disabled={!!busy} onChange={e => setDraft(e.target.value)} placeholder="Ask TAKEGRID AI about your projects..." onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(e); } }} />
               <div className="tg-global-composer-controls">
-                <button type="button" className="tg-global-mic" onClick={showVoiceComingSoon} aria-label="Voice input coming soon" title="Voice input coming soon"><Mic size={19}/></button>
-                {busy ? <button type="button" className="tg-global-send tg-global-stop" onClick={stopGeneration} title="Stop generation" aria-label="Stop generation"><span className="tg-global-stop-ring" aria-hidden="true"/><Square size={13} fill="currentColor"/></button> : <button type="submit" className="tg-global-send" disabled={!draft.trim()} title="Send message" aria-label="Send message"><ArrowUp size={19}/></button>}
+                <button type="button" className="tg-global-mic" onClick={showVoiceComingSoon} aria-label="Voice input coming soon" title="Voice input coming soon"><Mic size={19} /></button>
+                {busy ? <button type="button" className="tg-global-send tg-global-stop" onClick={stopGeneration} title="Stop generation" aria-label="Stop generation"><span className="tg-global-stop-ring" aria-hidden="true" /><Square size={13} fill="currentColor" /></button> : <button type="submit" className="tg-global-send" disabled={!draft.trim()} title="Send message" aria-label="Send message"><ArrowUp size={19} /></button>}
               </div>
             </form>
 

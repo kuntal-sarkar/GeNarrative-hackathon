@@ -3,12 +3,39 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Images, LayoutGrid, List, X, Maximize2, WandSparkles, RefreshCw, Save, LoaderCircle } from "lucide-react";
 import IOSSelect from "../ui/IOSSelect";
 import { formatDuration } from "../../utils/formatDuration";
-import { aiConfigured, requestStoryboardImage, uploadStoryboardFrame, storyboardFrameUrl } from "../../services/workspaceApi";
+import { aiConfigured, requestStoryboardImage, uploadStoryboardFrame, fetchPrivateStoryboardFrame } from "../../services/workspaceApi";
 import "./Storyboard.css";
 import "./StoryboardCompact.css";
 import "./StoryboardAI.css";
 
 const keyOf = (shot) => `${shot.sceneId}:${shot.id}`;
+
+// TAKEGRID_STORYBOARD_PRIVATE_FRAMES_V1: authenticated image downloads + blob URL cleanup.
+function PrivateStoryboardFrame({ frameId, alt }) {
+  const [state, setState] = useState({ url: "", error: "" });
+  useEffect(() => {
+    if (!frameId) return;
+    const controller = new AbortController();
+    let objectUrl = "";
+    setState({ url: "", error: "" });
+    fetchPrivateStoryboardFrame(frameId, controller.signal)
+      .then(blob => {
+        if (controller.signal.aborted) return;
+        objectUrl = URL.createObjectURL(blob);
+        setState({ url: objectUrl, error: "" });
+      })
+      .catch(err => {
+        if (!controller.signal.aborted) setState({ url: "", error: err.message || "Frame unavailable." });
+      });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [frameId]);
+  if (state.error) return <span role="status">{state.error}</span>;
+  if (!state.url) return <span role="status">Loading saved frame…</span>;
+  return <img className="storyboard-frame-image" src={state.url} alt={alt} />;
+}
 
 export default function Storyboard({ scenes = [], onSaveFrame }) {
   const [view, setView] = useState("grid");
@@ -115,9 +142,11 @@ export default function Storyboard({ scenes = [], onSaveFrame }) {
 
   function media(shot) {
     const draft = drafts[keyOf(shot)];
-    const url = draft?.previewUrl || (shot.storyboardImage?.frameId ? storyboardFrameUrl(shot.storyboardImage.frameId) : "");
-    return url ? <img className="storyboard-frame-image" src={url} alt={`Storyboard frame for ${shot.name || `shot ${shot.shotIndex}`}`} />
-      : <><Images size={24}/><span>No frame generated yet</span></>;
+    const alt = `Storyboard frame for ${shot.name || `shot ${shot.shotIndex}`}`;
+    if (draft?.previewUrl) return <img className="storyboard-frame-image" src={draft.previewUrl} alt={alt} />;
+    const frameId = shot.storyboardImage?.frameId;
+    if (frameId) return <PrivateStoryboardFrame frameId={frameId} alt={alt} />;
+    return <><Images size={24}/><span>No frame generated yet</span></>;
   }
 
   return <section className="storyboard-workspace ff-storyboard-compact">

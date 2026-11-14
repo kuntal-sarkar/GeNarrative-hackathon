@@ -35,14 +35,16 @@ function RouteSeo() {
   return null;
 }
 export default function AppLayout() {
+  const { pathname } = useLocation();
+  const hideRecoveryChrome = pathname === '/forgot-password' || pathname === '/reset-password';
   return (
     <div className="app-layout">
       <RouteSeo />
-      <Header />
+      {!hideRecoveryChrome && <Header />}
       <main className="app-content">
         <Outlet />
       </main>
-      <BottomNavbar />
+      {!hideRecoveryChrome && <BottomNavbar />}
     </div>
   );
 }

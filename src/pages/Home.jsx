@@ -1,4 +1,3 @@
-
 import HomeHero from "../components/home/HomeHero";
 import QuickStart from "../components/home/QuickStart";
 import RecentProjects from "../components/home/RecentProjects";

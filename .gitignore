@@ -67,3 +67,10 @@ fix_takegrid_*.py
 node_modules/
 dist/
 __pycache__/
+
+# TakeGrid installer backups
+_db_phase2_backups/
+_patch_backups/
+*.bak
+*.bak-*
+*.bak_*
