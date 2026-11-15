@@ -1,4 +1,4 @@
-from routes.user_global_chat_routes import user_global_chat_bp
+﻿from routes.user_global_chat_routes import user_global_chat_bp
 
 import os
 
@@ -35,6 +35,7 @@ CORS(
             "origins": [
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
+                "https://takegrid-ai.pages.dev",
             ]
         }
     },
@@ -75,3 +76,5 @@ if __name__ == "__main__":
         port=port,
         debug=False,
     )
+
+
