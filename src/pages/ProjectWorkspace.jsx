@@ -1,4 +1,4 @@
-// TAKEGRID_V10_STORY_CHAT_POLISH
+﻿// TAKEGRID_V10_STORY_CHAT_POLISH
 // TAKEGRID_V9_STORY_CHAT
 import { useEffect, useRef, useState } from "react";
 
@@ -54,7 +54,7 @@ import "./CreativeUpgrade.css";
 
 import "../styles/WorkspaceRefresh.css";
 
-import "../styles/TAKEGRIDPolish.css";
+import "../styles/TakeGridPolish.css";
 
 import "../styles/WorkspaceMicroFix.css";
 
@@ -788,7 +788,7 @@ export default function ProjectWorkspace() {
       ? `${latest.story.trimEnd()}\n\n${text.trim()}` : text.trim();
     const next = {...latest, story: nextStory};
     saveProject(next);
-    const result = recordVersion(projectId, latest, next, "AI Story Studio — Push to Story");
+    const result = recordVersion(projectId, latest, next, "AI Story Studio â€” Push to Story");
     if (result.recorded) setHistoryRevision(v=>v+1);
     setProject(prev=>({...prev,story:nextStory}));
     setSavedRevision(v=>v+1);
@@ -826,7 +826,7 @@ export default function ProjectWorkspace() {
 
     <div className="ws-crumb"><Link to="/studio"><ArrowLeft size={16} /> My projects</Link><span>/</span><span>{project.title || "Untitled Story"}</span></div>
 
-    <header className="ws-project-header"><div><span className="ws-eyebrow">PROJECT WORKSPACE</span><h1>{project.title || "Untitled Story"}</h1><p>{project.genre || "Story"} · {project.language || "English"} · Saved in this browser</p></div><button className="ws-ghost ws-header-chat" type="button" onClick={() => navigate(`${base}/chat`)}><MessageCircle size={17} /> Ask AI</button></header>
+    <header className="ws-project-header"><div><span className="ws-eyebrow">PROJECT WORKSPACE</span><h1>{project.title || "Untitled Story"}</h1><p>{project.genre || "Story"} Â· {project.language || "English"} Â· Saved in this browser</p></div><button className="ws-ghost ws-header-chat" type="button" onClick={() => navigate(`${base}/chat`)}><MessageCircle size={17} /> Ask AI</button></header>
 
     <div className="ff-section-save-indicator" role="status"><span className={`ff-save-dot ${hasUnsaved ? "pending" : ""}`} /><span>{hasUnsaved ? `Unsaved changes in ${draftSections.map(k => SECTIONS.find(s => s.key === k)?.label || k).join(", ")}` : "All saved"}</span></div>
 
@@ -868,7 +868,7 @@ export default function ProjectWorkspace() {
 
           <div className="ff-story-actions"><button className={`ff-story-action ${storyMode === "manual" ? "selected" : ""}`} onClick={() => setStoryMode("manual")}><Pencil size={18} /> Edit by yourself</button><button className={`ff-story-action ${storyMode === "ai" ? "selected" : ""}`} onClick={() => navigate(`${base}/chat?editStory=${Date.now()}`)}><FilePenLine size={18} /> Edit with AI</button></div>
 
-          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><label className="ws-field">Genre<IOSSelect value={project.genre || "Drama"} onChange={e => update("genre", e.target.value)}>{[...new Set([...GENRES, project.genre].filter(Boolean))].map(g => <option key={g} value={g}>{g}</option>)}</IOSSelect><small>Editable · Save Story Details to apply</small></label><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Selected when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea || ""} onChange={e => update("idea", e.target.value)} placeholder="Short description of your story" /></label><label className="ws-field">Project / story title<input value={project.title || ""} onChange={e => update("title", e.target.value)} placeholder="Story name" /></label><div className="ff-inline-save"><span>Title, genre and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15} /> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story || ""} onChange={e => update("story", e.target.value)} placeholder="Write your story here..." /></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17} /> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e => { const f = e.target.files?.[0]; if (f) uploadScript(f); e.target.value = ""; }} /></label><span>{(project.story || "").trim() ? (project.story || "").trim().split(/\s+/).length : 0} words · Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15} /> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : null}
+          {storyMode === "manual" ? <div className="ff-story-panel"><div className="ff-story-fields ff-locked-details"><label className="ws-field">Genre<IOSSelect value={project.genre || "Drama"} onChange={e => update("genre", e.target.value)}>{[...new Set([...GENRES, project.genre].filter(Boolean))].map(g => <option key={g} value={g}>{g}</option>)}</IOSSelect><small>Editable Â· Save Story Details to apply</small></label><div className="ff-locked-meta"><span>Language</span><strong>{project.language || "Not specified"}</strong><small>Selected when project was created</small></div></div><label className="ws-field">Story idea / synopsis<textarea rows={3} value={project.idea || ""} onChange={e => update("idea", e.target.value)} placeholder="Short description of your story" /></label><label className="ws-field">Project / story title<input value={project.title || ""} onChange={e => update("title", e.target.value)} placeholder="Story name" /></label><div className="ff-inline-save"><span>Title, genre and synopsis</span><button type="button" className="ws-small-primary" onClick={saveStoryDetails} disabled={storyDetailsSaved}><Save size={15} /> {storyDetailsSaved ? "Saved" : "Save Story Details"}</button></div><label className="ws-field">Story text<textarea className="ff-story-text" rows={14} value={project.story || ""} onChange={e => update("story", e.target.value)} placeholder="Write your story here..." /></label><div className="ff-story-footer"><label className="ff-upload-script"><UploadCloud size={17} /> Append PDF / TXT / MD<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" onChange={e => { const f = e.target.files?.[0]; if (f) uploadScript(f); e.target.value = ""; }} /></label><span>{(project.story || "").trim() ? (project.story || "").trim().split(/\s+/).length : 0} words Â· Imported text is appended</span><button type="button" className="ws-small-primary" onClick={saveStoryText} disabled={storyTextSaved}><Save size={15} /> {storyTextSaved ? "Saved" : "Save Story Text"}</button></div></div> : null}
 
         </div>}
 
@@ -933,3 +933,4 @@ export default function ProjectWorkspace() {
   </div>;
 
 }
+
