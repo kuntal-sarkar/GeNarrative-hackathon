@@ -778,7 +778,7 @@ git commit -m "docs: describe the change"
 git push -u origin feat/describe-your-task
 ```
 
-Open a PR and review it before merging. **Do not push API keys, `.env`, local generated images, large personal backups, or virtual environments.** Do not introduce fake project data, hardcoded AI output, or silent story overwrites. Avoid destructive renaming or restructuring without an audit and a recoverable commit .
+Open a PR and review it before merging. **Do not push API keys, `.env`, local generated images, large personal backups, or virtual environments.** Do not introduce fake project data, hardcoded AI output, or silent story overwrites. Avoid destructive renaming or restructuring without an audit and a recoverable commit.
 
 ---
 
