@@ -76,3 +76,12 @@
     padding-inline: 17px;
   }
 }
+/* TAKEGRID_SEARCH_MATCH_HIGHLIGHT_V1 — blue, exact matched characters only */
+.ff-global-search-result-copy .ff-global-search-match {
+  background: transparent;
+  color: #1B93F5;
+  font: inherit;
+  font-weight: 800;
+  padding: 0;
+  border-radius: 0;
+}

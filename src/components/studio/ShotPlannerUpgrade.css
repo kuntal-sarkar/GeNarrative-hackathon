@@ -37,3 +37,76 @@
   .ff-shot-nav-btn { padding:9px 5px; font-size:.82rem; }
   .ff-shot-accept { grid-column:1/-1; margin-left:0; }
 }
+
+/* TAKEGRID_SHOTS_UI_V1 — presentation-only; preserves generation and save actions */
+@media (min-width: 900px) {
+  .shot-workspace .tg-shots-inline-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:12px; }
+  .shot-workspace .tg-shots-inline-toolbar > button { flex:0 0 auto; }
+  .shot-workspace .tg-shots-inline-toolbar .ff-shot-count-field { margin-left:auto; flex:0 0 230px; max-width:230px; min-width:0; }
+  .shot-workspace .tg-shots-inline-toolbar .ff-shot-count-field small { max-width:230px; }
+}
+@media (min-width: 700px) and (max-width: 899px) {
+  .shot-workspace .tg-shots-inline-toolbar { display:flex; align-items:center; flex-wrap:wrap; }
+}
+.shot-workspace .tg-shots-suggestion-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.shot-workspace .tg-shots-suggestion-heading > button { border:1px solid #dfe7ef; border-radius:12px; padding:8px 12px; color:#172A46; background:#fff; cursor:pointer; }
+.shot-workspace .tg-shots-ai-progress { padding:4px 0 2px; color:#172A46; }
+.shot-workspace .tg-shots-ai-progress-top { display:flex; align-items:center; gap:13px; }
+.shot-workspace .tg-shots-ai-progress-icon { width:44px; height:44px; border-radius:14px; background:#edf6ff; color:#1B93F5; display:grid; place-items:center; flex:none; }
+.shot-workspace .tg-shots-ai-progress-top strong { font-size:16px; font-weight:750; }
+.shot-workspace .tg-shots-ai-progress-top p { color:#66758b; font-size:13px; margin:4px 0 0; }
+.shot-workspace .tg-shots-ai-track { height:8px; border-radius:100px; background:#e9f1f8; margin:18px 0 15px; position:relative; overflow:hidden; }
+.shot-workspace .tg-shots-ai-track-runner { position:absolute; width:38%; height:100%; top:0; left:0; border-radius:100px; background:linear-gradient(90deg,#1B93F5,#FF6B5B); animation:tg-shots-indeterminate 1.65s ease-in-out infinite alternate; }
+@keyframes tg-shots-indeterminate { from { transform:translateX(-100%); } to { transform:translateX(270%); } }
+.shot-workspace .tg-shots-ai-milestones { display:flex; flex-wrap:wrap; gap:9px; }
+.shot-workspace .tg-shots-ai-milestone { display:inline-flex; gap:7px; align-items:center; padding:9px 11px; border-radius:999px; background:#f3f6fa; color:#7b8897; font-size:12px; font-weight:600; border:1px solid #e9eef4; }
+.shot-workspace .tg-shots-ai-milestone.is-active { color:#176bb0; background:#edf6ff; border-color:#cfe6fc; }
+.shot-workspace .tg-shots-ai-dot { width:7px; height:7px; background:#a7b4c1; border-radius:100%; flex:none; }
+.shot-workspace .tg-shots-ai-milestone.is-active .tg-shots-ai-dot { background:#1B93F5; }
+.shot-workspace .tg-shots-ai-disclaimer { display:block; margin-top:12px; font-size:11px; color:#7b8897; }
+.shot-workspace .tg-shots-review-actions { display:grid; grid-template-columns:auto auto 1fr auto; align-items:center; gap:10px; min-height:48px; }
+.shot-workspace .tg-shots-review-actions .ff-shot-accept { grid-column:4; justify-self:end; margin-left:0; min-width:190px; white-space:nowrap; }
+@media(max-width:700px) {
+  .shot-workspace .tg-shots-review-actions { grid-template-columns:auto auto 1fr; }
+  .shot-workspace .tg-shots-review-actions .ff-shot-accept { grid-column:1/-1; width:100%; justify-self:stretch; }
+  .shot-workspace .tg-shots-inline-toolbar { display:flex; flex-wrap:wrap; align-items:stretch; }
+  .shot-workspace .tg-shots-inline-toolbar .ff-shot-count-field { width:100%; max-width:none; }
+}
+@media(prefers-reduced-motion:reduce) { .shot-workspace .tg-shots-ai-track-runner { animation:none; left:30%; } }
+
+/* TAKEGRID_SHOTS_STABLE_FOOTER_V2: position of actions never depends on suggestion length. */
+.shot-workspace .ff-shot-review:has(> .tg-shots-review-content) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.shot-workspace .tg-shots-review-content {
+  height: 395px;
+  max-height: 395px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  padding-right: 5px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c7d8e8 transparent;
+}
+.shot-workspace .tg-shots-review-actions {
+  flex: none;
+  margin-top: 0;
+  padding-top: 15px;
+  padding-bottom: 1px;
+  border-top: 1px solid #edf1f5;
+  min-height: 64px;
+  align-content: center;
+}
+.shot-workspace .tg-shots-review-actions .ff-shot-accept {
+  align-self: center;
+}
+@media (max-width: 700px) {
+  .shot-workspace .tg-shots-review-content {
+    height: 450px;
+    max-height: 450px;
+  }
+  .shot-workspace .tg-shots-review-actions { min-height: 104px; }
+}

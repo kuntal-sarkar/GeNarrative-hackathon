@@ -1,0 +1,19 @@
+/* TAKEGRID_LEGAL_CONTENT_V1 */
+.tg-legal-content{max-width:790px;color:#172A46;font-size:15px;line-height:1.8}
+.tg-legal-content .tg-legal-intro{margin:0 0 22px;color:#56657a;font-size:15px}
+.tg-legal-content .tg-legal-date{color:#66758b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 14px}
+.tg-legal-content section{padding:20px 0;border-top:1px solid #e9e2d8}
+.tg-legal-content section h2{margin:0 0 10px;color:#172A46;font-size:19px;line-height:1.3;letter-spacing:-.02em}
+.tg-legal-content section p{margin:0 0 10px;color:#58677c}
+.tg-legal-content ul{padding-left:21px;margin:8px 0 4px;color:#58677c}
+.tg-legal-content li{margin:6px 0}
+.tg-legal-content a{color:#167bd0;text-underline-offset:3px;overflow-wrap:anywhere}
+.tg-legal-callout{background:#fff4dc;border-left:3px solid #ff6b5b;padding:13px 16px;border-radius:0 10px 10px 0;margin:20px 0;color:#172A46}
+.tg-legal-public{min-height:75vh;background:#fff4dc;padding:50px 18px 76px}
+.tg-legal-public-inner{max-width:900px;margin:0 auto;background:#fff;border:1px solid #ede3d7;border-radius:22px;padding:36px 42px}
+.tg-legal-public-head{margin-bottom:25px}
+.tg-legal-public-head a{color:#172a46;text-decoration:none;font-weight:700;font-size:13px}
+.tg-legal-public-head h1{color:#172a46;margin:21px 0 5px;font-size:34px;letter-spacing:-.04em}
+.tg-public-legal-footer{padding:14px 20px 28px;text-align:center;display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:12px;background:#fff4dc}
+.tg-public-legal-footer a{color:#172a46;text-underline-offset:3px}
+@media(max-width:600px){.tg-legal-public{padding:18px 12px 45px}.tg-legal-public-inner{padding:24px 20px;border-radius:16px}.tg-legal-public-head h1{font-size:27px}}

@@ -1,6 +1,19 @@
-import SectionPlaceholder from "../SectionPlaceholder";
+import "../LegalContent.css";
 
-// Replace this placeholder with reviewed, production-ready content later.
 export default function TermsSection() {
-  return <SectionPlaceholder title="Terms & Conditions" description="Rules for using TAKEGRID." />;
+  return <article className="tg-legal-content" aria-label="TakeGrid Terms of Service">
+    <p className="tg-legal-date">Last updated: November 15, 2026</p>
+    <p className="tg-legal-intro">These Terms govern your use of TakeGrid, an AI-assisted creative workspace developed by Team Runtime Error. By using the service, you agree to these Terms. Questions may be sent to <a href="mailto:takegridai@gmail.com">takegridai@gmail.com</a>.</p>
+    <section><h2>1. The service</h2><p>TakeGrid offers tools for stories, scenes, shots, characters, project memory, storyboards, creative feedback and AI-assisted work. The MVP may change, experience interruptions or have limited availability. Features offered for testing may be modified or discontinued.</p></section>
+    <section><h2>2. Your account</h2><p>Provide accurate account information, safeguard your credentials and use only accounts you are authorized to access. You are responsible for activities under your account and should tell us if you suspect unauthorized access.</p></section>
+    <section><h2>3. Your creative content</h2><p>You retain any rights you already own in material you submit. You grant TakeGrid a limited permission to store, transmit, process and display your content as necessary to provide features you request, including processing by configured AI service providers. You must have permission to submit the content you use.</p></section>
+    <section><h2>4. AI-generated material</h2><p>AI responses are suggestions and can contain errors, omissions, inappropriate content or similarities to existing work. You are responsible for reviewing, editing and deciding whether to use outputs. TakeGrid does not guarantee originality, copyright eligibility, factual accuracy or fitness for a particular purpose.</p></section>
+    <section><h2>5. Acceptable use</h2><p>Do not use TakeGrid to violate the law or others' rights, upload unauthorized personal data, distribute malware, harass people, attempt unauthorized access, bypass usage limits, automate abusive requests or interfere with the service. We may restrict accounts or requests where necessary to protect the platform.</p></section>
+    <section><h2>6. Availability and backups</h2><p>TakeGrid is provided as an evolving MVP. Cloud project synchronization may fail or be delayed; some image assets may depend on server-local storage. Keep independent backups of important scripts, images and creative work. We cannot promise uninterrupted access or permanent preservation of every file.</p></section>
+    <section><h2>7. Third-party services</h2><p>Authentication, storage, anti-abuse checks and AI features depend on services operated by others, including Supabase, Cloudflare and configured AI providers. Their availability and applicable terms may affect TakeGrid functionality.</p></section>
+    <section><h2>8. Ownership of the application</h2><p>TakeGrid's interface, code, branding and service materials are owned by their respective creators or licensors. These Terms do not grant ownership of the application or third-party technologies.</p></section>
+    <section><h2>9. Disclaimers and liability</h2><p>To the extent permitted by applicable law, the service is provided on an "as available" basis without warranties of uninterrupted operation, accuracy or suitability. Nothing in these Terms excludes rights or remedies that cannot legally be excluded.</p></section>
+    <section><h2>10. Updates and contact</h2><p>We may update the service or these Terms. Material changes will be reflected in the posted version. If you have a concern, contact <a href="mailto:takegridai@gmail.com">takegridai@gmail.com</a>.</p></section>
+    <p className="tg-legal-callout">Keep control of your creative decisions. AI suggestions do not replace your judgment.</p>
+  </article>;
 }

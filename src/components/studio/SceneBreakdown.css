@@ -145,3 +145,42 @@
     padding: 14px;
   }
 }
+
+/* TAKEGRID_SCENES_PROGRESS_REVIEW_V1 — visual-only scene generation/review polish */
+.tg-scene-progress { margin-top: 18px; padding: 19px; border: 1px solid #d9e6f3; border-radius: 16px; background: linear-gradient(130deg, #f5f9ff, #ffffff 75%); color: #172a46; }
+.tg-scene-progress__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tg-scene-progress__symbol { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 13px; color: #1b93f5; background: #e7f3ff; }
+.tg-scene-progress__copy { display: flex; flex: 1; flex-direction: column; gap: 4px; min-width: 180px; }
+.tg-scene-progress__copy strong { font-size: 15px; font-weight: 750; }
+.tg-scene-progress__copy span { font-size: 12px; line-height: 1.5; color: #5c718a; }
+.tg-scene-progress__live { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; color: #1b93f5; border-radius: 99px; padding: 6px 9px; background: #ebf6ff; white-space: nowrap; }
+.tg-scene-progress__pulse { height: 7px; width: 7px; border-radius: 50%; background: #1b93f5; animation: tg-scene-pulse 1.5s ease-in-out infinite; }
+.tg-scene-progress__track { margin: 18px 0 16px; height: 7px; border-radius: 99px; background: #dcecf9; overflow: hidden; position: relative; }
+.tg-scene-progress__track > span { position: absolute; inset: 0 auto 0 0; width: 38%; border-radius: inherit; background: linear-gradient(90deg, #1b93f5, #ff6b5b); animation: tg-scene-track 1.8s ease-in-out infinite; }
+.tg-scene-progress__steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tg-scene-progress__step { display: flex; align-items: center; gap: 7px; color: #8696a9; font-size: 11px; font-weight: 600; line-height: 1.4; transition: color .2s ease; }
+.tg-scene-progress__dot { width: 9px; height: 9px; border-radius: 50%; background: #d0dce8; flex: none; transition: background .2s ease; }
+.tg-scene-progress__step.is-active { color: #172a46; }
+.tg-scene-progress__step.is-active .tg-scene-progress__dot { background: #1b93f5; box-shadow: 0 0 0 4px #e1f1ff; }
+.tg-scene-progress__step.is-past .tg-scene-progress__dot { background: #ff6b5b; }
+.tg-scene-progress__foot { margin: 12px 0 0 !important; color: #7c8ea1; font-size: 11px !important; line-height: 1.55 !important; }
+@keyframes tg-scene-track { 0% { transform: translateX(-105%); } 100% { transform: translateX(285%); } }
+@keyframes tg-scene-pulse { 0%,100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+.tg-scene-review { display: grid; gap: 13px; border: 1px solid #e3eaf1; border-radius: 15px; margin-top: 17px; padding: 18px; background: #fbfdff; color: #172a46; }
+.tg-scene-review__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.tg-scene-review__eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #1b93f5; font-size: 11px; font-weight: 800; letter-spacing: .07em; }
+.tg-scene-review__count { border-radius: 100px; padding: 5px 10px; background: #e9f4ff; color: #172a46; font-size: 12px; font-weight: 750; }
+.tg-scene-review__heading { margin: 0; font-size: clamp(17px, 1.65vw, 22px); font-weight: 750; line-height: 1.35; overflow-wrap: anywhere; }
+.tg-scene-review__meta { display: flex; flex-wrap: wrap; gap: 9px; }
+.tg-scene-review__meta span { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #dfe9f3; border-radius: 999px; padding: 6px 11px; background: #fff; font-size: 12px; color: #52677f; }
+.tg-scene-review__description { background: white; border: 1px solid #e5edf6; border-left: 3px solid #ff6b5b; border-radius: 10px; padding: 13px; }
+.tg-scene-review__label { display: block; font-size: 11px; font-weight: 750; color: #56708d; margin-bottom: 6px; }
+.tg-scene-review__description p, .tg-scene-review__detail p { margin: 0; line-height: 1.65; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tg-scene-review__detail { padding: 0 2px; }
+.tg-scene-review__excerpt { border-top: 1px solid #e5edf6; padding-top: 10px; color: #52677f; font-size: 12px; }
+.tg-scene-review__excerpt summary { cursor: pointer; font-weight: 650; }
+.tg-scene-review__excerpt p { line-height: 1.6; overflow-wrap: anywhere; }
+.tg-scene-review__duplicate { margin: 0; padding: 10px 12px; border-radius: 9px; background: #fff6e5; color: #795000; font-size: 12px; }
+.tg-scene-review__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2px; }
+@media (max-width: 650px) { .tg-scene-progress { padding: 14px; } .tg-scene-progress__steps { gap: 5px; } .tg-scene-progress__step { font-size: 10px; } .tg-scene-review { padding: 14px; } }
+@media (prefers-reduced-motion: reduce) { .tg-scene-progress__pulse, .tg-scene-progress__track > span { animation: none; } .tg-scene-progress__track > span { width: 45%; } }

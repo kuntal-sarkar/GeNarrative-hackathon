@@ -1,3 +1,4 @@
+import packageInfo from "../../package.json";
 import { APP_NAME } from "../config/branding"; // TAKEGRID_BRANDING_V1
 import { useMemo, useState } from "react";
 import SearchField from "../components/ui/SearchField";
@@ -35,8 +36,8 @@ export default function Settings() {
       <footer className="ff-settings-footer">
         <span className="ff-settings-footer-brand">{`${APP_NAME} · Built by Team Runtime Error`}</span>
         <span className="ff-settings-footer-copyright">© {new Date().getFullYear()} Team Runtime Error. All rights reserved.</span>
-        <span className="ff-settings-footer-note">Policy and contact details will be published once verified.</span>
-        <span className="ff-settings-footer-version">{`Web app version: ${import.meta.env.VITE_APP_VERSION || "Not specified"}`}</span>
+        <span className="ff-settings-footer-note">Questions? Contact takegridai@gmail.com.</span>
+        <span className="ff-settings-footer-version">{`Web app version: ${import.meta.env.VITE_APP_VERSION || (packageInfo.version === "0.0.0" ? "MVP development" : packageInfo.version)}`}</span>
       </footer>
     </>}
   </main>;

@@ -27,3 +27,28 @@
 .ff-storyboard-dialog .ff-storyboard-dialog-media .storyboard-frame-image {display:block;width:auto!important;height:auto!important;max-width:100%!important;max-height:70vh!important;object-fit:contain!important;}
 .ff-storyboard-spinner{animation:ff-storyboard-spin 1s linear infinite;}@keyframes ff-storyboard-spin{to{transform:rotate(360deg)}}
 @media(max-width:650px){.ff-storyboard-compact .storyboard-frame-media{aspect-ratio:16/11}.ff-storyboard-compact .ff-storyboard-selector{flex:1 1 calc(50% - 8px);max-width:none}.ff-storyboard-compact .ff-storyboard-generate,.ff-storyboard-compact .ff-storyboard-approve{flex:1 1 auto}.ff-storyboard-compact .storyboard-frame-details{padding:12px 13px 6px}}
+
+/* TAKEGRID_STORYBOARD_DROPDOWN_CLIP_FIX_V1 */
+/* Desktop IOSSelect menus should not be clipped by storyboard cards. */
+@media (min-width: 769px) {
+  .ff-storyboard-compact .storyboard-frame,
+  .ff-storyboard-compact .storyboard-frame.ff-frame-button {
+    overflow: visible !important;
+  }
+  .ff-storyboard-compact .storyboard-frame:focus-within,
+  .ff-storyboard-compact .storyboard-frame:hover {
+    position: relative;
+    z-index: 4;
+  }
+  .ff-storyboard-compact .ff-storyboard-selector {
+    position: relative;
+    z-index: 2;
+  }
+  .ff-storyboard-compact .ff-ios-select__menu {
+    z-index: 50;
+  }
+  /* Keep image rounded without clipping dropdowns. */
+  .ff-storyboard-compact .storyboard-frame-media {
+    border-radius: 19px 19px 0 0;
+  }
+}

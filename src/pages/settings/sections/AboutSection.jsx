@@ -1,7 +1,20 @@
-import { APP_NAME } from "../../../config/branding"; // TAKEGRID_BRANDING_V1
-import SectionPlaceholder from "../SectionPlaceholder";
+import PolicyInfo from "../PolicyInfo";
 
-// Replace this placeholder with reviewed, production-ready content later.
+const sections = [
+  {
+    "heading": "Creative workflow",
+    "text": "Bring stories, characters, scenes, shots, storyboards and project intentions into one workspace."
+  },
+  {
+    "heading": "Human-led AI",
+    "text": "Creative Critics, continuity checks and AI writing tools help creators explore options while keeping editorial decisions in human hands."
+  },
+  {
+    "heading": "Current stage",
+    "text": "TakeGrid is an MVP undergoing ongoing testing, deployment and reliability improvements."
+  }
+];
+
 export default function AboutSection() {
-  return <SectionPlaceholder title={`About ${APP_NAME}`} description="Product mission and background." />;
+  return <PolicyInfo intro={"TakeGrid is an AI-assisted creative workspace built by Team Runtime Error for the GeNarrative hackathon."} sections={sections} footer="Questions or concerns? Email" />;
 }

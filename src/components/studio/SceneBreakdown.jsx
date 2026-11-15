@@ -23,6 +23,7 @@ const isPresent = (existing, suggestion) =>
 export default function SceneBreakdown({ scenes = [], onScenesChange, onSaveScene, isSceneSaved, project }) {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
+  const [elapsedStage, setElapsedStage] = useState(0); // TAKEGRID_SCENES_PROGRESS_REVIEW_V1
   const [aiError, setAiError] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -37,6 +38,18 @@ export default function SceneBreakdown({ scenes = [], onScenesChange, onSaveScen
   useEffect(() => {
     if (aiOpen) panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [aiOpen]);
+
+  useEffect(() => {
+    if (!aiBusy) { setElapsedStage(0); return; }
+    const started = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - started;
+      setElapsedStage(elapsed >= 4000 ? 2 : elapsed >= 2000 ? 1 : 0);
+    };
+    tick();
+    const timer = window.setInterval(tick, 250);
+    return () => window.clearInterval(timer);
+  }, [aiBusy]);
 
   async function analyze() {
     if (aiBusy) return;
@@ -123,18 +136,46 @@ export default function SceneBreakdown({ scenes = [], onScenesChange, onSaveScen
         <button type="button" className="scene-outline-btn" onClick={() => setAiOpen(false)} aria-label="Close AI panel"><X size={15}/> Close</button>
       </div>
       <p style={{ margin: "8px 0 14px" }}>Review one scene at a time. <strong>Add Scene</strong> puts it at the bottom of your scene list as an unsaved draft. <strong>Skip</strong> ignores it. No existing scenes or shots will be changed.</p>
-      {aiBusy && <p role="status"><LoaderCircle size={16} className="ff-char__spin"/>{` ${APP_NAME} AI is analyzing your story...`}</p>}
+      {aiBusy && <div className="tg-scene-progress" role="status" aria-live="polite">
+        <div className="tg-scene-progress__top">
+          <span className="tg-scene-progress__symbol"><WandSparkles size={18}/></span>
+          <div className="tg-scene-progress__copy">
+            <strong>Building your scene breakdown</strong>
+            <span>{APP_NAME} AI is working on your story. Suggestions will appear here when ready.</span>
+          </div>
+          <span className="tg-scene-progress__live"><span className="tg-scene-progress__pulse"/> AI working</span>
+        </div>
+        <div className="tg-scene-progress__track" aria-hidden="true"><span/></div>
+        <div className="tg-scene-progress__steps" aria-label="Visual processing stages, not live backend completion">
+          {['Story context', 'Scene structure', 'Scene previews'].map((label, index) => (
+            <div key={label} className={`tg-scene-progress__step ${elapsedStage === index ? 'is-active' : ''} ${elapsedStage > index ? 'is-past' : ''}`}>
+              <span className="tg-scene-progress__dot" aria-hidden="true"/>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="tg-scene-progress__foot">Stages change over time as a visual guide; the AI response determines when analysis is finished.</p>
+      </div>}
       {aiError && <p role="alert" style={{ color: "#b42318" }}>{aiError}</p>}
-      {!aiBusy && current && <article style={{ display: "grid", gap: 10, borderTop: "1px solid #e6e9ee", paddingTop: 16 }}>
-        <span style={{ color: "#637083", fontSize: 13, fontWeight: 600 }}>Suggestion {currentIndex + 1} of {aiSuggestions.length}</span>
-        <h3 style={{ margin: 0 }}>{current.heading || `Scene ${currentIndex + 1}`}</h3>
-        <p style={{ margin: 0 }}><strong>Location:</strong> {current.location || "Unspecified"} · <strong>Time:</strong> {current.time_of_day || "Unspecified"}</p>
-        <p style={{ margin: 0 }}>{current.description}</p>
-        {!!current.characters?.length && <p style={{ margin: 0 }}><strong>Characters:</strong> {current.characters.join(", ")}</p>}
-        {!!current.dialogue?.length && <p style={{ margin: 0 }}><strong>Dialogue:</strong> {current.dialogue.join(" | ")}</p>}
-        {current.source_excerpt && <details><summary>View original story excerpt</summary><p style={{ whiteSpace: "pre-wrap" }}>{current.source_excerpt}</p></details>}
-        {duplicate && <p role="status" style={{ color: "#825200", margin: 0 }}>This scene appears to already be in your project. Skip to avoid adding it again.</p>}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+      {!aiBusy && current && <article className="tg-scene-review">
+        <div className="tg-scene-review__top">
+          <span className="tg-scene-review__eyebrow"><Clapperboard size={15}/> SCENE SUGGESTION</span>
+          <span className="tg-scene-review__count">{currentIndex + 1} / {aiSuggestions.length}</span>
+        </div>
+        <h3 className="tg-scene-review__heading">{current.heading || `Scene ${currentIndex + 1}`}</h3>
+        <div className="tg-scene-review__meta">
+          <span><MapPin size={14}/> {current.location || "Unspecified location"}</span>
+          <span>{current.time_of_day || "Unspecified time"}</span>
+        </div>
+        <div className="tg-scene-review__description">
+          <span className="tg-scene-review__label">Scene overview</span>
+          <p>{current.description}</p>
+        </div>
+        {!!current.characters?.length && <div className="tg-scene-review__detail"><span className="tg-scene-review__label">Characters</span><p>{current.characters.join(", ")}</p></div>}
+        {!!current.dialogue?.length && <div className="tg-scene-review__detail"><span className="tg-scene-review__label">Dialogue</span><p>{current.dialogue.join(" | ")}</p></div>}
+        {current.source_excerpt && <details className="tg-scene-review__excerpt"><summary>View original story excerpt</summary><p style={{ whiteSpace: "pre-wrap" }}>{current.source_excerpt}</p></details>}
+        {duplicate && <p role="status" className="tg-scene-review__duplicate">This scene appears to already be in your project. Skip to avoid adding it again.</p>}
+        <div className="tg-scene-review__actions">
           <button type="button" className="scene-outline-btn" onClick={nextSuggestion}>Skip <ChevronRight size={15}/></button>
           {!duplicate && <button type="button" className="ws-small-primary" onClick={addSuggestion}><Plus size={15}/> Add Scene (unsaved)</button>}
         </div>

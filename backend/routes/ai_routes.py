@@ -561,15 +561,16 @@ def storyboard_image():
             "error": "Unable to generate storyboard image.",
         }), 500
 
-# TAKEGRID_STORYBOARD_V1_ROUTES
-# Local development storage. Add authentication, quotas, and durable object storage before production deployment.
-from services.storyboard_frame_store import save_frame as ff_save_frame, find_frame as ff_find_frame
-from flask import send_file as ff_send_file
+# TAKEGRID_STORYBOARD_PRIVATE_FRAMES_V1
+# Auth is enforced by utils.ai_security.protect_ai_request for both POST and GET.
+# Private local storage is a development solution, not durable multi-worker storage.
+from services.storyboard_frame_store import save_frame as ff_save_frame, find_owned_frame as ff_find_owned_frame
+from flask import send_file as ff_send_file, g as ff_g
 
 @ai_bp.post('/storyboard/frames')
 def ff_upload_storyboard_frame():
     try:
-        frame_id, _mime = ff_save_frame(request.files.get('image'))
+        frame_id, _mime = ff_save_frame(request.files.get('image'), ff_g.owner_id)
         return jsonify({'success': True, 'frameId': frame_id}), 201
     except ValueError as exc:
         return jsonify({'success': False, 'error': str(exc)}), 400
@@ -578,10 +579,10 @@ def ff_upload_storyboard_frame():
 
 @ai_bp.get('/storyboard/frames/<frame_id>')
 def ff_get_storyboard_frame(frame_id):
-    path = ff_find_frame(frame_id)
+    path = ff_find_owned_frame(frame_id, ff_g.owner_id)
     if path is None:
         return jsonify({'success': False, 'error': 'Storyboard frame not found.'}), 404
     response = ff_send_file(path, conditional=False, max_age=0)
-    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Cache-Control'] = 'private, no-store'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     return response
