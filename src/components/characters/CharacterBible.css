@@ -147,3 +147,40 @@ html body .ff-char .ff-char__search:focus-within{border:1px solid #dfe6ec!import
   .ff-char .ff-char__form .ff-char__field input,
   .ff-char .ff-char__form .ff-char__field textarea { transition: none; }
 }
+
+/* TAKEGRID_CHARACTER_ANALYSIS_SINGLE_PANEL_V1: isolated review + progress styles */
+.ff-char__analysis{margin:0 26px 18px;min-width:0}
+.ff-char__progress{padding:18px 20px;border:1px solid #d6e8fa;background:linear-gradient(110deg,#f4f9ff,#fffaf5);border-radius:17px}
+.ff-char__progress-head{display:flex;align-items:center;gap:12px}
+.ff-char__progress-icon{width:42px;height:42px;flex:none;display:grid;place-items:center;background:#e4f3ff;color:#1b93f5;border-radius:13px}
+.ff-char__progress-head strong{font-size:14px}.ff-char__progress-head p{font-size:12px;line-height:1.5;margin:3px 0 0;color:#68798d}
+.ff-char__progress-track{overflow:hidden;height:7px;border-radius:999px;background:#dfeaf5;margin:15px 0 10px}
+.ff-char__progress-fill{display:block;width:34%;height:100%;border-radius:999px;background:linear-gradient(90deg,#1b93f5,#ff6b5b);animation:ff-char-indeterminate 1.9s ease-in-out infinite}
+.ff-char__progress-hint{font-size:11px;color:#718299}
+@keyframes ff-char-indeterminate{0%{transform:translateX(-105%)}50%{transform:translateX(100%)}100%{transform:translateX(305%)}}
+.ff-char__ready{display:flex;align-items:center;gap:10px;padding:12px 15px;border:1px solid #cbe7d7;border-radius:13px;background:#f3fcf6;color:#245a3c;font-size:12px;line-height:1.5;margin-bottom:13px}
+.ff-char__ready>button{display:grid;place-items:center;border:0;background:transparent;color:inherit;margin-left:auto;padding:5px;border-radius:7px}
+.ff-char__analysis-error,.ff-char__analysis-info{padding:12px 14px;border-radius:12px;border:1px solid #f1d0c9;background:#fff7f4;color:#a34538;font-size:12px;line-height:1.6}
+.ff-char__analysis-info{border-color:#e2e9f0;color:#66788b;background:#f8fafc}
+.ff-char__review{border:1px solid #e0e8f0;border-radius:18px;padding:20px;background:#f8fbff}
+.ff-char__review-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.ff-char__review-heading span:first-child{font-size:10px;letter-spacing:.09em;font-weight:800;color:#1b93f5}
+.ff-char__review-heading h3{margin:4px 0 5px;font-size:19px;color:#172a46;letter-spacing:-.025em}
+.ff-char__review-heading p{margin:0;font-size:12px;line-height:1.5;color:#738399}
+.ff-char__review-count{flex:none;white-space:nowrap;padding:7px 10px;background:#e8f3ff;color:#2377bc;border-radius:999px;font-size:11px;font-weight:700}
+.ff-char__review-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:13px}
+.ff-char__review-card{min-width:0;background:white;border:1px solid #e5ebf1;border-radius:15px;padding:16px;display:flex;flex-direction:column;gap:13px}
+.ff-char__review-person{display:flex;gap:10px;align-items:center}
+.ff-char__review-avatar{display:grid;place-items:center;flex:none;width:39px;height:39px;color:#ff6b5b;border-radius:12px;background:#fff1e8}
+.ff-char__review-person h4{font-size:14px;margin:0;overflow-wrap:anywhere}.ff-char__review-person p{font-size:11px;color:#77879a;margin:3px 0 0}
+.ff-char__review-info{display:grid;gap:10px}
+.ff-char__review-info p{margin:0;font-size:12px;line-height:1.6;color:#43566d;overflow-wrap:anywhere;white-space:pre-wrap}
+.ff-char__review-info strong{display:block;margin:0 0 3px;font-size:10px;color:#172a46;letter-spacing:.03em;text-transform:uppercase}
+.ff-char__review-duplicate{font-size:11px;color:#ad6730;background:#fff7ec;padding:9px;border-radius:9px;margin:0}
+.ff-char__review-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:auto;padding-top:8px;border-top:1px solid #f0f2f5}
+.ff-char__review-actions button{display:inline-flex;align-items:center;gap:6px;padding:9px 11px;border-radius:999px;border:1px solid #e0e6ec;background:white;font-size:11px!important;font-weight:750!important}
+.ff-char__review-actions .ff-char__review-apply{background:#ff6b5b;border-color:#ff6b5b;color:#172a46}
+.ff-char__review-actions button:disabled{opacity:.5;cursor:not-allowed}
+.ff-char__review-notes{margin-top:15px;font-size:12px;color:#576b80;line-height:1.6}.ff-char__review-notes summary{cursor:pointer;font-weight:700}
+@media(max-width:720px){.ff-char__analysis{margin:0 15px 15px}.ff-char__review{padding:14px}.ff-char__review-heading{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.ff-char__progress-fill{animation:none;width:100%;opacity:.75}}

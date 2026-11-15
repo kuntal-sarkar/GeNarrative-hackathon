@@ -106,8 +106,8 @@ export default function ProjectContinuity({ project, onSave }) {
   }
 
   return (
-    <section className="ws-panel">
-      <div className="ws-panel-heading">
+    <section className="ws-panel tg-continuity">
+      <div className="ws-panel-heading tg-continuity-heading">
         <div>
           <span className="ws-eyebrow">CONSISTENCY REVIEW</span>
           <h2>Continuity Checker</h2>
@@ -116,9 +116,11 @@ export default function ProjectContinuity({ project, onSave }) {
         <ScanSearch size={26} />
       </div>
 
-      <button type="button" className="ws-primary" disabled={!aiConfigured || busy} onClick={check}>
-        {busy ? "Checking..." : "Check continuity"}
-      </button>
+      <div className="tg-continuity-toolbar">
+        <button type="button" className="ws-primary" disabled={!aiConfigured || busy} onClick={check}>
+          {busy ? "Checking..." : "Check continuity"}
+        </button>
+      </div>
       {!aiConfigured && <p className="ws-connection">Requires the Flask backend. No invented continuity issues are displayed.</p>}
       {error && <p className="ws-error" role="alert">{error}</p>}
       <p className="ws-connection">Reviews and status changes are drafts until you click <strong>Save This Section</strong> below.</p>
@@ -140,9 +142,9 @@ export default function ProjectContinuity({ project, onSave }) {
       )}
 
       {hasResults && (
-        <div className="ws-results">
+        <div className="ws-results tg-continuity-results">
           {overallSummary && (
-            <article className="ws-review">
+            <article className="ws-review tg-continuity-card">
               <h3>Analysis summary</h3>
               <p>{overallSummary}</p>
               {selectedReview && <small>Checked: {formatDate(selectedReview.createdAt)}</small>}
@@ -150,16 +152,18 @@ export default function ProjectContinuity({ project, onSave }) {
           )}
 
           {issues.length === 0 ? (
-            <article className="ws-review">
+            <article className="ws-review tg-continuity-card">
               <h3>No evidence-supported continuity issues found</h3>
               <p>This review did not identify supported contradictions. That does not guarantee the story is error-free.</p>
             </article>
           ) : issues.map(issue => (
             <article className="ws-review" key={issue.id}>
               <h3>{issue.title || "Potential continuity issue"}</h3>
-              <p>
-                <strong>Category:</strong> {prettyLabel(issue.category)} · <strong>Severity:</strong> {prettyLabel(issue.severity)} · <strong>Confidence:</strong> {prettyLabel(issue.confidence)}
-              </p>
+               <div className="tg-continuity-meta" aria-label="Issue details">
+                 <span><strong>Category</strong>{prettyLabel(issue.category)}</span>
+                 <span><strong>Severity</strong>{prettyLabel(issue.severity)}</span>
+                 <span><strong>Confidence</strong>{prettyLabel(issue.confidence)}</span>
+               </div>
               <p>{issue.description || ""}</p>
               {Array.isArray(issue.evidence) && issue.evidence.length > 0 && (
                 <div>
@@ -168,7 +172,7 @@ export default function ProjectContinuity({ project, onSave }) {
                 </div>
               )}
               {issue.suggested_fix && <p><strong>Suggested fix:</strong> {issue.suggested_fix}</p>}
-              <p><strong>Status:</strong> {prettyLabel(issue.state || "open")}</p>
+              <p className="tg-continuity-status"><strong>Status:</strong> {prettyLabel(issue.state || "open")}</p>
               <div className="ws-review-actions">
                 <button type="button" className="ws-ghost" disabled={issue.state === "resolved"} onClick={() => mark(issue.id, "resolved")}>Resolve</button>
                 <button type="button" className="ws-ghost" disabled={issue.state === "intentional"} onClick={() => mark(issue.id, "intentional")}>Intentional</button>
@@ -179,7 +183,7 @@ export default function ProjectContinuity({ project, onSave }) {
           ))}
 
           {observations.length > 0 && (
-            <article className="ws-review">
+            <article className="ws-review tg-continuity-card">
               <h3>Additional observations</h3>
               <ul>{observations.map((observation, index) => <li key={index}>{observation}</li>)}</ul>
             </article>

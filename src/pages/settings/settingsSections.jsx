@@ -18,6 +18,7 @@ import LicensesSection from "./sections/LicensesSection";
 import AccessibilitySection from "./sections/AccessibilitySection";
 import PreferencesSection from "./sections/PreferencesSection";
 import DataControlsSection from "./sections/DataControlsSection";
+import VersionSection from "./sections/VersionSection";
 
 export const SETTINGS_SECTIONS = {
   "privacy": PrivacySection,
@@ -40,4 +41,5 @@ export const SETTINGS_SECTIONS = {
   "accessibility": AccessibilitySection,
   "preferences": PreferencesSection,
   "data-controls": DataControlsSection,
+  "app-version": VersionSection,
 };

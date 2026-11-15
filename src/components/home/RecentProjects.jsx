@@ -18,7 +18,7 @@ export default function RecentProjects() {
   return <section id="recent-projects" className="recent-projects">
     <div className="home-section-heading"><div><span className="section-eyebrow">YOUR WORKSPACE</span><h2>Your projects</h2></div></div>
     {sorted.length === 0 ? <div className="recent-projects-empty"><FolderOpen size={28}/><h3>No projects yet</h3><p>Your own saved stories will appear here.</p><button type="button" onClick={start}>Create First Project</button></div> :
-    <div className="recent-projects-grid">{sorted.slice(0,6).map((project,i) =>
+    <div className="recent-projects-grid">{sorted.slice(0,2).map((project,i) =>
       <button className="recent-project-card" key={project.id} type="button" onClick={() => navigate("/studio", {state:{projectId:project.id}})}>
         <div className="project-card-cover"><span className="project-cover-index">{String(i+1).padStart(2,"0")}</span><Clapperboard size={42} strokeWidth={1.3}/><ArrowUpRight className="project-cover-arrow" size={19}/></div>
         <div className="project-card-details"><div className="project-card-meta"><span>{project.genre}</span><span>{project.language}</span></div>
@@ -27,5 +27,7 @@ export default function RecentProjects() {
         </div>
       </button>
     )}</div>}
+    {/* TAKEGRID_HOME_TWO_PROJECTS_V1: existing /studio page lists all saved projects. */}
+    {sorted.length > 2 && <div className="recent-projects-view-all"><button type="button" onClick={() => navigate("/studio")}>View All Projects <ArrowUpRight size={17} aria-hidden="true" /></button></div>}
   </section>;
 }

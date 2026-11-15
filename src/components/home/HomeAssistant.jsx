@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUp, BookOpen, Check, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, LoaderCircle, MessageCircle, Paperclip, Pin, Plus, Search, ThumbsDown, ThumbsUp, Trash2, Square, Mic, X, Bot } from 'lucide-react';
+import { ArrowUp, BookOpen, Check, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, LoaderCircle, MessageCircle, Paperclip, Pin, Plus, Search, ThumbsDown, ThumbsUp, Trash2, Square, Mic, X, MessageCircleMore } from 'lucide-react';
 import { getProjects, createProject, saveProject, deleteProject } from '../../services/projectService';
 import { requestGlobalAI } from '../../services/globalAI';
 import { useAuth } from '../../context/AuthContext';
@@ -165,6 +165,8 @@ function InlineFormatted({ text }) {
   return <div className="tg-ai-markdown">{rendered}</div>;
 }
 
+const MemoInlineFormatted = memo(InlineFormatted);
+
 export default function HomeAssistant() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -174,6 +176,7 @@ export default function HomeAssistant() {
   const lastSyncedSnapshot = useRef('');
   const inFlightSync = useRef(false);
   const [open, setOpen] = useState(false);
+  const [aiInView, setAiInView] = useState(false);
   const [projects, setProjects] = useState(getProjects);
   const [selected, setSelected] = useState(() => getProjects().slice(0, 12).map(p => p.id));
   const [threads, setThreads] = useState(loadThreads);
@@ -251,6 +254,34 @@ export default function HomeAssistant() {
       window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
     });
     return () => window.cancelAnimationFrame(raf);
+  }, [open]);
+  // Hide the floating shortcut only while the expanded chat is actually visible.
+  // When users scroll away, the shortcut returns to provide a way back.
+  useEffect(() => {
+    if (!open) {
+      setAiInView(false);
+      return;
+    }
+    const node = workspaceRef.current;
+    if (!node) return;
+    if (typeof IntersectionObserver !== 'function') {
+      const check = () => {
+        const rect = node.getBoundingClientRect();
+        setAiInView(rect.bottom > 110 && rect.top < window.innerHeight - 40);
+      };
+      check();
+      window.addEventListener('scroll', check, { passive: true });
+      window.addEventListener('resize', check);
+      return () => {
+        window.removeEventListener('scroll', check);
+        window.removeEventListener('resize', check);
+      };
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      setAiInView(entry.isIntersecting && entry.intersectionRatio > 0.025);
+    }, { threshold: [0, 0.025, 0.15], rootMargin: '-90px 0px -35px 0px' });
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [open]);
   function toggleGlobalDashboard() {
     if (!open) requestedOpenScrollRef.current = true;
@@ -584,17 +615,43 @@ export default function HomeAssistant() {
       if (epoch === requestEpoch.current) { setBusy(''); controller.current = null; }
     }
   }
+  // TAKEGRID_AI_HOVER_V7: only hover proximity; scrolling never animates the launcher.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    // Preserve the V6 immediate-hover behavior for the floating button even
+    // when its CSS bounce places it above the stationary pointer.
+    const onPointerMove = event => {
+      if (event.pointerType !== 'mouse') return;
+      const button = document.querySelector('.tg-floating-ai');
+      if (!button) return;
+      const style = getComputedStyle(button);
+      const right = Number.parseFloat(style.right) || 0;
+      const bottom = Number.parseFloat(style.bottom) || 0;
+      const xMax = window.innerWidth - right + 6;
+      const xMin = xMax - button.offsetWidth - 12;
+      const yMax = window.innerHeight - bottom + 8;
+      const yMin = yMax - button.offsetHeight - 72;
+      const near = event.clientX >= xMin && event.clientX <= xMax
+        && event.clientY >= yMin && event.clientY <= yMax;
+      button.classList.toggle('tg-floating-ai--hover-hold', near);
+    };
+    document.addEventListener('pointermove', onPointerMove, { passive: true });
+    return () => {
+      document.removeEventListener('pointermove', onPointerMove);
+      document.querySelector('.tg-floating-ai')?.classList.remove('tg-floating-ai--hover-hold');
+    };
+  }, []);
   const hasSelection = selectedContext.length > 0;
   return <section className="home-assistant-section" id="global-ai-assistant">
-    <button
+    {(!open || !aiInView) && <button
       type="button"
       className="tg-floating-ai"
       onClick={openGlobalAI}
-      aria-label="Open TAKEGRID AI"
-      title="Talk to TAKEGRID AI"
+      aria-label="Ask TakeGrid AI"
     >
-      <Bot size={25} />
-    </button>
+      <MessageCircleMore className="tg-floating-ai-icon" size={24} strokeWidth={2.1} aria-hidden="true" />
+      <span className="tg-floating-ai-label" aria-hidden="true">Ask TakeGrid AI</span>
+    </button>}
     <div className="assistant-panel tg-global-panel">
       <div className="assistant-panel-header">
         <div className="assistant-title-group"><span className="assistant-icon"><MessageCircle size={24} /></span>
@@ -671,7 +728,7 @@ export default function HomeAssistant() {
               </div></div>}
             {active?.messages?.map(m => <div key={m.id} className={`tg-global-message ${m.role}`}>
               <div className="tg-global-message-stack">
-                <div className="tg-global-bubble"><InlineFormatted text={m.content} />{m.attachments?.length > 0 && <small>Attached: {m.attachments.join(', ')}</small>}</div>
+                <div className="tg-global-bubble"><MemoInlineFormatted text={m.content} />{m.attachments?.length > 0 && <small>Attached: {m.attachments.join(', ')}</small>}</div>
                 <div className="tg-global-message-actions">
                   <button type="button" onClick={() => copyReply(m.id, m.content)} title="Copy message" aria-label={copiedId === m.id ? 'Copied' : 'Copy message'}>{copiedId === m.id ? <span className="tg-global-copy-confirm"><Check size={15} strokeWidth={3} /></span> : <Copy size={15} />}</button>
                   {m.role !== 'user' && <>

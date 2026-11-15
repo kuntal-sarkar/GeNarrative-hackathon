@@ -22,3 +22,10 @@
 .recent-projects-empty button{margin-top:18px;padding:12px 19px;border-radius:999px;background:var(--color-coral);color:var(--color-navy);font-size:12px;font-weight:700;border:none;}
 @media(max-width:750px){.recent-projects-grid{grid-template-columns:1fr}.recent-projects{margin-top:38px}}
 @media(prefers-reduced-motion:reduce){.recent-project-card{transition:none}}
+
+/* TAKEGRID_HOME_TWO_PROJECTS_V1 — action only; existing cards and grid preserved. */
+.recent-projects-view-all { display:flex;justify-content:center;margin-top:20px; }
+.recent-projects-view-all button { display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 20px;border:1px solid var(--surface-border,#e4e8ee);border-radius:999px;background:#fff;color:var(--color-navy,#172a46);font-size:13px;font-weight:700;line-height:1.2;font-family:inherit;cursor:pointer;transition:background .2s,border-color .2s,transform .2s; }
+.recent-projects-view-all button:hover { background:#fff4dc;border-color:#ff6b5b;transform:translateY(-2px); }
+.recent-projects-view-all button:focus-visible { outline:3px solid #1b93f5;outline-offset:3px; }
+@media (prefers-reduced-motion:reduce) { .recent-projects-view-all button {transition:none;} }

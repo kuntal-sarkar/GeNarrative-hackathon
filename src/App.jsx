@@ -13,6 +13,7 @@ import Studio from "./pages/Studio";
 import Critics from "./pages/Critics";
 import Memory from "./pages/Memory";
 import Settings from "./pages/Settings";
+import PublicLegalPage from "./pages/PublicLegalPage";
 import ProjectWorkspace from "./pages/ProjectWorkspace";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,8 @@ const router = createBrowserRouter([{ element: <AppLayout />, children: [
   { path: "/critics", element: <ProtectedRoute><Critics /></ProtectedRoute> },
   { path: "/memory", element: <ProtectedRoute><Memory /></ProtectedRoute> },
   { path: "/settings", element: <ProtectedRoute><Settings /></ProtectedRoute> },
+  { path: "/privacy-policy", element: <PublicLegalPage kind="privacy" /> },
+  { path: "/terms", element: <PublicLegalPage kind="terms" /> },
   { path: "*", element: <NotFound /> }
 ]}]);
 

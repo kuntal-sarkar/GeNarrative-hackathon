@@ -67,6 +67,15 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
   const [suggestionIndex, setSuggestionIndex] = useState(0);
   const [notes, setNotes] = useState([]);
   const [maxShots, setMaxShots] = useState(6);
+  // TAKEGRID_SHOTS_UI_V1: elapsed-time milestones are visual only (not API completion signals).
+  const [aiElapsed, setAiElapsed] = useState(0);
+  useEffect(() => {
+    if (!aiBusy) { setAiElapsed(0); return undefined; }
+    setAiElapsed(0);
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => setAiElapsed(Math.floor((Date.now() - startedAt) / 1000)), 350);
+    return () => window.clearInterval(timer);
+  }, [aiBusy]);
   const panelRef = useRef(null);
   const requestRef = useRef(0);
 
@@ -146,21 +155,24 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
     }
   }
 
+  // TAKEGRID_SHOTS_FORWARD_ONLY_QUEUE_V1
+  // A review is a forward-only queue: never recycle skipped/previous suggestions.
   function nextSuggestion() {
-    setSuggestionIndex(index => Math.min(index + 1, suggestions.length - 1));
+    setSuggestionIndex(index => Math.min(index + 1, suggestions.length));
   }
 
   function skipSuggestion() {
-    setSuggestions(old => old.filter((_, index) => index !== suggestionIndex));
-    setSuggestionIndex(old => Math.max(0, Math.min(old, suggestions.length - 2)));
+    // Do not filter suggestions: removing the last one used to move the cursor
+    // backwards and make previously skipped shots reappear.
+    setSuggestionIndex(index => Math.min(index + 1, suggestions.length));
   }
 
   function addSuggestion() {
     const suggestion = suggestions[suggestionIndex];
     if (!suggestion || !selectedScene) return;
     onChange(selectedScene.id, "addAI", { shot: mapAIShot(suggestion) });
-    // Remove the accepted suggestion, so it cannot be added twice by mistake.
-    skipSuggestion();
+    // Advance exactly once. At index === length, the review is complete.
+    setSuggestionIndex(index => Math.min(index + 1, suggestions.length));
   }
 
   if (!scenes.length) return <section className="shot-workspace shot-empty"><Camera size={28}/><h2>No scenes yet</h2><p>Add and save a scene first, then plan its camera shots.</p></section>;
@@ -175,10 +187,10 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
         {scenes.map((scene, i) => <option key={scene.id} value={scene.id}>{sceneLabel(scene, i)}</option>)}
       </IOSSelect>
     </label>
-    <div className="ff-shot-toolbar">
+    <div className="ff-shot-toolbar tg-shots-inline-toolbar">
       <button className="shot-primary" type="button" style={buttonStyle} onClick={() => onChange(selectedScene.id, "add")}><Plus size={17}/> Add Manually</button>
       <button className="shot-primary" type="button" style={buttonStyle} disabled={aiBusy} onClick={generate}>
-        {aiBusy ? <LoaderCircle size={17} /> : <Wand2 size={17} />}{aiBusy ? "Generating..." : "Generate with AI"}
+        <Wand2 size={17}/>{aiBusy ? "Generating..." : "Generate with AI"}
       </button>
       <label className="ff-shot-count-field">
         Maximum AI suggestions
@@ -190,14 +202,28 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
     </div>
 
     {aiOpen && <div ref={panelRef} style={{ ...panelStyle, scrollMarginTop: 95 }} aria-busy={aiBusy}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <strong>{aiBusy ? `${APP_NAME} AI is planning shots...` : "AI shot suggestions"}</strong>
-        <button type="button" onClick={() => { requestRef.current++; setAiOpen(false); setAiBusy(false); setSuggestions([]); }} aria-label="Close AI suggestions" style={buttonStyle}><X size={15}/> Close</button>
-      </div>
-      <p className="ff-shot-ai-hint">Suggestions are temporary. Add a shot as a draft, review its performance and optional dialogue, then Save Shot. Existing shots are never overwritten.</p>
-      {aiBusy && <p role="status">Analyzing the selected scene...</p>}
+      {!aiBusy && <>
+        <div className="tg-shots-suggestion-heading">
+          <strong>AI shot suggestions</strong>
+          <button type="button" onClick={() => { requestRef.current++; setAiOpen(false); setAiBusy(false); setSuggestions([]); }} aria-label="Close AI suggestions" style={buttonStyle}><X size={15}/> Close</button>
+        </div>
+        <p className="ff-shot-ai-hint">Suggestions are temporary. Add a shot as a draft, review its performance and optional dialogue, then Save Shot. Existing shots are never overwritten.</p>
+      </>}
+      {aiBusy && <div className="tg-shots-ai-progress" role="status" aria-live="polite">
+        <div className="tg-shots-ai-progress-top"><span className="tg-shots-ai-progress-icon"><Wand2 size={21}/></span><div>
+          <strong>TakeGrid AI is planning your shots</strong>
+          <p>Creating a cinematic shot plan for the selected scene.</p>
+        </div></div>
+        <div className="tg-shots-ai-track" aria-label="Shot generation in progress"><span className="tg-shots-ai-track-runner"/></div>
+        <div className="tg-shots-ai-milestones" aria-label="Visual generation stages">
+          {["Reading scene context", "Planning cinematic beats", "Preparing shot suggestions"].map((title, i) => <span key={title} className={`tg-shots-ai-milestone ${aiElapsed >= i * 2 ? "is-active" : ""}`}><span className="tg-shots-ai-dot"/>{title}</span>)}
+        </div>
+        <small className="tg-shots-ai-disclaimer">Stages reflect elapsed time; results appear when AI finishes.</small>
+      </div>}
       {aiError && <p role="alert" style={{ color: "#b42318" }}>{aiError}</p>}
       {!aiBusy && currentSuggestion && <article className="ff-shot-review" aria-label="Shot suggestion">
+        {/* TAKEGRID_SHOTS_STABLE_FOOTER_V2: keep variable-length suggestion content separate from the fixed-position action footer */}
+        <div className="tg-shots-review-content" key={suggestionIndex}>
         <div className="ff-shot-review-head">
           <span className="ff-shot-progress">Shot suggestion {suggestionIndex + 1} / {suggestions.length}</span>
           <h3>{currentSuggestion.shot_type || "Camera shot"}</h3>
@@ -214,8 +240,8 @@ export default function ShotPlanner({ scenes = [], project, onChange, onSaveShot
           <blockquote>“{currentSuggestion.dialogue}”</blockquote>
           <p><strong>When / how:</strong> {currentSuggestion.dialogue_cue || "Timing not specified — adjust after adding"}</p>
         </div>}
-        <div className="ff-shot-review-nav">
-          <button type="button" className="ff-shot-nav-btn" disabled={suggestionIndex === 0} onClick={() => setSuggestionIndex(i => i - 1)}><ChevronLeft size={16}/> Previous</button>
+        </div>
+        <div className="ff-shot-review-nav tg-shots-review-actions">
           <button type="button" className="ff-shot-nav-btn" onClick={skipSuggestion}>Skip <X size={15}/></button>
           <button type="button" className="ff-shot-nav-btn" disabled={suggestionIndex >= suggestions.length - 1} onClick={nextSuggestion}>Next <ChevronRight size={16}/></button>
           <button type="button" className="shot-primary ff-shot-accept" onClick={addSuggestion}><Plus size={16}/> Add Shot (unsaved)</button>

@@ -4,3 +4,27 @@
 @media(max-width:768px){.ws-project-header{padding:22px}.ws-workspace-grid{grid-template-columns:1fr}.ws-local-nav{position:static;padding:10px;margin-bottom:3px}.ws-local-nav-title{display:none}.ws-mobile-tools-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:0;color:#172a46;font-weight:800;padding:12px;text-align:left}.ws-local-links{display:none}.ws-local-links.ws-show-mobile{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px}.ws-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ws-overview-intro{padding:23px}.ws-header-chat{padding:10px;font-size:11px}.ws-panel{padding:18px}.ws-fields-grid{grid-template-columns:1fr}}
 @media(max-width:430px){.ws-tool-grid{grid-template-columns:1fr}.ws-tool-tile{min-height:115px}.ws-stats>div{padding:12px}.ws-stats strong{font-size:23px}.ws-chat-form{flex-direction:column}.ws-chat-form button{align-self:flex-end}.ws-project-header{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.ws-tool-tile{transition:none}}
+
+/* TAKEGRID_CONTINUITY_POLISH_V1: scoped layout only; other sections unchanged */
+.project-workspace .tg-continuity{min-width:0;overflow:visible}
+.project-workspace .tg-continuity, .project-workspace .tg-continuity *{box-sizing:border-box}
+.project-workspace .tg-continuity-heading{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.project-workspace .tg-continuity-heading>div{min-width:0;flex:1 1 240px}
+.project-workspace .tg-continuity-heading h2{overflow-wrap:anywhere;line-height:1.22}
+.project-workspace .tg-continuity-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:4px}
+.project-workspace .tg-continuity-history{max-width:560px;min-width:0;margin-top:20px}
+.project-workspace .tg-continuity-history select{max-width:100%;min-width:0;text-overflow:ellipsis}
+.project-workspace .tg-continuity-results{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%;min-width:0}
+.project-workspace .tg-continuity-card{min-width:0;max-width:100%;overflow-wrap:anywhere;padding:20px;border-color:#e3eaf1;background:#fff}
+.project-workspace .tg-continuity-card h3{font-size:16px;line-height:1.4;color:#172a46;margin:0 0 12px;overflow-wrap:anywhere}
+.project-workspace .tg-continuity-card p{margin:10px 0;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.project-workspace .tg-continuity-card ul{padding-left:21px;margin:10px 0;max-width:100%}
+.project-workspace .tg-continuity-card li{margin-bottom:8px;overflow-wrap:anywhere;white-space:pre-wrap}
+.project-workspace .tg-continuity-meta{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.project-workspace .tg-continuity-meta>span{min-width:0;max-width:100%;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 11px;border-radius:11px;background:#f3f7fb;color:#172a46;font-size:12px;overflow-wrap:anywhere}
+.project-workspace .tg-continuity-meta strong{color:#64758a;font-size:11px}
+.project-workspace .tg-continuity-status{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;background:#eef6ff;border-radius:10px;padding:7px 10px;color:#172a46!important}
+.project-workspace .tg-continuity .ws-review-actions{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:9px;min-width:0}
+.project-workspace .tg-continuity .ws-review-actions .ws-ghost{min-width:0;flex:0 0 auto;white-space:normal;text-align:center;justify-content:center}
+.project-workspace .tg-continuity~.ff-other-save .ws-small-primary:disabled{opacity:1;background:#e9f4ff;color:#365775;cursor:default}
+@media(max-width:600px){.project-workspace .tg-continuity{padding:16px}.project-workspace .tg-continuity-card{padding:15px}.project-workspace .tg-continuity .ws-review-actions .ws-ghost{padding:9px 12px}}

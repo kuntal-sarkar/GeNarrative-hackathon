@@ -9,6 +9,26 @@ import "./GlobalSearch.css";
 const icons = { Projects: FolderOpen, Stories: BookOpen, Scenes: Clapperboard, Shots: Camera, Characters: UsersRound, Memory: Brain };
 const order = ["Projects", "Stories", "Scenes", "Shots", "Characters", "Memory"];
 
+// React escapes text automatically. Never inject raw HTML from project content.
+function HighlightMatch({ text, query }) {
+  const value = String(text || "");
+  const term = query.trim();
+  if (!term) return value;
+  const lowerValue = value.toLocaleLowerCase();
+  const lowerTerm = term.toLocaleLowerCase();
+  const parts = [];
+  let start = 0;
+  let index = lowerValue.indexOf(lowerTerm, start);
+  while (index !== -1) {
+    if (index > start) parts.push(value.slice(start, index));
+    parts.push(<mark className="ff-global-search-match" key={`${index}-${parts.length}`}>{value.slice(index, index + term.length)}</mark>);
+    start = index + term.length;
+    index = lowerValue.indexOf(lowerTerm, start);
+  }
+  if (start < value.length) parts.push(value.slice(start));
+  return <>{parts}</>;
+}
+
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -100,7 +120,7 @@ export default function GlobalSearch() {
 
   let resultIndex = -1;
   return <>
-    <button ref={trigger} type="button" className="ff-global-search-launch" onClick={show} aria-label="Search all projects" title="Search all projects (Ctrl+K)"><Search size={19}/><span className="ff-global-search-hint">Ctrl K</span></button>
+    <button ref={trigger} type="button" className="ff-global-search-launch" onClick={show} aria-label="Search all projects" title="Search all projects (Ctrl+K)"><Search size={19}/><span className="ff-global-search-hint">Ctrl + K</span></button>
     {mounted && createPortal(<div className={`ff-global-search-overlay ${open ? "is-open" : "is-closing"}`} onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
       <section ref={dialog} className="ff-global-search-dialog" role="dialog" aria-modal="true" aria-label={`Search across ${APP_NAME}`} onKeyDown={keydown}>
         <div className="ff-global-search-input-row"><Search size={21}/><input ref={input} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search projects, stories, scenes, characters..." aria-label="Search saved projects"/><button type="button" className="ff-global-search-close" onClick={close} aria-label="Close search"><X size={19}/></button></div>
@@ -109,7 +129,7 @@ export default function GlobalSearch() {
             resultIndex += 1;
             const itemIndex = resultIndex;
             const Icon = icons[item.category] || Search;
-            return <button type="button" key={item.id} data-ff-result-index={itemIndex} className={`ff-global-search-result ${selected === itemIndex ? "is-selected" : ""}`} onMouseEnter={() => setSelected(itemIndex)} onClick={() => go(item)}><span className="ff-global-search-result-icon"><Icon size={18}/></span><span className="ff-global-search-result-copy"><strong>{item.title}</strong><small>{item.project} · {item.category}</small><span>{item.preview}</span></span><CornerDownLeft size={16} className="ff-global-search-enter"/></button>;
+            return <button type="button" key={item.id} data-ff-result-index={itemIndex} className={`ff-global-search-result ${selected === itemIndex ? "is-selected" : ""}`} onMouseEnter={() => setSelected(itemIndex)} onClick={() => go(item)}><span className="ff-global-search-result-icon"><Icon size={18}/></span><span className="ff-global-search-result-copy"><strong><HighlightMatch text={item.title} query={query}/></strong><small><HighlightMatch text={item.project} query={query}/> · {item.category}</small><span><HighlightMatch text={item.preview} query={query}/></span></span><CornerDownLeft size={16} className="ff-global-search-enter"/></button>;
           })}</div>)}
         </div>
         <footer className="ff-global-search-footer"><span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span><span><kbd>Enter</kbd> Open</span><span><kbd>Esc</kbd> Close</span></footer>

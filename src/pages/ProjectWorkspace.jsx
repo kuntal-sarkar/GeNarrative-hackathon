@@ -892,7 +892,7 @@ export default function ProjectWorkspace() {
 
         {section === "chat" && <ProjectAIChat project={project} onSave={persist} onPushStory={pushAIStory} onOpenStory={() => navigate(`${base}/story`)} />}
 
-        {["critics", "continuity", "memory"].includes(section) && (section === "critics" || dirty) && <div className="ff-other-save"><button type="button" className="ws-small-primary" disabled={section === "critics" && !draftSections.includes("critics")} onClick={() => savePartial(latest => {
+        {["critics", "continuity", "memory"].includes(section) && (section === "critics" || section === "continuity" || section === "memory" || dirty) && <div className="ff-other-save"><button type="button" className="ws-small-primary" disabled={(section === "critics" || section === "continuity" || section === "memory") && !draftSections.includes(section)} onClick={() => savePartial(latest => {
 
           const keys = section === "chat" ? ["conversations", "chats", "chatSessions", "chatHistory", "story"] : section === "memory" ? ["creativeDecisions", "creativeMemory", "intentions"] : section === "critics" ? ["latestCritique", "critiques", "creativeDecisions"] : ["continuity", "continuityChecks", "continuityIssues"];
 
@@ -900,7 +900,7 @@ export default function ProjectWorkspace() {
 
           return { ...latest, ...delta };
 
-        }, "Section saved")}><Save size={15} /> {section === "critics" && !draftSections.includes("critics") ? "Saved" : section === "chat" ? "Save Conversation" : "Save This Section"}</button></div>}
+        }, "Section saved")}><Save size={15} /> {(section === "critics" || section === "continuity" || section === "memory") && !draftSections.includes(section) ? "Saved" : section === "chat" ? "Save Conversation" : "Save This Section"}</button></div>}
 
       </main>
 
