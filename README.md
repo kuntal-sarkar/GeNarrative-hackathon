@@ -36,11 +36,11 @@ Please use the testing account only for evaluating TAKEGRID and do not change it
 ![Cloudflare](https://img.shields.io/badge/Cloudflare-Optional_Images-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
 
 ![MVP](https://img.shields.io/badge/Hackathon-MVP_Ready-238636?style=flat-square)
-![Data](https://img.shields.io/badge/Data-Browser_Local-F9AB00?style=flat-square)
-![Database](https://img.shields.io/badge/MySQL-Planned-1B93F5?style=flat-square)
+![Data](https://img.shields.io/badge/Data-Supabase-238636?style=flat-square)
+![Database](https://img.shields.io/badge/PostgreSQL-Planned-1B93F5?style=flat-square)
 ![Voice](https://img.shields.io/badge/Live_Audio-Roadmap-FF6B5B?style=flat-square)
 
-[**Get the source**](https://github.com/kuntal-sarkar/GeNarrative-hackathon/tree/kuntal) | [**Download ZIP**](https://github.com/kuntal-sarkar/GeNarrative-hackathon/archive/refs/heads/kuntal.zip) | [**Quick setup**](#quick-start---copy-and-paste) | [**Complete setup**](#complete-windows-powershell-setup) | [**Team**](#team-runtime-error)
+[**Get the source**](https://github.com/kuntal-sarkar/GeNarrative-hackathon/tree/kuntal) | [**Download ZIP**](https://github.com/kuntal-sarkar/GeNarrative-hackathon/archive/refs/heads/main.zip) | [**Quick setup**](#quick-start---copy-and-paste) | [**Complete setup**](#complete-windows-powershell-setup) | [**Team**](#team-runtime-error)
 
 [Overview](#overview) | [Features](#implemented-features) | [Status](#mvp-status-and-validation) | [Architecture](#architecture) | [Future features](#future-ai-and-voice-features) | [Roadmap](#roadmap)
 
@@ -49,7 +49,7 @@ Please use the testing account only for evaluating TAKEGRID and do not change it
 ---
 
 > [!IMPORTANT]
-> **Project status: Hackathon MVP (November 2026).** The core frontend and Flask AI workflows have been implemented and tested during development, including a successful automatic AI Project Builder test. A local frontend production build and backend Python syntax check passed. This is **not** a claim of completed public deployment, database persistence, authentication, or exhaustive end-to-end testing. This guide targets the working **`kuntal` branch** and its verified MVP baseline (`a08e82f`); check GitHub for newer commits and PR merges.
+> **Project status: Hackathon MVP (November 2026).** The core frontend and Flask AI workflows have been implemented and tested during development, including a successful automatic AI Project Builder test. A local frontend production build and backend Python syntax check passed. This is **not** a claim of completed public deployment, database persistence, authentication, or exhaustive end-to-end testing. This guide targets the working **`kuntal & main` branch** and its verified MVP baseline (`a08e82f`); check GitHub for newer commits and PR merges.
 
 <a id="what-is-takegrid"></a>
 
@@ -149,10 +149,11 @@ This is a conceptual workflow, not a claim that every operation is automatically
 
 ### Current development status
 
-![Frontend](https://img.shields.io/badge/Frontend-Local_Build_Passed-238636?style=flat-square)
+![Frontend](https://img.shields.io/badge/Frontend_Build_Passed-238636?style=flat-square)
 ![Backend](https://img.shields.io/badge/Backend-Python_Syntax_Passed-238636?style=flat-square)
-![AI](https://img.shields.io/badge/AI-Core_Flows_Locally_Tested-1B93F5?style=flat-square)
-![Cloud](https://img.shields.io/badge/Cloud_Deployment-Not_Verified-F9AB00?style=flat-square)
+![AI](https://img.shields.io/badge/AI-Core_Flows_Working-238636?style=flat-square)
+![Cloud](https://img.shields.io/badge/Cloud_Deployment-Passed-238636?style=flat-square)
+![MVP](https://img.shields.io/badge/Deployed-238636?style=flat-square)
 
 The **hackathon MVP is feature-complete** based on the development-machine tests discussed by the team. The frontend build passed and an AI-generated project was created successfully with the configured model fallback. New contributors must still verify their own API credentials, model availability, browser persistence, and full workflows. **Database sync, public hosting, authentication, and live voice are not part of the verified current MVP.**
 
@@ -305,7 +306,7 @@ Detailed roles and responsibilities are documented in [Section 11](#11-team-runt
 ```powershell
 # 1. Clone the verified MVP branch
 Set-Location "$HOME\Documents"
-git clone --branch kuntal --single-branch https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
+git clone --branch main --single-branch https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
 Set-Location .\GeNarrative-hackathon
 
 # 2. Install React dependencies
@@ -841,6 +842,8 @@ The project does not aim to replace a director, screenwriter, or creative team. 
 ## Acknowledgements
 
 Built by **Team Runtime Error**: **Kuntal Sarkar**, **Aditi Singh**, **Diya Shree**, and **Swati Singh**.
+
+**Experience TAKEGRID AI Live:** [Open the live app](https://takegrid-ai.pages.dev/) 
 
 Thank you to the GeNarrative Clash 2026 organizers and the open-source ecosystem behind the tools used in TAKEGRID.
 
