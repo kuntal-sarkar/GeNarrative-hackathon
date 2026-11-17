@@ -742,20 +742,32 @@ TAKEGRID is a collaborative hackathon project created by **Team Runtime Error** 
 
 ## 12. Roadmap
 
-### Phase 1 - Core MVP: implemented locally
+### Phase 1 - Core MVP: implemented & Deployed
 
 - [x] Project-centered React frontend and Flask AI backend.
 - [x] Story, scenes, shots, storyboard and character tools.
 - [x] Project AI Chat and Global AI interactions.
-- [x] AI Project Builder with a successful local project-creation test.
+- [x] AI Project Builder with a successful project-creation test.
 - [x] Creative Critics, Reimagine, Creative Memory and Continuity interfaces/services.
 - [x] Project export/backup-oriented workflows.
 - [x] Model routing and selected failover paths.
 - [x] Successful frontend production build and backend Python compilation.
+- [x] Cloudflare Turnstile.
+- [x] AI Authentication Guard.
+- [x] AI Rate Limiting.
+- [x] Production CORS Configuration.
+- [x] 50% working MVP deployed.
+- [x] Model routing and selected failover paths.
+- [x] Successful frontend production build and backend Python compilation.
+- [x] Live frontend (Cloudflare Pages) and Flask backend (Render).
+- [x] Supabase authentication integration, password recovery, Turnstile, and AI rate limiting.
 
 ### Phase 2 - Data and reliability: next
 
 - [ ] MySQL database schema and migrations.
+- [ ] Advanced AI Rate Limiting.
+- [ ] Advanced RAG Model.
+- [ ] Advanced Role-Based Access Control (RBAC)
 - [ ] Durable backend project storage and safe browser-data import.
 - [ ] Cross-browser and teammate environment testing.
 - [ ] Full workflow QA, including restore, long requests, and model failures.
