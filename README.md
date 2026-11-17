@@ -345,14 +345,14 @@ If `py` is unavailable, install the Python Launcher or use an installed `python`
 # Change this folder if you prefer another working location.
 Set-Location "$HOME\Documents"
 
-git clone --branch kuntal --single-branch https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
+git clone --branch main --single-branch https://github.com/kuntal-sarkar/GeNarrative-hackathon.git
 Set-Location .\GeNarrative-hackathon
 
 git branch --show-current
 git status -sb
 ```
 
-The documented branch is **`kuntal`**, which contains the verified MVP baseline commit `a08e82f`. Check for later changes and approved PR merges before changing the branch. Never switch branches over uncommitted work without reviewing `git status`.
+The documented branch is **`main`**, which contains the verified MVP baseline commit `a08e82f`. Check for later changes and approved PR merges before changing the branch. Never switch branches over uncommitted work without reviewing `git status`.
 
 ### Step 2 - Install frontend dependencies
 
@@ -735,7 +735,7 @@ TAKEGRID is a collaborative hackathon project created by **Team Runtime Error** 
 | **Team leader** | Kuntal Sarkar |
 | **Members** | Aditi Singh, Diya Shree, Swati Singh |
 | **Repository** | [GeNarrative-hackathon](https://github.com/kuntal-sarkar/GeNarrative-hackathon) |
-| **Working MVP branch documented here** | [`kuntal`](https://github.com/kuntal-sarkar/GeNarrative-hackathon/tree/kuntal) |
+| **Working MVP branch documented here** | [`main`](https://github.com/kuntal-sarkar/GeNarrative-hackathon/tree/kuntal) |
 
 ---
 
