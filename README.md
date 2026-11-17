@@ -153,7 +153,7 @@ This is a conceptual workflow, not a claim that every operation is automatically
 ![Backend](https://img.shields.io/badge/Backend-Python_Syntax_Passed-238636?style=flat-square)
 ![AI](https://img.shields.io/badge/AI-Core_Flows_Working-238636?style=flat-square)
 ![Cloud](https://img.shields.io/badge/Cloud_Deployment-Passed-238636?style=flat-square)
-![MVP](https://img.shields.io/badge/Deployed-238636?style=flat-square)
+![MVP](https://img.shields.io/badge/MVP-Deployed-238636?style=flat-square)
 
 The **hackathon MVP is feature-complete** based on the development-machine tests discussed by the team. The frontend build passed and an AI-generated project was created successfully with the configured model fallback. New contributors must still verify their own API credentials, model availability, browser persistence, and full workflows. **Database sync, public hosting, authentication, and live voice are not part of the verified current MVP.**
 
@@ -563,7 +563,7 @@ npm run dev
 
 ![Frontend](https://img.shields.io/badge/Frontend-React_%2B_Vite-646CFF?style=flat-square)
 ![Backend](https://img.shields.io/badge/Backend-Flask_%2B_Python-202020?style=flat-square)
-![Storage](https://img.shields.io/badge/Storage-Browser_Local-F9AB00?style=flat-square)
+![Storage](https://img.shields.io/badge/Storage-Supabase-F9AB00?style=flat-square)
 
 ---
 
