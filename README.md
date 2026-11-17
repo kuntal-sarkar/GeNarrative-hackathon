@@ -15,7 +15,9 @@ Turn an idea into a story, scenes, shots, and storyboard. Explore multiple creat
 Create your own account to get started. For hackathon reviewers, a testing account is also available for convenience:
 
 - **Email:** `idiotscomedy89@gmail.com`
-- **Password:**  ```powershell   Kuntal@07410#
+- **Password:** 
+```powershell
+Kuntal@07410#
 ````
 
 
