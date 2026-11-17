@@ -250,7 +250,7 @@ A context-aware assistant for the active project, distinct from Global AI. Imple
 | Advanced Role-Based Access Control (RBAC) | **Future feature** |
 | Shared Project Editing and Permissions | **Future feature** |
 | Voice-based Storytelling and Brainstorming  | **Future feature** |
-| AI Dialogue Rehearsal | **	Future feature** |
+| AI Dialogue Rehearsal | **Future feature** |
 
 ---
 
