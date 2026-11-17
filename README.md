@@ -10,6 +10,19 @@ Turn an idea into a story, scenes, shots, and storyboard. Explore multiple creat
 
 **GeNarrative Clash 2026 | Team Runtime Error**
 
+**🚀 Experience TAKEGRID AI Live:** [Open the live app](https://takegrid-ai.pages.dev/)  
+
+Create your own account to get started. For hackathon reviewers, a temporary demo account is also available:
+
+- **Demo email:** `idiotscomedy89@gmail.com`
+- **Demo password:** Shared privately for evaluation (not published in this public repository).
+- **Access window:** Temporary access for the hackathon review period; the credentials will be rotated or disabled afterward.
+
+Please use the demo account only for evaluating TAKEGRID and do not change its account settings.
+
+
+**Source code:** [GitHub repository](https://github.com/kuntal-sarkar/GeNarrative-hackathon)
+
 ![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-Backend-202020?style=for-the-badge&logo=flask&logoColor=white)
@@ -229,10 +242,15 @@ A context-aware assistant for the active project, distinct from Global AI. Imple
 | :--- | :--- |
 | Browser-local project and chat data | **Current MVP behavior** |
 | MySQL server persistence and automatic migration | **Next phase** |
-| Multi-user login and project ownership | **Planned** |
+| RAG Integration | **Planned** |
 | Public hosting and production hardening | **Not yet verified** |
 | Real-time microphone transcription, TTS, and AI voice | **Future feature** |
 | Provider-side hard cancellation | **Not guaranteed** |
+| Real-time Team Collaboration | **Planned** |
+| Advanced Role-Based Access Control (RBAC) | **Future feature** |
+| Shared Project Editing and Permissions | **Future feature** |
+| Voice-based Storytelling and Brainstorming  | **Future feature** |
+| AI Dialogue Rehearsal | **	Future feature** |
 
 ---
 
