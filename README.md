@@ -12,11 +12,17 @@ Turn an idea into a story, scenes, shots, and storyboard. Explore multiple creat
 
 **🚀 Experience TAKEGRID AI Live:** [Open the live app](https://takegrid-ai.pages.dev/)  
 
-Create your own account to get started. For hackathon reviewers, a temporary demo account is also available:
+Create your own account to get started. For hackathon reviewers, a testing account is also available:
 
-- **Demo email:** `idiotscomedy89@gmail.com`
-- **Demo password:** Shared privately for evaluation (not published in this public repository).
-- **Access window:** Temporary access for the hackathon review period; the credentials will be rotated or disabled afterward.
+- **Email:** `idiotscomedy89@gmail.com`
+- **Password:** 
+
+```powershell
+Kuntal@07410#.
+````
+
+
+**Access window:** Temporary access for the hackathon review period; the credentials will be rotated or disabled afterward.
 
 Please use the demo account only for evaluating TAKEGRID and do not change its account settings.
 
